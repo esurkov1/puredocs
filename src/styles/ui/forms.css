@@ -1,0 +1,98 @@
+/* ─── Forms: input, textarea, select ─── */
+
+input,
+textarea,
+select {
+  width: 100%;
+  height: 36px;
+  background: var(--surface-base-color);
+  border: 1px solid var(--border-base-color);
+  border-radius: var(--radius);
+  color: var(--text-primary-color);
+  font-size: var(--text-md);
+  padding: var(--space-sm);
+  text-indent: var(--space-sm);
+  outline: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary-color);
+  color: var(--text-primary-color);
+}
+
+input:hover,
+textarea:hover,
+select:hover {
+  border-color: var(--border-strong-base-color);
+  color: var(--text-primary-color);
+}
+
+input:not([type="file"]):read-only,
+textarea:read-only,
+select:read-only {
+  background: var(--surface-code-color);
+  color: var(--text-muted-color);
+}
+
+input::placeholder,
+textarea::placeholder,
+select::placeholder {
+  color: var(--text-muted-color);
+}
+
+/* ─── input ─── */
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+  -moz-appearance: textfield;
+}
+
+input[type="file"] {
+  padding-top: var(--space-sm);
+  color: var(--text-muted-color);
+}
+
+input[type="file"]::file-selector-button {
+  display: none;
+}
+
+/* ─── textarea ─── */
+
+textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+/* ─── select chevron ─── */
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 32px;
+  background: var(--surface-base-color) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%234B5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right var(--space-sm) center!important;
+  background-size: 16px;
+}
+
+.dark select {
+  background: var(--surface-base-color) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%238B949E' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right var(--space-sm) center!important;
+}
+
+/* ─── invalid ─── */
+
+input.invalid,
+textarea.invalid,
+select.invalid {
+  border-color: var(--color-red);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-red) 16%, transparent);
+}
+
+/* ─── variants ─── */
+
+.sidebar .search-input {
+  padding: 0 30px;
+}

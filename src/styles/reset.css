@@ -1,0 +1,26 @@
+/**
+ * Reset: нормализация стилей для .root и потомков
+ */
+
+.root *,
+.root *::before,
+.root *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.root button {
+  border: none;
+  cursor: pointer;
+  appearance: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root *,
+  .root *::before,
+  .root *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

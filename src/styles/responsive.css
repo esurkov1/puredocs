@@ -1,0 +1,104 @@
+/**
+ * Responsive — mobile-first (min-width breakpoints)
+ * Base   = < 480px (small phones)
+ * sm     = >= 480px
+ * md     = >= 768px
+ * lg     = >= 992px
+ * xl     = >= 1200px
+ */
+
+/* ─── Base (mobile, < 480px) ─── */
+:root,
+.root {
+  --page-x: var(--space-md);
+  --page-y: 20px;
+  --page-bottom: 40px;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 50;
+  box-shadow: var(--shadow-lg);
+  max-width: min(85vw, 320px);
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+}
+
+h1 { font-size: 18px; }
+
+.search-modal {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 12px;
+  border-radius: 12px;
+}
+
+.btn:not(.icon) { min-height: 44px; }
+
+/* ─── sm (>= 480px) ─── */
+@media (min-width: 480px) {
+  :root,
+  .root {
+    --page-x: var(--space-lg);
+    --page-y: var(--space-lg);
+    --page-bottom: 60px;
+  }
+
+  h1 { font-size: var(--text-2xl); }
+
+  .btn:not(.icon) { min-height: 36px; }
+}
+
+/* ─── md (>= 768px) ─── */
+@media (min-width: 768px) {
+  :root,
+  .root {
+    --page-x: var(--space-lg);
+    --page-bottom: 60px;
+  }
+
+  .search-modal {
+    width: 560px;
+    max-width: 90vw;
+    margin: 0;
+    border-radius: 14px;
+  }
+
+}
+
+/* ─── lg (>= 992px) ─── */
+@media (min-width: 992px) {
+  :root,
+  .root {
+    --page-x: var(--space-xl);
+    --page-y: var(--space-xl);
+    --page-bottom: 80px;
+  }
+
+  .sidebar {
+    position: static;
+    box-shadow: 1px 0 0 var(--border-base-color);
+  }
+
+  .sidebar.collapsed {
+    transform: none;
+  }
+}
+
+/* ─── xl (>= 1200px) ─── */
+@media (min-width: 1200px) {
+  .page {
+    flex-direction: row;
+  }
+
+  .page > .aside {
+    width: var(--aside-width);
+    min-width: var(--aside-width);
+    max-width: var(--aside-width);
+  }
+}

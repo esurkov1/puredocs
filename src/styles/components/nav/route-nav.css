@@ -1,0 +1,95 @@
+/**
+ * Route navigation
+ */
+
+.route-nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--border-base-color);
+}
+
+.route-nav--single { grid-template-columns: minmax(0, 1fr); }
+
+.route-nav-link {
+  display: grid;
+  align-items: stretch;
+  column-gap: var(--space-sm);
+  min-height: 82px;
+  padding: var(--space-md);
+  text-decoration: none;
+  transition: transform var(--transition);
+}
+
+.route-nav-link--previous { grid-template-columns: 24px minmax(0, 1fr); }
+.route-nav-link--next { grid-template-columns: minmax(0, 1fr) 24px; }
+
+.route-nav-link:hover {
+  transform: translateY(-1px);
+}
+
+.route-nav-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.route-nav-category {
+  font-size: var(--text-xs);
+  line-height: 1.2;
+  color: var(--text-subtle-color);
+  text-transform: uppercase;
+  letter-spacing: 0.45px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.route-nav-title {
+  color: var(--text-primary-color);
+  font-size: var(--text-md);
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.route-nav-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.route-nav-path {
+  font-family: var(--font-family-mono);
+  color: var(--text-muted-color);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+}
+
+.route-nav-side {
+  color: var(--text-subtle-color);
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+}
+.route-nav-side svg { width: 14px; height: 14px; display: block; }
+
+@media (max-width: 860px) {
+  .route-nav { grid-template-columns: minmax(0, 1fr); }
+  .route-nav-link { min-height: 78px; padding: var(--space-sm) var(--space-md); }
+  .route-nav-title { font-size: 13px; }
+}

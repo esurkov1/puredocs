@@ -1,0 +1,67 @@
+/**
+ * Utilities: flex, grid, row/col, interactive primitives
+ */
+
+/* ─── Flex/Grid Utilities ─── */
+.flex { display: flex; }
+.flex-col { display: flex; flex-direction: column; }
+.grid { display: grid; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.grow { flex: 1; }
+.shrink-0 { flex-shrink: 0; }
+.min-w-0 { min-width: 0; }
+.min-h-0 { min-height: 0; }
+.ml-auto { margin-inline-start: auto; }
+.w-full { width: 100%; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ─── Row/Col ─── */
+.row { display: flex; align-items: center; gap: var(--space-sm); }
+.row-md { display: flex; align-items: center; gap: var(--space-md); }
+.row-wrap { display: flex; align-items: center; gap: var(--space-sm); flex-wrap: wrap; }
+
+.col { display: flex; flex-direction: column; gap: var(--space-sm); }
+.col-md { display: flex; flex-direction: column; gap: var(--space-md); }
+
+/* ─── Interactive ─── */
+.hover-surface:hover {
+  background: var(--surface-hover-color);
+  border-color: var(--border-strong-base-color);
+}
+
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-light-color);
+}
+
+/* ─── Lock Icon Slots ─── */
+.nav-item-lock,
+.search-result-lock,
+.tag-op-lock {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.nav-item-lock svg,
+.search-result-lock svg,
+.tag-op-lock svg {
+  width: 12px;
+  height: 12px;
+}
+
+.nav-item-lock--required,
+.search-result-lock--required,
+.tag-op-lock--required {
+  color: var(--color-red);
+  opacity: 0.9;
+}
+
+.nav-item-lock--configured,
+.search-result-lock--configured,
+.tag-op-lock--configured {
+  color: var(--color-green);
+  opacity: 0.9;
+}

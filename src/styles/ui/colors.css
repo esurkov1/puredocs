@@ -1,0 +1,187 @@
+/* Light theme defaults */
+:root,
+.root,
+.root.light {
+  /* Surface (4 levels) */
+  --surface-base-color: #FAFBFC;
+  --surface-raised-color: #FFFFFF;
+  --surface-hover-color: #F3F4F6;
+  --surface-active-color: #EBF0FF;
+
+  /* Borders */
+  --border-base-color: #E5E7EB;
+  --border-strong-base-color: #D1D5DB;
+
+  /* Text */
+  --text-primary-color: #1F2937;
+  --text-muted-color: #6B7280;
+  --text-subtle-color: #9CA3AF;
+  --text-on-solid-color: #FFFFFF;
+
+  /* Shadows & Overlay */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
+  --overlay-color: rgba(0,0,0,0.4);
+
+  /* Scrollbar */
+  --scrollbar-thumb-color: #D1D5DB;
+  --scrollbar-track-color: transparent;
+
+  /* Surface (elevated/code/inline-code) */
+  --surface-elevated-color: var(--surface-raised-color);
+  --surface-code-color: color-mix(in srgb, var(--surface-base-color) 70%, var(--surface-raised-color));
+  --surface-inline-code-color: color-mix(in srgb, var(--surface-hover-color) 65%, var(--surface-raised-color));
+
+  /* Primary (can be overridden in theme.ts) */
+  --primary-color: #2563EB;
+  --primary-hover-color: color-mix(in srgb, var(--primary-color) 90%, #000000);
+  --primary-light-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
+
+  /* Fonts (can be overridden in theme.ts) */
+  --font-family-base: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, monospace;
+
+  /* Semantic accent colors */
+  --color-green: #22c55e;
+  --color-blue: #3b82f6;
+  --color-orange: #f59e0b;
+  --color-purple: #8b5cf6;
+  --color-red: #ef4444;
+}
+
+/* Dark theme */
+.root.dark {
+  /* Surface (4 levels) */
+  --surface-base-color: #0F1117;
+  --surface-raised-color: #161B22;
+  --surface-hover-color: #21262D;
+  --surface-active-color: #1A2233;
+
+  /* Borders */
+  --border-base-color: #30363D;
+  --border-strong-base-color: #484F58;
+
+  /* Text */
+  --text-primary-color: #E6EDF3;
+  --text-muted-color: #8B949E;
+  --text-subtle-color: #6E7681;
+  --text-on-solid-color: #0D1117;
+
+  /* Shadows & Overlay */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
+  --overlay-color: rgba(0,0,0,0.6);
+
+  /* Scrollbar */
+  --scrollbar-thumb-color: #484F58;
+  --scrollbar-track-color: transparent;
+
+  /* Surface (elevated/code/inline-code) */
+  --surface-elevated-color: color-mix(in srgb, var(--surface-raised-color) 65%, var(--surface-hover-color));
+  --surface-code-color: var(--surface-raised-color);
+  --surface-inline-code-color: color-mix(in srgb, var(--surface-hover-color) 70%, var(--surface-raised-color));
+
+  /* Primary derivation for dark mode */
+  --primary-hover-color: color-mix(in srgb, var(--primary-color) 88%, #FFFFFF);
+  --primary-light-color: color-mix(in srgb, var(--primary-color) 15%, transparent);
+}
+
+/* ─── text utilities ─── */
+
+.u-text-primary {
+  color: var(--text-primary-color);
+}
+.u-text-muted {
+  color: var(--text-muted-color);
+}
+.u-text-subtle {
+  color: var(--text-subtle-color);
+}
+.u-text-on-solid {
+  color: var(--text-on-solid-color);
+}
+.u-text-accent {
+  color: var(--primary-color);
+}
+
+/* ─── surface utilities ─── */
+
+.u-bg-surface-base {
+  background: var(--surface-base-color);
+}
+.u-bg-surface-raised {
+  background: var(--surface-raised-color);
+}
+.u-bg-surface-hover {
+  background: var(--surface-hover-color);
+}
+.u-bg-surface-active {
+  background: var(--surface-active-color);
+}
+.u-bg-surface-elevated {
+  background: var(--surface-elevated-color);
+}
+.u-bg-surface-code {
+  background: var(--surface-code-color);
+}
+.u-bg-surface-inline-code {
+  background: var(--surface-inline-code-color);
+}
+.u-bg-accent-soft {
+  background: var(--primary-light-color);
+}
+.u-bg-accent-hover {
+  background: var(--primary-hover-color);
+}
+.u-bg-transparent {
+  background: transparent;
+}
+
+/* ─── border utilities ─── */
+
+.u-border-base {
+  border-color: var(--border-base-color);
+}
+.u-border-strong {
+  border-color: var(--border-strong-base-color);
+}
+
+/* ─── semantic accent utilities ─── */
+
+.u-text-green {
+  color: var(--color-green);
+}
+.u-bg-green-soft {
+  background: color-mix(in srgb, var(--color-green) 16%, transparent);
+}
+
+.u-text-blue {
+  color: var(--color-blue);
+}
+.u-bg-blue-soft {
+  background: color-mix(in srgb, var(--color-blue) 16%, transparent);
+}
+
+.u-text-orange {
+  color: var(--color-orange);
+}
+.u-bg-orange-soft {
+  background: color-mix(in srgb, var(--color-orange) 16%, transparent);
+}
+
+.u-text-purple {
+  color: var(--color-purple);
+}
+.u-bg-purple-soft {
+  background: color-mix(in srgb, var(--color-purple) 16%, transparent);
+}
+
+
+.u-text-red {
+  color: var(--color-red);
+}
+.u-bg-red-soft {
+  background: color-mix(in srgb, var(--color-red) 16%, transparent);
+}

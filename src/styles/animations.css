@@ -1,0 +1,21 @@
+/**
+ * Animations / keyframes
+ */
+
+ *{
+  transition: all .3s ease!important;
+ }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

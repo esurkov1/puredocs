@@ -1,0 +1,156 @@
+/* ─── Buttons: base ─── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  height: 36px;
+  padding: 0 var(--space-md);
+  border-radius: var(--radius);
+
+  font-family: var(--font-family-base);
+  font-size: var(--text-sm);
+  font-weight: 500;
+
+  background: transparent;
+  color: var(--text-primary-color);
+  cursor: pointer;
+  outline: none;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.btn .btn-icon-slot {
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ─── Buttons: sizes ─── */
+
+.btn.s {
+  height: 32px;
+  padding: 0 var(--space-sm);
+}
+
+.btn.m {
+  height: 36px;
+  padding: 0 var(--space-md);
+}
+
+.btn.l {
+  height: 40px;
+  padding: 0 var(--space-md);
+  border-radius: var(--radius-lg);
+}
+
+.btn.icon.m {
+  width: 36px;
+  min-width: 36px;
+  min-height: 36px;
+}
+
+.btn.icon.l {
+  width: 40px;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.btn.l svg,
+.btn.icon.m svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ─── Buttons: interactive states ─── */
+
+.btn:hover:not(:disabled) {
+  background: var(--surface-hover-color);
+  color: var(--text-primary-color);
+}
+
+.btn:active:not(:disabled) {
+  background: var(--surface-active-color);
+  color: var(--text-primary-color);
+}
+
+.btn:focus-visible {
+  box-shadow: 0 0 0 3px var(--primary-light-color);
+  outline: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Buttons: visual variants ─── */
+
+.btn.primary {
+  background: var(--primary-color);
+  color: var(--text-on-solid-color);
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: var(--primary-hover-color);
+  color: var(--text-on-solid-color);
+}
+
+.btn.primary:active:not(:disabled) {
+  background: color-mix(in srgb, var(--primary-color) 84%, var(--surface-base-color));
+  color: var(--text-on-solid-color);
+}
+
+.btn.secondary {
+  background: var(--surface-hover-color);
+}
+
+.btn.secondary:hover:not(:disabled) {
+  background: var(--border-base-color);
+}
+
+.btn.secondary:active:not(:disabled) {
+  background: var(--surface-active-color);
+}
+
+.btn.icon {
+  padding: 0;
+  width: 32px;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.btn.soft {
+  background: color-mix(in srgb, var(--text-subtle-color) 8%, transparent);
+}
+
+.btn.soft:hover:not(:disabled) {
+  background: var(--surface-hover-color);
+}
+
+.btn.soft:active:not(:disabled) {
+  background: color-mix(in srgb, var(--text-subtle-color) 14%, transparent);
+}
+
+.btn.active {
+  color: var(--color-green);
+  background: color-mix(in srgb, var(--color-green) 12%, transparent);
+}
+
+.btn.active:hover:not(:disabled) {
+  color: var(--color-green);
+  background: color-mix(in srgb, var(--color-green) 16%, transparent);
+}
+
+.btn.active:active:not(:disabled) {
+  color: var(--color-green);
+  background: color-mix(in srgb, var(--color-green) 22%, transparent);
+}

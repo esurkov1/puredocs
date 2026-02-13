@@ -1,0 +1,32 @@
+/**
+ * PureDocs — Entry point
+ * Порядок: variables → colors/themes → reset → base → ui → utilities → layout → components → animations → responsive
+ */
+
+@import './variables.css';
+@import './ui/colors.css';
+@import './reset.css';
+@import './base.css';
+@import './ui/typography.css';
+@import './ui/forms.css';
+@import './ui/badge.css';
+@import './ui/buttons.css';
+@import './ui/breadcrumb.css';
+@import './utilities.css';
+@import './components/layout/page-layout.css';
+
+/* Components */
+@import './components/cards.css';
+@import './components/nav/sidebar.css';
+@import './components/nav/route-nav.css';
+@import './components/content.css';
+@import './components/params.css';
+@import './components/schema.css';
+@import './components/tabs-code.css';
+@import './components/try-it.css';
+@import './components/modals/modal-base.css';
+@import './components/modals/search-modal.css';
+@import './components/misc.css';
+
+@import './animations.css';
+@import './responsive.css';

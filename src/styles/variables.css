@@ -1,0 +1,44 @@
+/**
+ * Design Tokens (theme-agnostic)
+ * Spacing, typography scale, radius, badge sizes.
+ * Цвета тем и semantic colors — в ui/colors.css
+ */
+
+:root,
+.root {
+  /* Spacing scale */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  /* Layout */
+  --page-x: var(--space-xl);
+  --page-y: var(--space-xl);
+  --page-bottom: 80px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+
+  /* Misc */
+  --transition: 0.2s ease;
+  --leading-relaxed: 1.625;
+  --leading-normal: 1.4;
+  --method-fixed-width: 56px;
+
+  /* Typography scale */
+  --text-xs: 10px;
+  --text-sm: 12px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 22px;
+  --text-3xl: 28px;
+
+}
