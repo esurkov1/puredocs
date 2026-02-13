@@ -15,8 +15,8 @@ export async function renderOverview(pageSlot: HTMLElement, _asideSlot: HTMLElem
   const spec = store.get().spec;
   if (!spec) return;
 
-  const header = h('div', { className: 'header' });
-  const titleWrap = h('div', { className: 'overview-title-wrap' });
+  const header = h('div', { className: 'block header' });
+  const titleWrap = h('div', { className: 'title' });
   titleWrap.append(
     h('h1', { textContent: spec.info.title }),
     h('span', { className: 'version', textContent: `v${spec.info.version}` }),
@@ -34,7 +34,7 @@ export async function renderOverview(pageSlot: HTMLElement, _asideSlot: HTMLElem
   const methods = getMethodBreakdownFromOperations(spec.operations);
 
   pageSlot.append(createSection(
-    { className: 'summary-section' },
+    { className: 'summary' },
     createSummaryLine(
       [
         { label: 'Endpoints', value: spec.operations.length },
@@ -63,13 +63,13 @@ export async function renderOverview(pageSlot: HTMLElement, _asideSlot: HTMLElem
       const item = createCard({
         interactive: true,
         active: isActive,
-        className: 'tag-group-card',
+        className: 'card-group',
         onClick: () => {
           if (env) store.setActiveEnvironment(env.name);
         },
       });
       item.title = 'Click to set as active environment';
-      const info = h('div', { className: 'tag-card-info' });
+      const info = h('div', { className: 'card-info' });
       const nameWrap = h('div', { className: 'inline-cluster inline-cluster-sm' });
       const iconEl = h('span', { className: 'icon-muted' });
       iconEl.innerHTML = icons.server;
@@ -78,7 +78,7 @@ export async function renderOverview(pageSlot: HTMLElement, _asideSlot: HTMLElem
       if (server.description) {
         info.append(h('p', { textContent: server.description }));
       }
-      const badges = h('div', { className: 'tag-card-badges' });
+      const badges = h('div', { className: 'card-badges' });
       item.append(info, badges);
       serversSection.append(item);
     }
@@ -103,17 +103,17 @@ export async function renderOverview(pageSlot: HTMLElement, _asideSlot: HTMLElem
     for (const wh of spec.webhooks) {
       const card = createCard({
         interactive: true,
-        className: 'tag-group-card',
+        className: 'card-group',
         onClick: () => navigate(buildPath({ type: 'webhook', webhookName: wh.name })),
       });
-      const info = h('div', { className: 'tag-card-info' });
+      const info = h('div', { className: 'card-info' });
       info.append(
         h('h3', { textContent: wh.summary || wh.name }),
         wh.description
           ? h('p', { textContent: wh.description })
           : h('p', { textContent: `${wh.method.toUpperCase()} webhook` }),
       );
-      const badges = h('div', { className: 'tag-card-badges' });
+      const badges = h('div', { className: 'card-badges' });
       badges.append(
         createBadge({ text: 'WH', kind: 'webhook', size: 's', mono: true }),
         createBadge({ text: wh.method.toUpperCase(), kind: 'method', method: wh.method, size: 's', mono: true }),
@@ -130,18 +130,18 @@ export async function renderOverview(pageSlot: HTMLElement, _asideSlot: HTMLElem
 function createTagCard(tag: SpecTag): HTMLElement {
   const card = createCard({
     interactive: true,
-    className: 'tag-group-card',
+    className: 'card-group',
     onClick: () => navigate(buildPath({ type: 'tag', tag: tag.name })),
   });
 
-  const info = h('div', { className: 'tag-card-info' });
+  const info = h('div', { className: 'card-info' });
   info.append(
     h('h3', { textContent: tag.name }),
     h('p', { textContent: tag.description || `${tag.operations.length} endpoints` }),
   );
 
   const methodBreakdown = getMethodBreakdown(tag);
-  const badges = h('div', { className: 'tag-card-badges' });
+  const badges = h('div', { className: 'card-badges' });
   for (const [method, count] of Object.entries(methodBreakdown)) {
     const badge = createBadge({
       text: method.toUpperCase(),

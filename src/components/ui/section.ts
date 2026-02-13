@@ -28,7 +28,7 @@ export function createSectionTitleWrap(title: string | HTMLElement, badge?: stri
 }
 
 export function createSection(options: SectionOptions, ...children: (HTMLElement | string)[]): HTMLElement {
-  const section = h('div', { className: `section${options.className ? ` ${options.className}` : ''}` });
+  const section = h('div', { className: `block section${options.className ? ` ${options.className}` : ''}` });
   if (options.titleEl) {
     section.append(options.titleEl);
   } else if (options.title) {

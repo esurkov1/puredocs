@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PureDocs — Beautiful API Documentation Portal</title>
+  <meta name="description" content="Transform any OpenAPI specification into a beautiful, interactive developer portal. One Web Component. Zero config.">
+  <meta name="theme-color" content="#080a10">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#080a10;--bg-card:rgba(17,22,35,.65);--bg-card-h:rgba(22,28,44,.75);
+      --bdr:rgba(255,255,255,.06);--bdr-h:rgba(255,255,255,.12);
+      --pri:#2563EB;--pri-h:#3B82F6;--pri-g:rgba(37,99,235,.35);--pri-s:rgba(37,99,235,.10);
+      --t:#E2E8F0;--td:#94A3B8;--tm:#64748B;--w:#FFF;
+      --sans:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+      --mono:'JetBrains Mono','Fira Code',monospace;
+      --ease:cubic-bezier(.4,0,.2,1);
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:var(--sans);background:var(--bg);color:var(--td);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+    a{color:inherit;text-decoration:none}img{display:block;max-width:100%}button{font-family:var(--sans)}
+
+    /* ── ASCII CANVAS ───────────────────────────── */
+    #ascii{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+    /* ── LAYOUT ─────────────────────────────────── */
+    .w{max-width:1120px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+    section{position:relative;z-index:1}
+
+    /* ── REVEAL ──────────────────────────────────── */
+    .r{opacity:0;transform:translateY(24px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+    .r.v{opacity:1;transform:none}
+    .d1{transition-delay:80ms}.d2{transition-delay:160ms}.d3{transition-delay:240ms}.d4{transition-delay:300ms}.d5{transition-delay:360ms}
+
+    /* ── NAV ─────────────────────────────────────── */
+    .nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:100;display:flex;align-items:center;gap:4px;padding:6px 6px 6px 18px;background:rgba(11,15,25,.5);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);border:1px solid var(--bdr);border-radius:100px;transition:all .25s var(--ease)}
+    .nav.scrolled{background:rgba(11,15,25,.82);border-color:var(--bdr-h);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+    .nav__b{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;color:var(--pri);cursor:pointer;margin-right:10px}
+    .nav__b svg{width:22px;height:22px;fill:var(--pri)}
+    .nav__ls{display:flex;gap:2px;list-style:none}
+    .nav__l{font-size:13px;font-weight:500;color:var(--tm);padding:8px 14px;border-radius:100px;transition:color .2s,background .2s;cursor:pointer}
+    .nav__l:hover{color:var(--t);background:rgba(255,255,255,.05)}
+    .nav__l:focus-visible{outline:2px solid var(--pri);outline-offset:-2px}
+    .nav__gh{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;font-size:13px;font-weight:600;color:var(--t);background:rgba(255,255,255,.07);border:1px solid var(--bdr);border-radius:100px;cursor:pointer;transition:all .2s var(--ease)}
+    .nav__gh:hover{background:rgba(255,255,255,.12);border-color:var(--bdr-h)}
+    .nav__gh:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+    .nav__gh svg{width:16px;height:16px;fill:currentColor}
+    .nav__stars{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--td);background:rgba(255,255,255,.06);padding:2px 8px;border-radius:100px;margin-left:2px;transition:opacity .3s}
+    .nav__stars svg{width:12px;height:12px;fill:#F59E0B}
+
+    /* ── BTNS ────────────────────────────────────── */
+    .btn{display:inline-flex;align-items:center;gap:7px;padding:11px 24px;font-size:14px;font-weight:600;border-radius:8px;cursor:pointer;transition:all .2s var(--ease);border:none;white-space:nowrap}
+    .btn:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+    .btn svg{width:16px;height:16px}
+    .btn--p{background:var(--pri);color:var(--w);box-shadow:0 0 20px rgba(37,99,235,.25)}
+    .btn--p:hover{background:var(--pri-h);box-shadow:0 0 32px rgba(37,99,235,.35);transform:translateY(-1px)}
+    .btn--g{background:rgba(255,255,255,.06);color:var(--t);border:1px solid var(--bdr)}
+    .btn--g:hover{background:rgba(255,255,255,.10);border-color:var(--bdr-h);transform:translateY(-1px)}
+
+    /* ── HERO (split) ────────────────────────────── */
+    .hero{padding:130px 0 80px}
+    .hero__grid{display:grid;grid-template-columns:1fr 1.2fr;gap:48px;align-items:center}
+    .hero__badge{display:inline-flex;align-items:center;gap:8px;padding:5px 14px 5px 8px;font-size:11px;font-weight:600;color:var(--pri-h);background:var(--pri-s);border:1px solid rgba(37,99,235,.15);border-radius:100px;margin-bottom:24px;letter-spacing:.04em;text-transform:uppercase}
+    .hero__dot{width:6px;height:6px;border-radius:50%;background:var(--pri);box-shadow:0 0 10px var(--pri-g);animation:pulse 2s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .hero h1{font-size:clamp(30px,4.2vw,48px);font-weight:700;color:var(--w);line-height:1.1;letter-spacing:-.035em;margin-bottom:16px}
+    .hero h1 em{font-style:normal;background:linear-gradient(135deg,#60A5FA,var(--pri) 40%,#818CF8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hero__sub{font-size:15px;color:var(--td);max-width:420px;margin-bottom:28px;line-height:1.7}
+    .hero__acts{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:0}
+
+    /* ── HERO VISUAL ─────────────────────────────── */
+    .hero__vis{position:relative}
+    .hero__browser{border-radius:12px;overflow:hidden;background:#0F1117;border:1px solid var(--bdr);box-shadow:0 2px 4px rgba(0,0,0,.2),0 20px 50px rgba(0,0,0,.4)}
+    .hero__browser img{width:100%;height:auto;display:block}
+    .bbar{display:flex;align-items:center;gap:7px;padding:10px 14px;background:rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.04)}
+    .bdot{width:9px;height:9px;border-radius:50%}.bd-r{background:#FF5F57}.bd-y{background:#FEBC2E}.bd-g{background:#28C840}
+    .burl{flex:1;margin-left:8px;padding:4px 10px;font-size:10px;font-family:var(--mono);color:var(--tm);background:rgba(255,255,255,.03);border-radius:4px;border:1px solid rgba(255,255,255,.03)}
+
+    /* floating code cards */
+    .hero__fl{position:absolute;border-radius:10px;background:rgba(13,17,23,.92);border:1px solid rgba(255,255,255,.08);box-shadow:0 8px 32px rgba(0,0,0,.4);overflow:hidden;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:box-shadow .4s var(--ease)}
+    .hero__fl--term{bottom:28%;left:-12%;width:54%;z-index:2;animation:floatUp 3s ease-in-out infinite alternate}
+    .hero__fl--html{bottom:-10%;left:-6%;width:62%;z-index:3;animation:floatUp 3.5s ease-in-out infinite alternate-reverse}
+    @keyframes floatUp{0%{transform:translateY(0)}100%{transform:translateY(-6px)}}
+    .hero__fl:hover{box-shadow:0 8px 40px rgba(37,99,235,.12),0 8px 32px rgba(0,0,0,.4)}
+    .fl__bar{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:10px;font-weight:600;color:var(--tm);text-transform:uppercase;letter-spacing:.06em;background:rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.05)}
+    .fl__bar .bdot{width:7px;height:7px}
+    .fl__code{padding:12px 14px;font-family:var(--mono);font-size:12px;line-height:1.6;color:#E6EDF3;white-space:pre;position:relative}
+
+    /* blinking cursor */
+    .cursor{display:inline-block;width:7px;height:14px;background:var(--pri);vertical-align:middle;margin-left:2px;animation:blink 1s step-end infinite;border-radius:1px}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+    /* typing animation */
+    .typed{overflow:hidden;white-space:nowrap;border-right:none}
+    .typed span{display:inline}
+
+    /* terminal glow */
+    .hero__fl--term .fl__code{text-shadow:0 0 8px rgba(37,99,235,.15)}
+    .hero__fl--html .fl__code{text-shadow:0 0 6px rgba(126,231,135,.08)}
+
+    /* ── SECTION ─────────────────────────────────── */
+    .sec{padding:96px 0}
+    .sec__l{font-size:12px;font-weight:600;color:var(--pri);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+    .sec__l::before{content:'';width:16px;height:1px;background:var(--pri);opacity:.6}
+    .sec__h{font-size:clamp(24px,3.2vw,36px);font-weight:700;color:var(--w);line-height:1.14;letter-spacing:-.025em;margin-bottom:10px}
+    .sec__p{font-size:15px;color:var(--td);max-width:480px;line-height:1.65}
+
+    /* ── FEATURES ────────────────────────────────── */
+    .fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:40px}
+    .fc{padding:24px 22px;background:var(--bg-card);border:1px solid var(--bdr);border-radius:12px;transition:all .25s var(--ease);position:relative;overflow:hidden;cursor:default}
+    .fc::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(37,99,235,.4),transparent);opacity:0;transition:opacity .25s var(--ease)}
+    .fc:hover{background:var(--bg-card-h);border-color:var(--bdr-h);transform:translateY(-2px);box-shadow:0 10px 32px rgba(0,0,0,.25)}
+    .fc:hover::after{opacity:1}
+    .fc__ic{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--pri-s);border:1px solid rgba(37,99,235,.12);border-radius:8px;margin-bottom:14px;color:var(--pri);transition:all .25s var(--ease)}
+    .fc:hover .fc__ic{background:rgba(37,99,235,.16);box-shadow:0 0 16px rgba(37,99,235,.12)}
+    .fc__ic svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .fc__t{font-size:14px;font-weight:600;color:var(--w);margin-bottom:5px}
+    .fc__d{font-size:13px;color:var(--tm);line-height:1.55}
+    .fc__d code{font-family:var(--mono);font-size:11px;color:var(--pri-h);background:var(--pri-s);padding:1px 4px;border-radius:3px}
+
+    /* ── PREVIEW ─────────────────────────────────── */
+    .prev{padding:80px 0 96px}
+    .prev__grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:40px}
+    .prev__grid .hero__browser{transition:all .35s var(--ease)}
+    .prev__grid .hero__browser:hover{transform:translateY(-3px);box-shadow:0 2px 4px rgba(0,0,0,.2),0 28px 60px rgba(0,0,0,.45),0 0 80px rgba(37,99,235,.05)}
+
+    /* ── TABS ────────────────────────────────────── */
+    .tabs__bar{display:flex;gap:0;border-bottom:1px solid var(--bdr);margin-bottom:0}
+    .tabs__btn{padding:10px 20px;font-size:13px;font-weight:600;font-family:var(--sans);color:var(--tm);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .2s var(--ease)}
+    .tabs__btn:hover{color:var(--td)}
+    .tabs__btn.active{color:var(--pri);border-bottom-color:var(--pri)}
+    .tabs__btn:focus-visible{outline:2px solid var(--pri);outline-offset:-2px}
+    .tabs__p{display:none}.tabs__p.active{display:block}
+
+    /* ── CODE ────────────────────────────────────── */
+    .code{background:rgba(13,17,23,.8);border:1px solid var(--bdr);border-radius:0 0 10px 10px;overflow:hidden}
+    .code--full{border-radius:10px}
+    .code__bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(255,255,255,.015);border-bottom:1px solid var(--bdr)}
+    .code__tag{font-size:11px;font-weight:600;color:var(--tm);text-transform:uppercase;letter-spacing:.06em}
+    .code__cp{padding:4px 10px;font-size:11px;font-weight:600;font-family:var(--sans);color:var(--tm);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:5px;cursor:pointer;transition:all .2s var(--ease)}
+    .code__cp:hover{color:var(--t);background:rgba(255,255,255,.08)}
+    .code__cp:focus-visible{outline:2px solid var(--pri);outline-offset:1px}
+    .code pre{padding:16px;font-family:var(--mono);font-size:12.5px;line-height:1.7;color:#E6EDF3;overflow-x:auto}
+    .cc{color:#6E7681}.ct{color:#7EE787}.ca{color:#79C0FF}.cs{color:#A5D6FF}.ck{color:#FF7B72}.cf{color:#D2A8FF}
+
+    /* ── INTEGRATE LAYOUT ────────────────────────── */
+    .int__grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:40px;align-items:start}
+    .int__tabs{border:1px solid var(--bdr);border-radius:10px;overflow:hidden}
+    .int__tabs .tabs__bar{border-bottom-color:var(--bdr)}
+    .int__tabs .code{border:none;border-radius:0}
+
+    /* ── API SECTION ─────────────────────────────── */
+    .api{padding:0 0 96px}
+    .api__grid{display:grid;grid-template-columns:1fr 1.2fr;gap:40px;align-items:start}
+    .api__methods{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:20px}
+    .api__m{display:flex;align-items:baseline;gap:10px;font-size:13px}
+    .api__m code{font-family:var(--mono);font-size:12px;color:var(--pri-h);background:var(--pri-s);padding:2px 8px;border-radius:4px;white-space:nowrap}
+    .api__m span{color:var(--tm);font-size:12px}
+
+    /* ── CTA ─────────────────────────────────────── */
+    .cta{padding:80px 0 96px;position:relative}
+    .cta__glow{position:absolute;top:50%;left:30%;transform:translate(-50%,-50%);width:500px;height:280px;background:radial-gradient(ellipse,rgba(37,99,235,.10) 0%,transparent 65%);filter:blur(40px);pointer-events:none}
+    .cta__in{position:relative;z-index:1}
+    .cta .sec__p{margin-bottom:32px}
+    .cta__acts{display:flex;gap:12px;flex-wrap:wrap}
+
+    /* ── FOOTER ──────────────────────────────────── */
+    .foot{padding:28px 0;border-top:1px solid var(--bdr)}
+    .foot__in{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+    .foot__b{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--pri)}
+    .foot__b svg{width:18px;height:18px;fill:var(--pri)}
+    .foot__ls{display:flex;gap:20px;list-style:none}
+    .foot__l{font-size:13px;color:var(--tm);transition:color .2s;cursor:pointer}
+    .foot__l:hover{color:var(--t)}
+    .foot__l:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+    .foot__c{font-size:12px;color:var(--tm)}.foot__c a{color:var(--td);transition:color .2s}.foot__c a:hover{color:var(--t)}
+
+    /* ── RESPONSIVE ──────────────────────────────── */
+    @media(max-width:1024px){
+      .hero__grid{grid-template-columns:1fr;gap:48px}
+      .hero__vis{max-width:600px}
+      .hero__fl--term{left:0;width:52%;bottom:24%}
+      .hero__fl--html{left:0;width:68%;bottom:-8%}
+      .hero__fl .fl__code{font-size:11px;padding:10px 12px}
+      .fgrid{grid-template-columns:repeat(2,1fr)}
+      .int__grid,.api__grid{grid-template-columns:1fr}
+    }
+    @media(max-width:768px){
+      .nav__ls{display:none}.nav{padding:6px 6px 6px 14px}
+      .hero{padding:110px 0 60px}
+      .hero__fl{display:none}
+      .sec{padding:72px 0}
+      .fgrid{grid-template-columns:1fr}
+      .prev__grid{grid-template-columns:1fr}
+      .hero__acts{flex-direction:column;width:100%}.hero__acts .btn{width:100%;justify-content:center}
+      .foot__in{flex-direction:column;text-align:center}.foot__ls{justify-content:center}
+    }
+    @media(max-width:480px){
+      .hero h1{font-size:26px}.sec__h{font-size:22px}.fc{padding:20px 16px}
+    }
+
+    /* ── REDUCED MOTION ──────────────────────────── */
+    @media(prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+      .r{opacity:1;transform:none}
+      #ascii{display:none}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ASCII Background Canvas -->
+<canvas id="ascii" aria-hidden="true"></canvas>
+
+<!-- NAV -->
+<nav class="nav" role="navigation" aria-label="Main">
+  <a href="#" class="nav__b" aria-label="PureDocs home">
+    <svg viewBox="0 0 593 465"><path d="M89.5 430.8c-4.1-1.5-10.5-5.6-12.8-8.2-1-1.2-2.8-4.1-4-6.6l-2.2-4.5-.3-98.3c-.2-61.8.1-98.3.7-98 .5.1 6.6 3.7 13.5 7.8l12.6 7.5.1 33.5c.1 18.4.3 57 .4 85.7.4 58.8.1 56.9 7.8 60.4 4 1.8 8.3 1.9 114 1.9l109.7 0 0-19.2c0-10.6.3-26.4.7-35.1.7-17.3 1.4-19.5 7.6-24.1 2.7-2 4.3-2.1 38.5-2.6l35.7-.5.3-136.3c.2-133.6.2-136.5-1.8-140.8-3.4-7.8 2.2-7.4-96.2-7.4l-87.3 0-5-2.6c-2.8-1.5-10.9-6-18.1-10.1l-13.1-7.4-28.7-.1-28.7-.2-2.9 3c-1.6 1.6-5.1 5.8-7.7 9.2-4.5 5.9-6.3 7.3-27.8 20.1l-23 13.7-.3-17.5c-.2-14.2 0-18.4 1.3-21.8 2.1-5.4 8.4-11.9 14.3-14.6l4.7-2.2 164 0 164 0 5.1 2.7c2.7 1.4 6.7 4.5 8.7 6.7 7.1 7.9 6.7-2 6.7 160.7 0 80.4-.3 147.5-.6 149.1-.4 2.3-12.2 14.7-47.4 50.2l-46.7 47.1-126.4-.1c-87.7 0-127.3-.4-129.4-1.1z"/><path d="M536.1 364.5c-.2-5.1-3.6-16.7-6.9-23.1-6.4-12.6-19.3-20.1-40.7-23.7-1.1-.2 1-.9 4.6-1.5 23.9-4.3 35.9-14.7 41.4-35.7.8-3.2 1.5-7.4 1.5-9.3 0-1.9.4-3.1 1-2.7.6.3 1 1.8 1 3.2 0 4.8 3.2 15.7 6.2 21.5 6.2 11.6 17.4 19.1 34.3 22.7 5 1 7.8 1.9 6.4 2-4.4.2-18 4.1-23.2 6.7-11.3 5.8-18.5 16.1-22.3 31.9-.9 3.9-2 7.9-2.5 9-.6 1.7-.8 1.5-.8-1z"/></svg>
+    PureDocs
+  </a>
+  <ul class="nav__ls">
+    <li><a href="#features" class="nav__l">Features</a></li>
+    <li><a href="#preview" class="nav__l">Preview</a></li>
+    <li><a href="#start" class="nav__l">Integration</a></li>
+  </ul>
+  <a href="https://github.com/esurkov1/puredocs" target="_blank" rel="noopener" class="nav__gh">
+    <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    GitHub
+    <span class="nav__stars" id="gh-stars"><svg viewBox="0 0 16 16"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg><span id="stars-count">&mdash;</span></span>
+  </a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="w">
+    <div class="hero__grid">
+      <div class="hero__text">
+        <div class="hero__badge r"><span class="hero__dot"></span>Open Source</div>
+        <h1 class="r d1">API docs that developers <em>actually enjoy</em></h1>
+        <p class="hero__sub r d2">Turn any OpenAPI spec into a clean, interactive developer portal. One Web Component — zero config, any framework.</p>
+        <div class="hero__acts r d3">
+          <a href="#start" class="btn btn--p">Get Started <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+          <a href="https://github.com/esurkov1/puredocs" target="_blank" rel="noopener" class="btn btn--g"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+        </div>
+      </div>
+      <div class="hero__vis r d2">
+        <div class="hero__browser">
+          <div class="bbar"><span class="bdot bd-r"></span><span class="bdot bd-y"></span><span class="bdot bd-g"></span><span class="burl">puredocs.dev</span></div>
+          <img src="demo/img/screen1.png" alt="PureDocs Try It console" width="1920" height="1080">
+        </div>
+        <!-- Floating terminal -->
+        <div class="hero__fl hero__fl--term">
+          <div class="fl__bar"><span class="bdot bd-r"></span><span class="bdot bd-y"></span><span class="bdot bd-g"></span>&nbsp;&nbsp;Terminal</div>
+          <div class="fl__code"><span class="cc">$</span> <span id="term-typed"></span><span class="cursor"></span></div>
+        </div>
+        <!-- Floating HTML -->
+        <div class="hero__fl hero__fl--html">
+          <div class="fl__bar"><span class="bdot bd-r"></span><span class="bdot bd-y"></span><span class="bdot bd-g"></span>&nbsp;&nbsp;index.html</div>
+          <div class="fl__code"><span class="ct">&lt;pure-docs</span>
+  <span class="ca">spec-url</span>=<span class="cs">"/openapi.json"</span>
+  <span class="ca">theme</span>=<span class="cs">"auto"</span>
+  <span class="ca">primary-color</span>=<span class="cs">"#0ea5e9"</span>
+<span class="ct">&gt;&lt;/pure-docs&gt;</span><span class="cursor"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 01 FEATURES -->
+<section class="sec" id="features">
+  <div class="w">
+    <div class="sec__l r">01 / Features</div>
+    <h2 class="sec__h r d1">Everything you need, nothing you don't</h2>
+    <p class="sec__p r d2">Built for real-world API documentation. Fast, complete, and clean out of the box.</p>
+    <div class="fgrid">
+      <div class="fc r"><div class="fc__ic"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div><div class="fc__t">One-Tag Integration</div><div class="fc__d">Drop <code>&lt;pure-docs&gt;</code> into any page. Works as a Web Component — React, Vue, or plain HTML.</div></div>
+      <div class="fc r d1"><div class="fc__ic"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div><div class="fc__t">Live Try It Console</div><div class="fc__d">Send real API requests from the docs. Configure environments, switch auth, test endpoints in place.</div></div>
+      <div class="fc r d2"><div class="fc__ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="fc__t">Smart Search</div><div class="fc__d">Find endpoints, schemas, webhooks, and tags instantly with Cmd+K. Keyboard-first navigation.</div></div>
+      <div class="fc r d3"><div class="fc__ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="11" x2="13" y2="11"/></svg></div><div class="fc__t">Multi-Language Snippets</div><div class="fc__d">Auto-generated code in cURL, JavaScript, Python, and Go. One-click copy, ready to use.</div></div>
+      <div class="fc r d4"><div class="fc__ic"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div><div class="fc__t">Full Auth Support</div><div class="fc__d">Bearer, Basic, API Key, OAuth2, OpenID Connect. Configured once, applied everywhere.</div></div>
+      <div class="fc r d5"><div class="fc__ic"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><div class="fc__t">Complex API Structures</div><div class="fc__d">Full support for callbacks, webhooks, security requirements, and deeply nested schemas.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 PREVIEW -->
+<section class="prev" id="preview">
+  <div class="w">
+    <div class="sec__l r">02 / Preview</div>
+    <h2 class="sec__h r d1">Designed for clarity</h2>
+    <p class="sec__p r d2">A clean interface that makes complex APIs feel approachable.</p>
+    <div class="prev__grid">
+      <div class="hero__browser r d2">
+        <div class="bbar"><span class="bdot bd-r"></span><span class="bdot bd-y"></span><span class="bdot bd-g"></span><span class="burl">Overview</span></div>
+        <img src="demo/img/screen2.png" alt="API overview with grouped endpoints" loading="lazy" width="1920" height="1080">
+      </div>
+      <div class="hero__browser r d3">
+        <div class="bbar"><span class="bdot bd-r"></span><span class="bdot bd-y"></span><span class="bdot bd-g"></span><span class="burl">POST /workspaces — Try It</span></div>
+        <img src="demo/img/screen1.png" alt="Endpoint detail with Try It console" loading="lazy" width="1920" height="1080">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 INTEGRATION -->
+<section class="sec" id="start">
+  <div class="w">
+    <div class="sec__l r">03 / Integration</div>
+    <h2 class="sec__h r d1">Up and running in 30 seconds</h2>
+    <p class="sec__p r d2">Framework-agnostic. Works everywhere.</p>
+    <div class="int__grid">
+      <!-- Tabbed install -->
+      <div class="int__tabs r d2">
+        <div class="tabs" id="install-tabs">
+          <div class="tabs__bar">
+            <button class="tabs__btn active" data-tab="html">HTML</button>
+            <button class="tabs__btn" data-tab="react">React</button>
+            <button class="tabs__btn" data-tab="vue">Vue</button>
+            <button class="tabs__btn" data-tab="umd">UMD</button>
+          </div>
+          <div class="tabs__p active" id="tab-html">
+            <div class="code"><pre><span class="ct">&lt;pure-docs</span>
+  <span class="ca">spec-url</span>=<span class="cs">"/openapi.json"</span>
+  <span class="ca">theme</span>=<span class="cs">"auto"</span>
+<span class="ct">&gt;&lt;/pure-docs&gt;</span>
+
+<span class="ct">&lt;script</span> <span class="ca">type</span>=<span class="cs">"module"</span><span class="ct">&gt;</span>
+  <span class="ck">import</span> <span class="cs">'puredocs'</span>;
+  <span class="ck">import</span> <span class="cs">'puredocs/style.css'</span>;
+<span class="ct">&lt;/script&gt;</span></pre></div>
+          </div>
+          <div class="tabs__p" id="tab-react">
+            <div class="code"><pre><span class="ck">import</span> <span class="cs">'puredocs'</span>;
+<span class="ck">import</span> <span class="cs">'puredocs/style.css'</span>;
+
+<span class="ck">export function</span> <span class="cf">ApiDocsPage</span>() {
+  <span class="ck">return</span> <span class="ct">&lt;pure-docs</span> <span class="ca">spec-url</span>=<span class="cs">"/openapi.json"</span> <span class="ca">theme</span>=<span class="cs">"auto"</span> <span class="ct">/&gt;</span>;
+}</pre></div>
+          </div>
+          <div class="tabs__p" id="tab-vue">
+            <div class="code"><pre><span class="ct">&lt;template&gt;</span>
+  <span class="ct">&lt;pure-docs</span> <span class="ca">spec-url</span>=<span class="cs">"/openapi.json"</span> <span class="ca">theme</span>=<span class="cs">"auto"</span> <span class="ct">/&gt;</span>
+<span class="ct">&lt;/template&gt;</span>
+
+<span class="ct">&lt;script</span> <span class="ca">setup</span> <span class="ca">lang</span>=<span class="cs">"ts"</span><span class="ct">&gt;</span>
+<span class="ck">import</span> <span class="cs">'puredocs'</span>;
+<span class="ck">import</span> <span class="cs">'puredocs/style.css'</span>;
+<span class="ct">&lt;/script&gt;</span></pre></div>
+          </div>
+          <div class="tabs__p" id="tab-umd">
+            <div class="code"><pre><span class="ct">&lt;link</span> <span class="ca">rel</span>=<span class="cs">"stylesheet"</span> <span class="ca">href</span>=<span class="cs">"/assets/puredocs.css"</span> <span class="ct">/&gt;</span>
+
+<span class="ct">&lt;pure-docs</span> <span class="ca">spec-url</span>=<span class="cs">"/openapi.yaml"</span><span class="ct">&gt;&lt;/pure-docs&gt;</span>
+
+<span class="ct">&lt;script</span> <span class="ca">src</span>=<span class="cs">"/assets/puredocs.umd.cjs"</span><span class="ct">&gt;&lt;/script&gt;</span></pre></div>
+          </div>
+        </div>
+      </div>
+      <!-- Full config -->
+      <div class="r d3">
+        <div style="font-size:13px;font-weight:600;color:var(--w);margin-bottom:12px">Full configuration</div>
+        <div class="code code--full"><pre><span class="ct">&lt;pure-docs</span>
+  <span class="ca">spec-url</span>=<span class="cs">"/openapi.json"</span>
+  <span class="ca">environments-array</span>=<span class="cs">'["https://api.dev.example.com",
+    "https://api.example.com"]'</span>
+  <span class="ca">default-environment</span>=<span class="cs">"api.dev.example.com"</span>
+  <span class="ca">theme</span>=<span class="cs">"auto"</span>
+  <span class="ca">primary-color</span>=<span class="cs">"#0ea5e9"</span>
+  <span class="ca">title</span>=<span class="cs">"Example API"</span>
+<span class="ct">&gt;&lt;/pure-docs&gt;</span></pre></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 RUNTIME API -->
+<section class="api">
+  <div class="w">
+    <div class="api__grid">
+      <div>
+        <div class="sec__l r">04 / Runtime API</div>
+        <h2 class="sec__h r d1">Full programmatic control</h2>
+        <p class="sec__p r d2">Navigate, subscribe to state changes, set auth tokens, and switch environments from code.</p>
+        <ul class="api__methods r d3">
+          <li class="api__m"><code>reload()</code><span>Refresh the spec</span></li>
+          <li class="api__m"><code>getState()</code><span>Get current portal state</span></li>
+          <li class="api__m"><code>subscribe(fn)</code><span>Listen to state changes</span></li>
+          <li class="api__m"><code>navigate(path)</code><span>Navigate to a route</span></li>
+          <li class="api__m"><code>setToken(token)</code><span>Set auth token</span></li>
+          <li class="api__m"><code>setEnvironment(url)</code><span>Switch environment</span></li>
+        </ul>
+      </div>
+      <div class="r d2">
+        <div class="code code--full">
+          <div class="code__bar"><span class="code__tag">JavaScript</span><button class="code__cp" onclick="cc(this)">Copy</button></div>
+          <pre><span class="ck">const</span> docs = document.<span class="cf">querySelector</span>(<span class="cs">'pure-docs'</span>);
+
+docs.<span class="cf">reload</span>();
+docs.<span class="cf">getState</span>();
+docs.<span class="cf">subscribe</span>(<span class="ca">state</span> <span class="ck">=&gt;</span> console.<span class="cf">log</span>(state));
+docs.<span class="cf">navigate</span>(<span class="cs">'/operations/auth/post/login'</span>);
+docs.<span class="cf">setToken</span>(<span class="cs">'your-jwt-token'</span>);
+docs.<span class="cf">setEnvironment</span>(<span class="cs">'api.example.com'</span>);</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="w">
+    <div class="cta__glow" aria-hidden="true"></div>
+    <div class="cta__in">
+      <div class="sec__l r">Get started</div>
+      <h2 class="sec__h r d1">Ready to elevate your API docs?</h2>
+      <p class="sec__p r d2">Open source and free for non-commercial use.</p>
+      <div class="cta__acts r d3">
+        <a href="https://www.npmjs.com/package/puredocs" target="_blank" rel="noopener" class="btn btn--p">Install from npm <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        <a href="https://github.com/esurkov1/puredocs" target="_blank" rel="noopener" class="btn btn--g"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Star on GitHub</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="foot">
+  <div class="w">
+    <div class="foot__in">
+      <div class="foot__b"><svg viewBox="0 0 593 465"><path d="M89.5 430.8c-4.1-1.5-10.5-5.6-12.8-8.2-1-1.2-2.8-4.1-4-6.6l-2.2-4.5-.3-98.3c-.2-61.8.1-98.3.7-98 .5.1 6.6 3.7 13.5 7.8l12.6 7.5.1 33.5c.1 18.4.3 57 .4 85.7.4 58.8.1 56.9 7.8 60.4 4 1.8 8.3 1.9 114 1.9l109.7 0 0-19.2c0-10.6.3-26.4.7-35.1.7-17.3 1.4-19.5 7.6-24.1 2.7-2 4.3-2.1 38.5-2.6l35.7-.5.3-136.3c.2-133.6.2-136.5-1.8-140.8-3.4-7.8 2.2-7.4-96.2-7.4l-87.3 0-5-2.6c-2.8-1.5-10.9-6-18.1-10.1l-13.1-7.4-28.7-.1-28.7-.2-2.9 3c-1.6 1.6-5.1 5.8-7.7 9.2-4.5 5.9-6.3 7.3-27.8 20.1l-23 13.7-.3-17.5c-.2-14.2 0-18.4 1.3-21.8 2.1-5.4 8.4-11.9 14.3-14.6l4.7-2.2 164 0 164 0 5.1 2.7c2.7 1.4 6.7 4.5 8.7 6.7 7.1 7.9 6.7-2 6.7 160.7 0 80.4-.3 147.5-.6 149.1-.4 2.3-12.2 14.7-47.4 50.2l-46.7 47.1-126.4-.1c-87.7 0-127.3-.4-129.4-1.1z"/><path d="M536.1 364.5c-.2-5.1-3.6-16.7-6.9-23.1-6.4-12.6-19.3-20.1-40.7-23.7-1.1-.2 1-.9 4.6-1.5 23.9-4.3 35.9-14.7 41.4-35.7.8-3.2 1.5-7.4 1.5-9.3 0-1.9.4-3.1 1-2.7.6.3 1 1.8 1 3.2 0 4.8 3.2 15.7 6.2 21.5 6.2 11.6 17.4 19.1 34.3 22.7 5 1 7.8 1.9 6.4 2-4.4.2-18 4.1-23.2 6.7-11.3 5.8-18.5 16.1-22.3 31.9-.9 3.9-2 7.9-2.5 9-.6 1.7-.8 1.5-.8-1z"/></svg>PureDocs</div>
+      <ul class="foot__ls">
+        <li><a href="#features" class="foot__l">Features</a></li>
+        <li><a href="#start" class="foot__l">Integration</a></li>
+        <li><a href="https://github.com/esurkov1/puredocs" target="_blank" rel="noopener" class="foot__l">GitHub</a></li>
+        <li><a href="https://github.com/esurkov1/puredocs/blob/main/LICENSE" target="_blank" rel="noopener" class="foot__l">License</a></li>
+      </ul>
+      <div class="foot__c">&copy; 2026 PureDocs &middot; <a href="https://github.com/esurkov1" target="_blank" rel="noopener">esurkov1</a></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════
+   Procedural ASCII Background — fixed viewport
+   canvas with hash-based value noise (Perlin-like)
+   ═══════════════════════════════════════════════ */
+(function(){
+  const c = document.getElementById('ascii');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  if(!ctx) return;
+
+  const chars = '.·:+*=-~:·.';
+  const cell = 13;
+  let cols, rows, W, H;
+  const prm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* --- Hash-based 2D value noise --- */
+  function hash(x, y){
+    let h = (x * 374761393 + y * 668265263) | 0;
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    h = h ^ (h >>> 16);
+    return (h & 0x7fffffff) / 0x7fffffff; // 0..1
+  }
+
+  function smoothNoise(x, y){
+    const xi = Math.floor(x), yi = Math.floor(y);
+    const xf = x - xi, yf = y - yi;
+    const u = xf * xf * (3 - 2 * xf);
+    const v = yf * yf * (3 - 2 * yf);
+    const a = hash(xi, yi), b = hash(xi + 1, yi);
+    const cc = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
+    return a + (b - a) * u + (cc - a) * v + (a - b - cc + d) * u * v;
+  }
+
+  function fbm(x, y, octaves){
+    let val = 0, amp = 1, freq = 1, max = 0;
+    for(let i = 0; i < octaves; i++){
+      val += smoothNoise(x * freq, y * freq) * amp;
+      max += amp;
+      amp *= 0.5;
+      freq *= 2;
+    }
+    return val / max;
+  }
+
+  function resize(){
+    const dpr = Math.min(devicePixelRatio, 1); // keep 1x for perf
+    W = innerWidth; H = innerHeight;
+    c.width = W * dpr;
+    c.height = H * dpr;
+    c.style.width = W + 'px';
+    c.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cols = Math.ceil(W / cell);
+    rows = Math.ceil(H / cell);
+  }
+  resize();
+  addEventListener('resize', resize);
+
+  let last = 0;
+  function draw(now){
+    requestAnimationFrame(draw);
+    if(now - last < 55) return; // ~18fps cap
+    last = now;
+
+    const t = prm ? 0 : now * 0.00008;
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.font = '500 ' + (cell - 2) + 'px JetBrains Mono,monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    for(let row = 0; row < rows; row++){
+      for(let col = 0; col < cols; col++){
+        const n = fbm(col * 0.06 + t * 3.5, row * 0.06 + t * 2.2, 3);
+        if(n < 0.25) continue;
+        const ci = Math.floor((n - 0.25) / 0.75 * chars.length) % chars.length;
+        const a = 0.03 + (n - 0.25) * 0.28;  // range 3%-24% alpha
+        ctx.fillStyle = 'rgba(155,165,190,' + a.toFixed(3) + ')';
+        ctx.fillText(chars[ci], col * cell + cell * 0.5, row * cell + cell * 0.5);
+      }
+    }
+  }
+
+  document.fonts.ready.then(() => requestAnimationFrame(draw));
+})();
+
+/* ── GitHub Stars ────────────────────────────── */
+(function(){
+  fetch('https://api.github.com/repos/esurkov1/puredocs')
+    .then(r => r.json())
+    .then(d => {
+      if(d && d.stargazers_count !== undefined){
+        const el = document.getElementById('stars-count');
+        if(el) el.textContent = d.stargazers_count;
+      }
+    })
+    .catch(() => {});
+})();
+
+/* ── Terminal typing animation ───────────────── */
+(function(){
+  const el = document.getElementById('term-typed');
+  if(!el) return;
+  const text = 'npm install puredocs';
+  let i = 0;
+  function type(){
+    if(i <= text.length){
+      el.textContent = text.slice(0, i);
+      i++;
+      setTimeout(type, 50 + Math.random() * 40);
+    }
+  }
+  // Start typing when hero is visible
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if(e.isIntersecting){ type(); obs.disconnect(); }
+    });
+  }, { threshold: 0.3 });
+  const hero = document.querySelector('.hero__vis');
+  if(hero) obs.observe(hero); else type();
+})();
+
+/* ── Nav scroll ───────────────────────────────── */
+const nav = document.querySelector('.nav');
+addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 30), {passive:true});
+
+/* ── Reveal ───────────────────────────────────── */
+const ro = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){e.target.classList.add('v');ro.unobserve(e.target)} }), {threshold:.08, rootMargin:'0px 0px -24px 0px'});
+document.querySelectorAll('.r').forEach(el => ro.observe(el));
+
+/* ── Smooth anchors ───────────────────────────── */
+document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => { const t = document.querySelector(a.getAttribute('href')); if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'})} }));
+
+/* ── Tabs ─────────────────────────────────────── */
+document.querySelectorAll('.tabs').forEach(tabs => {
+  tabs.querySelectorAll('.tabs__btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabs.querySelectorAll('.tabs__btn').forEach(b => b.classList.remove('active'));
+      tabs.querySelectorAll('.tabs__p').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+});
+
+/* ── Copy ─────────────────────────────────────── */
+function cc(btn){
+  const pre = btn.closest('.code').querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    btn.textContent = 'Copied!'; btn.style.color = '#22c55e';
+    setTimeout(() => { btn.textContent = 'Copy'; btn.style.color = '' }, 1500);
+  });
+}
+</script>
+</body>
+</html>

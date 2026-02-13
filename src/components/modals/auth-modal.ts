@@ -40,6 +40,44 @@ function schemeBadge(scheme: SecurityScheme): string {
   return getSecuritySchemeBadge(scheme);
 }
 
+function focusNextFrame(input: HTMLInputElement): void {
+  requestAnimationFrame(() => input.focus());
+}
+
+function createModalField(label: string, input: HTMLElement): HTMLElement {
+  const row = h('div', { className: 'modal field' });
+  row.append(h('label', { className: 'modal label', textContent: label }), input);
+  return row;
+}
+
+function createModalTextInput(options: {
+  placeholder: string;
+  value: string;
+  ariaLabel: string;
+  type?: 'text' | 'password';
+}): HTMLInputElement {
+  return createInput({
+    className: 'modal input',
+    placeholder: options.placeholder,
+    value: options.value,
+    ariaLabel: options.ariaLabel,
+    type: options.type,
+  });
+}
+
+function decodeBasicAuth(value: string): { username: string; password: string } {
+  if (!value) return { username: '', password: '' };
+  try {
+    const parts = atob(value).split(':');
+    return {
+      username: parts[0] || '',
+      password: parts.slice(1).join(':') || '',
+    };
+  } catch {
+    return { username: '', password: '' };
+  }
+}
+
 /** Render input fields for a specific scheme type */
 function renderSchemeFields(name: string, scheme: SecurityScheme, container: HTMLElement): void {
   clear(container);
@@ -51,17 +89,13 @@ function renderSchemeFields(name: string, scheme: SecurityScheme, container: HTM
   if (type === 'http' && schemeLower === 'bearer') {
     // Bearer token — single password input
     const row = h('div', { className: 'modal field' });
-    row.append(h('label', { className: 'modal label', textContent: 'Token' }));
-
     const inputWrap = h('div', { className: 'modal input-wrap' });
-    const input = createInput({
-      className: 'modal input',
+    const input = createModalTextInput({
       placeholder: 'Bearer token...',
       value: currentValue,
       ariaLabel: 'Bearer token',
       type: 'password',
     });
-
     const toggleVis = createButton({
       variant: 'icon',
       icon: icons.key,
@@ -69,44 +103,28 @@ function renderSchemeFields(name: string, scheme: SecurityScheme, container: HTM
       className: 'l secondary u-text-muted',
       onClick: () => { input.type = input.type === 'password' ? 'text' : 'password'; },
     });
-
-    input.addEventListener('input', () => {
-      store.setSchemeValue(name, input.value);
-    });
-
+    input.addEventListener('input', () => store.setSchemeValue(name, input.value));
     inputWrap.append(input, toggleVis);
-    row.append(inputWrap);
+    row.append(h('label', { className: 'modal label', textContent: 'Token' }), inputWrap);
     container.append(row);
-
-    requestAnimationFrame(() => input.focus());
+    focusNextFrame(input);
   } else if (type === 'http' && schemeLower === 'basic') {
     // Basic auth — username + password
-    const parts = currentValue ? atob(currentValue).split(':') : ['', ''];
-    const username = parts[0] || '';
-    const password = parts.slice(1).join(':') || '';
-
-    const userRow = h('div', { className: 'modal field' });
-    userRow.append(h('label', { className: 'modal label', textContent: 'Username' }));
-    const userInput = createInput({
-      className: 'modal input',
+    const credentials = decodeBasicAuth(currentValue);
+    const userInput = createModalTextInput({
       placeholder: 'Username',
-      value: username,
+      value: credentials.username,
       ariaLabel: 'Username',
     });
-    userRow.append(userInput);
-    container.append(userRow);
+    container.append(createModalField('Username', userInput));
 
-    const passRow = h('div', { className: 'modal field' });
-    passRow.append(h('label', { className: 'modal label', textContent: 'Password' }));
-    const passInput = createInput({
-      className: 'modal input',
+    const passInput = createModalTextInput({
       placeholder: 'Password',
-      value: password,
+      value: credentials.password,
       ariaLabel: 'Password',
       type: 'password',
     });
-    passRow.append(passInput);
-    container.append(passRow);
+    container.append(createModalField('Password', passInput));
 
     const updateBasic = () => {
       const encoded = btoa(`${userInput.value}:${passInput.value}`);
@@ -115,15 +133,12 @@ function renderSchemeFields(name: string, scheme: SecurityScheme, container: HTM
     userInput.addEventListener('input', updateBasic);
     passInput.addEventListener('input', updateBasic);
 
-    requestAnimationFrame(() => userInput.focus());
+    focusNextFrame(userInput);
   } else if (type === 'apiKey') {
     // API Key — single input
     const row = h('div', { className: 'modal field' });
-    row.append(h('label', { className: 'modal label', textContent: `API Key (${scheme.name || 'key'})` }));
-
     const inputWrap = h('div', { className: 'modal input-wrap' });
-    const input = createInput({
-      className: 'modal input',
+    const input = createModalTextInput({
       placeholder: `${scheme.name || 'API key'}...`,
       value: currentValue,
       ariaLabel: 'API key',
@@ -143,17 +158,13 @@ function renderSchemeFields(name: string, scheme: SecurityScheme, container: HTM
     });
 
     inputWrap.append(input, toggleVis);
-    row.append(inputWrap);
+    row.append(h('label', { className: 'modal label', textContent: `API Key (${scheme.name || 'key'})` }), inputWrap);
     container.append(row);
 
-    requestAnimationFrame(() => input.focus());
+    focusNextFrame(input);
   } else {
     // OAuth2 / OpenID / unknown — just show a token input as fallback
-    const row = h('div', { className: 'modal field' });
-    row.append(h('label', { className: 'modal label', textContent: 'Token / Credential' }));
-
-    const input = createInput({
-      className: 'modal input',
+    const input = createModalTextInput({
       placeholder: 'Token...',
       value: currentValue,
       ariaLabel: 'Token',
@@ -164,10 +175,8 @@ function renderSchemeFields(name: string, scheme: SecurityScheme, container: HTM
       store.setSchemeValue(name, input.value);
     });
 
-    row.append(input);
-    container.append(row);
-
-    requestAnimationFrame(() => input.focus());
+    container.append(createModalField('Token / Credential', input));
+    focusNextFrame(input);
   }
 }
 

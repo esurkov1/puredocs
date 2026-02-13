@@ -15,7 +15,9 @@ export interface SchemaBodyResult {
 
 /** Render only the schema tree body (no card wrapper). For custom headers (e.g. Responses). */
 export function renderSchemaBody(schema: SchemaObject): SchemaBodyResult {
-  const body = h('div', { className: 'schema-body' });
+  const container = h('div', { className: 'schema' });
+  const body = h('div', { className: 'body' });
+  container.append(body);
   const rowData: RowData = [];
   renderSchemaNode(body, schema, '', 0, new Set(), rowData);
   const hasExpandable = rowData.length > 0;
@@ -24,7 +26,7 @@ export function renderSchemaBody(schema: SchemaObject): SchemaBodyResult {
     const nextExpanded = !isExpanded();
     setRowsExpanded(rowData, nextExpanded);
   };
-  return { body, toggleCollapse, isExpanded, hasExpandable };
+  return { body: container, toggleCollapse, isExpanded, hasExpandable };
 }
 
 /** Render an expandable schema tree viewer */
@@ -33,10 +35,12 @@ export function renderSchemaViewer(schema: SchemaObject, title?: string | HTMLEl
   const rootType = getSchemaTypeLabel(schema);
 
   const body = createCardBody('no-padding');
-  const schemaBody = h('div', { className: 'schema-body' });
+  const schemaContainer = h('div', { className: 'schema' });
+  const schemaBody = h('div', { className: 'body' });
+  schemaContainer.append(schemaBody);
   const rowData: RowData = [];
   renderSchemaNode(schemaBody, schema, '', 0, new Set(), rowData);
-  body.append(schemaBody);
+  body.append(schemaContainer);
 
   if (title) {
     const header = createCardHeader();
@@ -46,7 +50,7 @@ export function renderSchemaViewer(schema: SchemaObject, title?: string | HTMLEl
     const typeBadge = createBadge({ text: rootType, kind: 'chip', size: 'm', mono: true });
     const collapseBtn = hasNestedLevels
       ? h('button', {
-          className: anyExpanded ? 'schema-collapse-btn expanded' : 'schema-collapse-btn',
+          className: anyExpanded ? 'schema-collapse-btn is-expanded' : 'schema-collapse-btn',
           type: 'button',
           title: anyExpanded ? 'Collapse all fields' : 'Expand all fields',
         })
@@ -56,20 +60,20 @@ export function renderSchemaViewer(schema: SchemaObject, title?: string | HTMLEl
       collapseBtn.innerHTML = icons.chevronDown;
       collapseBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const nextExpanded = !collapseBtn.classList.contains('expanded');
+        const nextExpanded = !collapseBtn.classList.contains('is-expanded');
         setRowsExpanded(rowData, nextExpanded);
-        collapseBtn.classList.toggle('expanded', nextExpanded);
+        collapseBtn.classList.toggle('is-expanded', nextExpanded);
         collapseBtn.title = nextExpanded ? 'Collapse all fields' : 'Expand all fields';
       });
     }
 
-    if (titleEl.classList.contains('card-header-row')) {
+    if (titleEl.classList.contains('card-row')) {
       titleEl.classList.add('schema-header-row');
       titleEl.append(typeBadge);
       if (collapseBtn) titleEl.append(collapseBtn);
       header.append(titleEl);
     } else {
-      const headerRow = h('div', { className: 'card-header-row schema-header-row' });
+      const headerRow = h('div', { className: 'card-row schema-header-row' });
       headerRow.append(titleEl, typeBadge);
       if (collapseBtn) headerRow.append(collapseBtn);
       header.append(headerRow);
@@ -92,16 +96,16 @@ export function renderParametersCard(params: SpecParameter[], options: Parameter
   const { headerTitle, withEnumAndDefault = true } = options;
 
   const rowsEl = params.map((p) => {
-    const row = h('div', { className: 'schema-row params-list-row' });
+    const row = h('div', { className: 'schema-row role-flat role-params' });
     const mainRow = h('div', { className: 'schema-main-row' });
 
-    const nameWrap = h('div', { className: 'schema-name-wrapper params-list-name-wrap' });
+    const nameWrap = h('div', { className: 'schema-name-wrapper' });
     nameWrap.append(
       h('span', { className: 'schema-spacer' }),
       h('span', { textContent: p.name }),
     );
 
-    const metaWrap = h('div', { className: 'schema-meta-wrapper params-list-meta' });
+    const metaWrap = h('div', { className: 'schema-meta-wrapper' });
     metaWrap.append(createBadge({
       text: p.schema ? getSchemaTypeLabel(p.schema) : 'unknown',
       kind: 'chip',
@@ -115,7 +119,7 @@ export function renderParametersCard(params: SpecParameter[], options: Parameter
     mainRow.append(nameWrap, metaWrap);
     row.append(mainRow);
 
-    const descCol = h('div', { className: 'schema-desc-col schema-desc-col--root' });
+    const descCol = h('div', { className: 'schema-desc-col is-root' });
     if (p.description) {
       descCol.append(h('p', { textContent: p.description }));
     }
@@ -145,10 +149,13 @@ export function renderParametersCard(params: SpecParameter[], options: Parameter
     return row;
   });
 
-  const card = createCard({ className: 'params-list-card' });
+  const card = createCard();
   const body = createCardBody('no-padding');
-  body.classList.add('params-list-body');
-  body.append(...rowsEl);
+  const paramsWrap = h('div', { className: 'params' });
+  const paramsBody = h('div', { className: 'body role-params' });
+  paramsBody.append(...rowsEl);
+  paramsWrap.append(paramsBody);
+  body.append(paramsWrap);
   card.append(
     createCardHeader(createCardHeaderRow({ title: headerTitle })),
     body,
@@ -180,7 +187,7 @@ function addExpandableNode(
     parent.append(childContainer);
     rowData?.push({ row, children: childContainer });
 
-    row.querySelector('.schema-toggle')?.classList.add('expanded');
+    row.querySelector('.schema-toggle')?.classList.add('is-expanded');
     row.classList.add('focus-ring');
     row.setAttribute('aria-expanded', 'true');
     row.setAttribute('tabindex', '0');
@@ -257,8 +264,8 @@ function createRow(
 ): HTMLElement {
   const rowClass = [
     'schema-row',
-    depth === 0 ? 'schema-row--root' : '',
-    depth === 0 && !expandable ? 'schema-row--root-leaf' : '',
+    depth === 0 ? 'is-root' : '',
+    depth === 0 && !expandable ? 'is-leaf' : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -286,7 +293,7 @@ function createRow(
 
   row.append(mainRow);
 
-  const descCol = h('div', { className: `schema-desc-col${depth === 0 ? ' schema-desc-col--root' : ''}` });
+  const descCol = h('div', { className: `schema-desc-col${depth === 0 ? ' is-root' : ''}` });
   if (schema.description) {
     descCol.append(h('p', { textContent: String(schema.description) }));
   }
@@ -320,7 +327,7 @@ function createRow(
           kind: 'chip',
           size: 's',
           mono: true,
-          className: 'schema-enum-value--default',
+          className: 'schema-enum-value is-default',
         }));
       }
 
@@ -331,7 +338,7 @@ function createRow(
           kind: 'chip',
           size: 's',
           mono: true,
-          className: isDefaultValue ? 'schema-enum-value--default' : undefined,
+          className: isDefaultValue ? 'schema-enum-value is-default' : 'schema-enum-value',
         }));
       }
     }
@@ -377,7 +384,7 @@ function setRowsExpanded(rows: RowData, expanded: boolean): void {
 
 function setRowExpanded(row: HTMLElement, children: HTMLElement, expanded: boolean): void {
   children.style.display = expanded ? 'block' : 'none';
-  row.querySelector('.schema-toggle')?.classList.toggle('expanded', expanded);
+  row.querySelector('.schema-toggle')?.classList.toggle('is-expanded', expanded);
   row.setAttribute('aria-expanded', expanded ? 'true' : 'false');
 }
 

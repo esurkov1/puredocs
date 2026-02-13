@@ -26,7 +26,7 @@ export function renderRouteNavigation(currentRoute: RouteInfo): HTMLElement | nu
   if (!prev && !next) return null;
 
   const wrapper = h('div', {
-    className: `route-nav${!prev || !next ? ' route-nav--single' : ''}`,
+    className: `route-nav${!prev || !next ? ' is-single' : ''}`,
   });
 
   if (prev) {
@@ -46,11 +46,11 @@ function createRouteCard(
 ): HTMLAnchorElement {
   const routePath = buildPath(entry.route);
   const card = h('a', {
-    className: `card card--interactive hover-surface focus-ring route-nav-link route-nav-link--${direction}`,
+    className: `card interactive route-card ${direction === 'previous' ? 'is-prev' : 'is-next'}`,
     href: routePath,
   }) as HTMLAnchorElement;
 
-  const meta = h('div', { className: 'route-nav-meta' });
+  const meta = h('div', { className: 'route-meta' });
   if (entry.kind === 'endpoint') {
     meta.append(createBadge({
       text: entry.operation.method.toUpperCase(),
@@ -58,7 +58,7 @@ function createRouteCard(
       method: entry.operation.method,
       mono: true,
     }));
-    meta.append(h('span', { className: 'route-nav-path', textContent: entry.operation.path }));
+    meta.append(h('span', { className: 'route-path', textContent: entry.operation.path }));
   } else {
     meta.append(createBadge({
       text: 'WEBHOOK',
@@ -74,13 +74,13 @@ function createRouteCard(
     }));
   }
 
-  const side = h('span', { className: 'route-nav-side', 'aria-hidden': 'true' });
+  const side = h('span', { className: 'route-side', 'aria-hidden': 'true' });
   side.innerHTML = direction === 'previous' ? icons.chevronLeft : icons.chevronRight;
 
-  const main = h('div', { className: 'route-nav-main' });
+  const main = h('div', { className: 'route-main' });
   main.append(
-    h('span', { className: 'route-nav-category', textContent: entry.category }),
-    h('span', { className: 'route-nav-title', textContent: entry.title }),
+    h('span', { className: 'route-category', textContent: entry.category }),
+    h('span', { className: 'route-title', textContent: entry.title }),
     meta,
   );
 

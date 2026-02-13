@@ -1,30 +1,137 @@
-/**
- * Cards: simple, stat, auth-card, tag-card, unified card
- */
+/* ─── Cards: base ─── */
+.card {
+  border: 1px solid var(--border-base-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface-raised-color);
+}
 
-.card-simple,
-.card-simple-col {
+.card.simple {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
-  background: var(--surface-code-color);
-  border: 1px solid var(--border-base-color);
   border-radius: var(--radius);
+  background: var(--surface-code-color);
 }
 
-.card-simple-col {
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  min-height: 44px;
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--border-base-color);
+  background: var(--surface-raised-color);
+}
+
+.card-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.card-row > .badge {
+  font-size: var(--text-sm);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.card-row > .badge:first-of-type {
+  margin-inline-start: auto;
+}
+
+.card-content {
+  display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--surface-raised-color);
 }
 
-/* Интерактивная карточка: cursor, transition, active */
-.card--interactive {
-  cursor: pointer;
-  transition: background-color 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, transform 0.14s ease;
+.card-content.code {
+  display: block;
+  gap: 0;
+  padding: 0;
+  background: var(--surface-code-color);
 }
-.card--interactive:active {
-  transform: translateY(1px);
+
+.card-content.flush {
+  gap: 0;
+  padding: 0;
+}
+
+.card-group {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md);
+}
+
+.card-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  flex: 1;
+  min-width: 0;
+}
+
+.card-info > h3 {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-primary-color);
+  text-transform: none;
+}
+
+.card-info > h3 code {
+  font-family: var(--font-family-mono);
+  font-size: inherit;
+  color: inherit;
+  word-break: break-all;
+}
+
+.card-info .inline-cluster code {
+  font-family: var(--font-family-mono);
+  font-size: var(--text-sm);
+  color: var(--primary-color);
+  word-break: break-all;
+}
+
+.card-badges {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.card-auth-main {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  min-width: 0;
+  flex: 1;
+}
+
+.card-auth-info {
+  flex: 1;
+}
+
+.card-auth-type {
+  font-family: var(--font-family-mono);
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--text-subtle-color);
+}
+
+.card-auth-desc {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text-subtle-color);
 }
 
 .stats {
@@ -43,8 +150,8 @@
 .stat-value {
   font-size: var(--text-3xl);
   font-weight: 700;
-  color: var(--text-primary-color);
   line-height: 1.2;
+  color: var(--text-primary-color);
 }
 
 .stat-label {
@@ -52,192 +159,72 @@
   color: var(--text-muted-color);
 }
 
-.auth-card {
-  align-items: center;
-}
-
-.auth-card-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--text-subtle-color) 10%, transparent);
-  color: var(--text-subtle-color);
-  flex-shrink: 0;
-}
-.auth-card-icon.configured {
-  background: color-mix(in srgb, var(--color-green) 14%, transparent);
-  color: var(--color-green);
-}
-
-.auth-card-icon svg { width: 16px; height: 16px; }
-
-.auth-card-main {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-sm);
-  min-width: 0;
-  flex: 1;
-}
-
-.auth-card-info,
-.auth-card .tag-card-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-  flex: 1;
-  min-width: 0;
-}
-
-.auth-card-type {
-  font-family: var(--font-family-mono);
-  font-size: 11px;
-  line-height: 1.35;
-  color: var(--text-subtle-color);
-}
-
-.auth-card-desc {
-  font-size: 12px;
-  color: var(--text-subtle-color);
-  line-height: 1.35;
-}
-
-.tag-group-card {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-md);
-  padding: var(--space-md);
-}
-
-.tag-card-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-  flex: 1;
-  min-width: 0;
-}
-
-.tag-card-info > h3 {
-  font-weight: 600;
-  font-size: 13px;
-  line-height: 1.35;
-  color: var(--text-primary-color);
-  text-transform: none;
-  letter-spacing: normal;
-}
-
-.tag-card-info > h3 code {
-  font-family: var(--font-family-mono);
-  font-size: inherit;
-  color: inherit;
-  text-transform: none;
-  letter-spacing: normal;
-  word-break: break-all;
-}
-
-.tag-card-info .inline-cluster code {
-  font-family: var(--font-family-mono);
-  font-size: var(--text-sm);
-  color: var(--primary-color);
-  word-break: break-all;
-}
-
-.tag-card-badges {
-  display: flex;
-  gap: var(--space-xs);
-  flex-wrap: wrap;
-  flex-shrink: 0;
-}
-
 .icon-muted {
-  color: var(--text-subtle-color);
   display: flex;
   flex-shrink: 0;
+  color: var(--text-subtle-color);
 }
-.icon-muted svg { width: 16px; height: 16px; }
 
-.auth-configure-btn-sm {
+.icon-muted svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ─── Cards: sizes ─── */
+.card-auth-config {
   display: inline-flex;
   align-items: center;
   gap: var(--space-xs);
-  padding: 0 var(--space-sm);
-  font-size: var(--text-sm);
-  font-weight: 500;
   height: 30px;
+  padding: 0 var(--space-sm);
   margin-inline-start: auto;
   flex-shrink: 0;
-}
-.auth-configure-btn-sm svg { width: 14px; height: 14px; }
-
-.auth-configure-btn-sm.is-configured {
-  --btn-border-color: color-mix(in srgb, var(--color-green) 44%, var(--border-base-color));
-  --btn-hover-border-color: color-mix(in srgb, var(--color-green) 60%, var(--border-base-color));
-}
-
-/* Unified Card Component */
-.card {
-  border: 1px solid var(--border-base-color);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  background: var(--surface-raised-color);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
-  padding: var(--space-md) var(--space-md);
-  border-bottom: 1px solid var(--border-base-color);
-  background: var(--surface-raised-color);
-  min-height: 44px;
-}
-
-.card-header-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
-  flex: 1;
-  min-width: 0;
-}
-
-.card-header-row > .badge {
   font-size: var(--text-sm);
-  padding: var(--space-xs) var(--space-sm);
+  font-weight: 500;
 }
 
-.card-header-row > .badge:first-of-type {
-  margin-inline-start: auto;
+.card-auth-config svg {
+  width: 14px;
+  height: 14px;
 }
 
-.card-body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-  padding: var(--space-md);
-  background: var(--surface-raised-color);
+/* ─── Cards: interactive states ─── */
+.card.interactive {
+  cursor: pointer;
+  transition: background-color 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, transform 0.14s ease;
 }
 
-.card-body--code {
-  display: block;
-  gap: 0;
-  padding: 0;
-  background: var(--surface-code-color);
+.card.interactive:hover {
+  background: var(--surface-hover-color);
+  border-color: var(--border-strong-base-color);
 }
 
-.card-body--no-padding {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding: 0;
-  background: var(--surface-raised-color);
+.card.interactive:active {
+  transform: translateY(1px);
 }
 
-.card-active {
+.card.interactive:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-light-color);
+}
+
+/* ─── Cards: context variants ─── */
+.card.active {
   border-color: var(--primary-color) !important;
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 15%, transparent);
+}
+
+.card.card-auth {
+  align-items: center;
+}
+
+.card-group.deprecated .card-info > h3,
+.card-group.deprecated .card-info > p {
+  color: var(--text-subtle-color);
+  text-decoration: line-through;
+}
+
+.card-auth-config.is-configured {
+  --btn-border-color: color-mix(in srgb, var(--color-green) 44%, var(--border-base-color));
+  --btn-hover-border-color: color-mix(in srgb, var(--color-green) 60%, var(--border-base-color));
 }

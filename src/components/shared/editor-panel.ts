@@ -18,13 +18,13 @@ export function createEditorPanel(
   lang: string,
   options?: { dataField?: string; onInput?: () => void },
 ): { wrap: HTMLElement; textarea: HTMLTextAreaElement; setValue: (v: string, highlightLang?: string) => void } {
-  const editorWrap = h('div', { className: 'try-it-body-editor' });
-  const highlightPre = h('pre', { className: 'try-it-body-highlight' });
+  const editorWrap = h('div', { className: 'body-editor' });
+  const highlightPre = h('pre', { className: 'body-highlight' });
   const highlightCodeEl = h('code', { className: 'hljs' });
   highlightPre.append(highlightCodeEl);
 
   const textarea = h('textarea', {
-    className: 'try-it-textarea-json',
+    className: 'textarea-json',
     spellcheck: 'false',
     ...(options?.dataField ? { 'data-field': options.dataField } : {}),
   }) as HTMLTextAreaElement;

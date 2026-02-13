@@ -51,18 +51,6 @@ small {
   line-height: 1.2;
 }
 
-.header > p {
-  max-width: 720px;
-  font-size: var(--text-md);
-  line-height: var(--leading-relaxed);
-}
-
-.section > p {
-  max-width: 720px;
-  font-size: var(--text-md);
-  line-height: var(--leading-relaxed);
-}
-
 .section-head {
   display: flex;
   align-items: center;

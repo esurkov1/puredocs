@@ -34,12 +34,10 @@ export function getCurrentConfig(): PortalConfig | null {
 /** Mount the full portal app into the container */
 export function mountApp(container: HTMLElement, config: PortalConfig): void {
   currentConfig = config;
-  rootEl = h('div', { className: `root ${config.className || ''}`.trim() });
+  rootEl = h('div', { className: 'root' });
 
   const themeConfig: ThemeConfig = {
     primaryColor: config.primaryColor,
-    fontFamily: config.fontFamily,
-    codeFontFamily: config.codeFontFamily,
   };
   applyTheme(rootEl, store.get().theme, themeConfig);
 
@@ -187,12 +185,12 @@ async function updateContent(state: PortalState, config: PortalConfig): Promise<
       const schema = state.spec.schemas[route.schemaName || ''];
       if (schema) {
         setContentAreaAside(currentPageEl, false);
-        const header = h('div', { className: 'header' });
+        const header = h('div', { className: 'block header' });
         header.append(h('h1', { textContent: route.schemaName || '' }));
         if (schema.description) {
           header.append(h('p', { textContent: String(schema.description) }));
         }
-        const schemaSection = h('div', { className: 'section' });
+        const schemaSection = h('div', { className: 'block section' });
         schemaSection.append(renderSchemaViewer(schema, 'Properties'));
         render(currentMainEl, header, schemaSection);
       }
@@ -242,10 +240,10 @@ function updateEnvironmentState(root: HTMLElement, state: PortalState, _config: 
   const op = findOperation(state, state.route);
 
   if (op && hasOperationAuth(op.resolvedSecurity) && tryItEl) {
-    const headersContainer = tryItEl.querySelector('.try-it-headers');
+    const headersContainer = tryItEl.querySelector('.headers-list');
     if (headersContainer) {
       const authHeaderNames = ['Authorization', 'Cookie'];
-      const allRows = Array.from(headersContainer.querySelectorAll('.try-it-header-row'));
+      const allRows = Array.from(headersContainer.querySelectorAll('.header-row'));
       const authRows = allRows.filter((row) => {
         const nameInput = row.querySelector('[data-header-name]') as HTMLInputElement;
         return nameInput && authHeaderNames.includes(nameInput.value);
@@ -256,7 +254,7 @@ function updateEnvironmentState(root: HTMLElement, state: PortalState, _config: 
       const placeholders = getAuthHeaderPlaceholder(op.resolvedSecurity, state.spec.securitySchemes);
       const merged = { ...placeholders, ...authHeaders };
 
-      const remainingRows = Array.from(headersContainer.querySelectorAll('.try-it-header-row'));
+      const remainingRows = Array.from(headersContainer.querySelectorAll('.header-row'));
       const insertBeforeRow = remainingRows.find((row) => {
         const nameInput = row.querySelector('[data-header-name]') as HTMLInputElement;
         return nameInput && nameInput.value === 'Content-Type';

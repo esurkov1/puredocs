@@ -14,7 +14,7 @@ export function createLockIcon(options: CreateLockIconOptions): HTMLElement {
 
   const baseClass = variant === 'tag' ? 'tag-op-lock'
     : variant === 'nav' ? 'nav-item-lock'
-    : 'endpoint-auth-icon';
+    : 'endpoint-meta-icon';
 
   const mod = variant !== 'endpoint' ? ` ${baseClass}--${configured ? 'configured' : 'required'}` : '';
 

@@ -17,7 +17,7 @@ export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, ta
 
   const tag = spec.tags.find((t) => t.name === tagName);
   if (!tag || tag.operations.length === 0) {
-    const header = h('div', { className: 'header' });
+    const header = h('div', { className: 'block header' });
     header.append(h('h1', { textContent: 'Tag not found' }));
     pageSlot.append(header);
     pageSlot.append(createSection(
@@ -27,7 +27,7 @@ export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, ta
     return;
   }
 
-  const header = h('div', { className: 'header' });
+  const header = h('div', { className: 'block header' });
   header.append(h('h1', { textContent: tag.name }));
 
   const state = store.get();
@@ -59,7 +59,7 @@ export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, ta
   const deprecatedCount = tag.operations.filter((op) => op.deprecated).length;
 
   pageSlot.append(createSection(
-    { className: 'summary-section' },
+    { className: 'summary' },
     createSummaryLine(
       [
         { label: 'Endpoints', value: tag.operations.length },
@@ -79,17 +79,17 @@ export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, ta
     const card = createCard({
       interactive: true,
       active: isActive,
-      className: `tag-group-card${op.deprecated ? ' deprecated' : ''}`,
+      className: `card-group${op.deprecated ? ' deprecated' : ''}`,
       onClick: () => navigate(buildPath(route)),
     });
 
-    const info = h('div', { className: 'tag-card-info' });
+    const info = h('div', { className: 'card-info' });
     info.append(h('h3', {}, h('code', { textContent: op.path })));
     if (op.summary || op.operationId) {
       info.append(h('p', { textContent: op.summary || op.operationId }));
     }
 
-    const badges = h('div', { className: 'tag-card-badges' });
+    const badges = h('div', { className: 'card-badges' });
     badges.append(createBadge({ text: op.method.toUpperCase(), kind: 'method', method: op.method, size: 'm', mono: true }));
     if (hasOperationAuth(op.resolvedSecurity)) {
       badges.append(createLockIcon({

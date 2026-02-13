@@ -4,6 +4,7 @@ import type {
   SpecExample, SchemaObject, SecurityScheme, SpecWebhook, SpecCallback, SecurityRequirement,
 } from './types';
 import { normalizeSecurityRequirements, resolveOperationSecurityInfo } from './security';
+import { load as loadYaml } from 'js-yaml';
 
 const MAX_REF_DEPTH = 50;
 const MAX_CYCLE_REFS = 200;
@@ -554,8 +555,7 @@ export async function loadSpec(url: string): Promise<Record<string, unknown>> {
     return JSON.parse(text);
   } catch {
     try {
-      const yaml = require('js-yaml') as { load: (str: string) => unknown };
-      return yaml.load(text) as Record<string, unknown>;
+      return loadYaml(text) as Record<string, unknown>;
     } catch {
       throw new Error('Failed to parse spec as JSON or YAML');
     }

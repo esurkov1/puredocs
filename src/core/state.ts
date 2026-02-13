@@ -26,8 +26,6 @@ class Store {
       initialEnvironments: [{ name: 'default', baseUrl: '' }],
       auth: { schemes: {}, activeScheme: '', token: '', locked: false, source: 'manual' },
       tryItState: null,
-      specSources: [],
-      activeSpecSource: '',
     };
   }
 

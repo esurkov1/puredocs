@@ -80,7 +80,3 @@
   min-width: var(--method-fixed-width);
   width: var(--method-fixed-width);
 }
-
-.schema-row .badge {
-  text-transform: none;
-}

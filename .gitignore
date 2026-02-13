@@ -30,3 +30,6 @@ yarn-error.log*
 .cache/
 .parcel-cache/
 .vite/
+.claude
+.venv
+dist

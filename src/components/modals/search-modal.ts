@@ -65,8 +65,8 @@ export function showSearchModal(): void {
   input.addEventListener('input', () => {
     const query = input.value;
     currentResults = search(query);
-    focusedIndex = currentResults.length > 0 ? 0 : -1;
-    renderResults(results, currentResults, focusedIndex);
+    renderResults(results, currentResults);
+    setFocusedResult(results, currentResults.length > 0 ? 0 : -1);
   });
 
   // Keyboard navigation
@@ -75,14 +75,12 @@ export function showSearchModal(): void {
     if (ke.key === 'ArrowDown') {
       ke.preventDefault();
       if (currentResults.length > 0) {
-        focusedIndex = Math.min(focusedIndex + 1, currentResults.length - 1);
-        renderResults(results, currentResults, focusedIndex);
+        setFocusedResult(results, Math.min(focusedIndex + 1, currentResults.length - 1));
       }
     } else if (ke.key === 'ArrowUp') {
       ke.preventDefault();
       if (currentResults.length > 0) {
-        focusedIndex = Math.max(focusedIndex - 1, 0);
-        renderResults(results, currentResults, focusedIndex);
+        setFocusedResult(results, Math.max(focusedIndex - 1, 0));
       }
     } else if (ke.key === 'Enter') {
       ke.preventDefault();
@@ -91,13 +89,6 @@ export function showSearchModal(): void {
       }
     } else if (ke.key === 'Escape') {
       ke.preventDefault();
-      closeSearchModal();
-    }
-  });
-
-  shell.overlay.addEventListener('keydown', (e: Event) => {
-    if ((e as KeyboardEvent).key === 'Escape') {
-      e.preventDefault();
       closeSearchModal();
     }
   });
@@ -114,7 +105,7 @@ export function closeSearchModal(): void {
   store.set({ searchOpen: false });
 }
 
-function renderResults(container: HTMLElement, results: SearchEntry[], focused: number): void {
+function renderResults(container: HTMLElement, results: SearchEntry[]): void {
   clear(container);
 
   if (results.length === 0) {
@@ -122,11 +113,13 @@ function renderResults(container: HTMLElement, results: SearchEntry[], focused: 
     return;
   }
 
+  const fragment = document.createDocumentFragment();
   results.forEach((entry, i) => {
     const item = h('div', {
-      className: `search-result${i === focused ? ' focused' : ''}`,
+      className: 'search-result',
       role: 'option',
-      'aria-selected': i === focused ? 'true' : 'false',
+      'aria-selected': 'false',
+      'data-index': String(i),
     });
 
     if (entry.method) {
@@ -161,19 +154,33 @@ function renderResults(container: HTMLElement, results: SearchEntry[], focused: 
 
     item.addEventListener('click', () => selectResult(entry));
     item.addEventListener('mouseenter', () => {
-      focusedIndex = i;
-      container.querySelectorAll('.focused').forEach((el) => el.classList.remove('focused'));
-      item.classList.add('focused');
+      setFocusedResult(container, i);
     });
 
-    container.append(item);
+    fragment.append(item);
   });
+  container.append(fragment);
+}
 
-  // Scroll focused into view
-  const focusedEl = container.querySelector('.focused');
-  if (focusedEl) {
-    focusedEl.scrollIntoView({ block: 'nearest' });
+function setFocusedResult(container: HTMLElement, index: number): void {
+  if (focusedIndex === index) return;
+
+  if (focusedIndex >= 0) {
+    const prev = container.querySelector<HTMLElement>(`.search-result[data-index="${focusedIndex}"]`);
+    if (prev) {
+      prev.classList.remove('focused');
+      prev.setAttribute('aria-selected', 'false');
+    }
   }
+
+  focusedIndex = index;
+  if (index < 0) return;
+
+  const next = container.querySelector<HTMLElement>(`.search-result[data-index="${index}"]`);
+  if (!next) return;
+  next.classList.add('focused');
+  next.setAttribute('aria-selected', 'true');
+  next.scrollIntoView({ block: 'nearest' });
 }
 
 function selectResult(entry: SearchEntry): void {

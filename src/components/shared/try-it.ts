@@ -42,9 +42,10 @@ export function renderTryIt(
 ): void {
   clear(container);
   container.classList.add('try-it');
+  const tryItLayout = h('div', { className: 'body' });
 
   // Request + Code Examples (объединённый блок с табами + кнопка Send)
-  const responseSection = h('div', { className: 'section' });
+  const responseSection = h('div', { className: 'block section' });
   responseSection.append(h('h2', { textContent: 'Response' }));
   const responseContainer = h('div', { 'data-response': 'true' });
   if (initialResponse) {
@@ -57,13 +58,13 @@ export function renderTryIt(
       size: 0,
     });
   } else {
-    const placeholder = h('div', { className: 'response-placeholder' });
+    const placeholder = h('div', { className: 'placeholder' });
     placeholder.append(h('span', { textContent: 'Выполните запрос, чтобы увидеть ответ' }));
     responseContainer.append(placeholder);
   }
   responseSection.append(responseContainer);
 
-  container.append(renderRequestCodeBlock(operation, container, {
+  tryItLayout.append(renderRequestCodeBlock(operation, container, {
     onConfigChange: options?.onConfigChange,
     onSendRequest: async (sendBtn: HTMLButtonElement) => {
       clearValidationErrors(container);
@@ -96,7 +97,8 @@ export function renderTryIt(
     },
   }));
 
-  container.append(responseSection);
+  tryItLayout.append(responseSection);
+  container.append(tryItLayout);
 
   if (options?.onConfigChange) {
     let debounceTimer: ReturnType<typeof setTimeout>;
@@ -182,10 +184,11 @@ function renderRequestCodeBlock(
     if (sn) editor.setValue(sn.code, sn.language);
   };
 
-  const section = h('div', { className: 'section request-code-section' });
+  const section = h('div', { className: 'block section tabs-code' });
+  const sectionBody = h('div', { className: 'body' });
   const sectionTitle = h('h2', { textContent: 'Request' });
-  section.append(sectionTitle);
-  const requestControls = h('div', { className: 'request-section-controls' });
+  section.append(sectionTitle, sectionBody);
+  const requestControls = h('div', { className: 'controls' });
   let hasRequestControls = false;
 
   if (paramExampleSets.length > 1 && (pathParams.length > 0 || queryParams.length > 0)) {
@@ -193,7 +196,7 @@ function renderRequestCodeBlock(
       options: paramExampleSets.map((ex) => ({ value: ex.name, label: ex.summary || ex.name })),
       value: paramExampleSets[0].name,
       ariaLabel: 'Select example',
-      className: 'request-example-select',
+      className: 'example-select',
       onChange: (val) => {
         const chosen = paramExampleSets.find((e) => e.name === val);
         if (chosen) {
@@ -207,8 +210,8 @@ function renderRequestCodeBlock(
 
   const state = store.get();
   const card = h('div', { className: 'card' });
-  const header = h('div', { className: 'card-header' });
-  const tabsWrap = h('div', { className: 'tabs' });
+  const header = h('div', { className: 'card-head' });
+  const tabsWrap = h('div', { className: 'tabs tabs-code' });
 
   const tabButtons: HTMLElement[] = [];
   let activeTabIndex = 0;
@@ -222,14 +225,14 @@ function renderRequestCodeBlock(
     const tabBtn = createTab(firstTabLabel, { active: true, context: true });
     tabButtons.push(tabBtn);
 
-    firstTabPanel = h('div', { className: 'request-code-panel request-code-panel--request', 'data-tab': 'first' });
+    firstTabPanel = h('div', { className: 'panel is-request', 'data-tab': 'first' });
 
     if (pathParams.length > 0 || queryParams.length > 0) {
-      const paramsSection = h('div', { className: 'request-params-group' });
+      const paramsSection = h('div', { className: 'params-group' });
       paramsSection.append(h('h3', { textContent: 'Parameters' }));
 
       if (pathParams.length > 0) {
-        const pathGroup = h('div', { className: 'request-params-group' });
+        const pathGroup = h('div', { className: 'params-group' });
         if (queryParams.length > 0) {
           pathGroup.append(h('h3', { textContent: 'Path' }));
         }
@@ -240,7 +243,7 @@ function renderRequestCodeBlock(
       }
 
       if (queryParams.length > 0) {
-        const queryGroup = h('div', { className: 'request-params-group' });
+        const queryGroup = h('div', { className: 'params-group' });
         if (pathParams.length > 0) {
           queryGroup.append(h('h3', { textContent: 'Query' }));
         }
@@ -254,12 +257,12 @@ function renderRequestCodeBlock(
     }
 
     if (showResolvedRoute) {
-      const routePreview = h('div', { className: 'request-route-preview' });
-      const routePreviewHeader = h('div', { className: 'request-field-header' });
+      const routePreview = h('div', { className: 'route-preview' });
+      const routePreviewHeader = h('div', { className: 'field-header' });
       routePreviewHeader.append(h('h3', { textContent: 'URL' }));
       const copyRouteBtn = createCopyButton({
         ariaLabel: 'Copy URL',
-        className: 'request-route-copy-btn',
+        className: 'route-copy-btn',
         getText: () => routePreviewInput?.value || collectRequestConfigImpl(tryItBody, operation).url,
       });
       routePreviewInput = createInput({
@@ -267,21 +270,21 @@ function renderRequestCodeBlock(
         ariaLabel: 'Request URL',
         readOnly: true,
         modifiers: ['filled'],
-        className: 'request-route-input',
+        className: 'route-input',
       });
-      const routeInputRow = h('div', { className: 'request-route-input-row' });
+      const routeInputRow = h('div', { className: 'route-input-row' });
       routeInputRow.append(routePreviewInput, copyRouteBtn);
       routePreview.append(routePreviewHeader, routeInputRow);
       routePreviewEl = routePreview;
     }
 
     if (operation.requestBody) {
-      const bodySection = h('div', { className: 'request-body-section' });
-      const bodyHeader = h('div', { className: 'request-field-header' });
+      const bodySection = h('div', { className: 'body-section' });
+      const bodyHeader = h('div', { className: 'field-header' });
       bodyHeader.append(h('h3', { textContent: 'Body' }));
       const copyBodyBtn = createCopyButton({
         ariaLabel: 'Copy body',
-        className: 'request-field-copy-btn',
+        className: 'field-copy-btn',
         getText: getBodyTextForCopy,
       });
       bodyHeader.append(copyBodyBtn);
@@ -293,7 +296,7 @@ function renderRequestCodeBlock(
       const mediaType = operation.requestBody.content?.[defaultCT];
 
       if (isMultipart && mediaType?.schema) {
-        const formWrap = h('div', { className: 'try-it-multipart', 'data-field': 'multipart' });
+        const formWrap = h('div', { className: 'multipart', 'data-field': 'multipart' });
         const schema = mediaType.schema;
         const properties = schema.properties || {};
         const requiredFields = schema.required || [];
@@ -301,8 +304,8 @@ function renderRequestCodeBlock(
           const isBinary = fieldSchema.format === 'binary' || fieldSchema.format === 'base64'
             || (fieldSchema.type === 'string' && fieldSchema.format === 'binary');
           const isRequired = requiredFields.includes(fieldName);
-          const fieldRow = h('div', { className: `param-input-row${isRequired ? ' field-required' : ''}` });
-          const fieldLabel = h('span', { className: 'param-input-label', textContent: fieldName });
+          const fieldRow = h('div', { className: `params row${isRequired ? ' is-required' : ''}` });
+          const fieldLabel = h('span', { className: 'label', textContent: fieldName });
           if (isRequired) fieldLabel.append(createBadge({ text: '*', kind: 'required', size: 's' }));
           if (isBinary) {
             const fileInput = h('input', {
@@ -336,7 +339,7 @@ function renderRequestCodeBlock(
             options: examples.map((ex) => ({ value: ex.name, label: getExampleLabel(ex) })),
             value: examples[0].name,
             ariaLabel: 'Select example',
-            className: 'request-example-select',
+            className: 'example-select',
             onChange: (val) => {
               const chosen = examples.find((e) => e.name === val);
               if (chosen) {
@@ -353,11 +356,11 @@ function renderRequestCodeBlock(
       firstTabPanel.append(bodySection);
     }
 
-    // Headers — заголовок + кнопки + список (try-it-header-row), перед URL
-    const headersSection = h('div', { className: 'request-headers-section' });
-    const headersHeader = h('div', { className: 'request-field-header' });
+    // Headers — заголовок + кнопки + список (header-row), перед URL
+    const headersSection = h('div', { className: 'headers-section' });
+    const headersHeader = h('div', { className: 'field-header' });
     headersHeader.append(h('h3', { textContent: 'Headers' }));
-    const headersContainer = h('div', { className: 'try-it-headers' });
+    const headersContainer = h('div', { className: 'headers-list' });
     if (operation.requestBody) {
       const contentTypes = Object.keys(operation.requestBody.content || {});
       const defaultCT = contentTypes[0] || 'application/json';
@@ -378,7 +381,7 @@ function renderRequestCodeBlock(
       variant: 'icon',
       icon: icons.plus,
       ariaLabel: 'Add header',
-      className: 'request-field-copy-btn',
+      className: 'field-copy-btn',
       onClick: () => headersContainer.append(createHeaderRow('', '')),
     });
     headersHeader.append(addHeaderBtn);
@@ -393,13 +396,13 @@ function renderRequestCodeBlock(
     initialSnippets[0]?.code ?? '',
     initialSnippets[0]?.language ?? 'bash',
   );
-  const langPanel = h('div', { className: 'request-code-panel request-code-lang-panel', 'data-tab': 'lang' });
-  const codeExampleSection = h('div', { className: 'request-body-section' });
-  const codeExampleHeader = h('div', { className: 'request-field-header' });
+  const langPanel = h('div', { className: 'panel', 'data-tab': 'lang' });
+  const codeExampleSection = h('div', { className: 'body-section' });
+  const codeExampleHeader = h('div', { className: 'field-header' });
   codeExampleHeader.append(h('h3', { textContent: 'Code Example' }));
   const copyCodeBtn = createCopyButton({
     ariaLabel: 'Copy code',
-    className: 'request-field-copy-btn',
+    className: 'field-copy-btn',
     getText: () => langEditor.textarea.value,
   });
   codeExampleHeader.append(copyCodeBtn);
@@ -421,7 +424,7 @@ function renderRequestCodeBlock(
       panel.style.display = 'none';
       return;
     }
-    panel.style.display = panel.classList.contains('request-code-panel--request') ? 'flex' : 'block';
+    panel.style.display = panel.classList.contains('is-request') ? 'flex' : 'block';
   };
 
   for (let i = 0; i < tabButtons.length; i++) {
@@ -442,8 +445,8 @@ function renderRequestCodeBlock(
     });
   }
 
-  const body = h('div', { className: 'card-body card-body--no-padding' });
-  const panelsContainer = h('div', { className: 'request-code-panels' });
+  const cardBody = h('div', { className: 'card-content flush' });
+  const panelsContainer = h('div', { className: 'panels' });
   if (firstTabLabel) {
     if (firstTabPanel) setPanelVisible(firstTabPanel, true);
     setPanelVisible(langPanel, false);
@@ -451,36 +454,36 @@ function renderRequestCodeBlock(
     setPanelVisible(langPanel, true);
   }
   panelsContainer.append(...allPanels);
-  body.append(panelsContainer);
+  cardBody.append(panelsContainer);
 
   if (options?.onSendRequest) {
     const sendBtn = createButton({
       variant: 'primary',
       icon: icons.send,
       label: 'Send Request',
-      className: 'try-it-send-btn',
+      className: 'send-btn',
     });
     sendBtn.addEventListener('click', () => options.onSendRequest!(sendBtn));
     if (firstTabLabel) {
       if (routePreviewEl) {
         firstTabPanel?.append(routePreviewEl);
       }
-      const sendBtnWrap = h('div', { className: 'try-it-send-inline-wrap' });
+      const sendBtnWrap = h('div', { className: 'send-inline' });
       sendBtnWrap.append(sendBtn);
       firstTabPanel?.append(sendBtnWrap);
     } else {
-      const sendBtnWrap = h('div', { className: 'try-it-send-bottom-wrap' });
+      const sendBtnWrap = h('div', { className: 'send-bottom' });
       sendBtnWrap.append(sendBtn);
-      body.append(sendBtnWrap);
+      cardBody.append(sendBtnWrap);
     }
   }
   if (!options?.onSendRequest && firstTabLabel && routePreviewEl) {
     firstTabPanel?.append(routePreviewEl);
   }
 
-  if (hasRequestControls) section.append(requestControls);
-  card.append(header, body);
-  section.append(card);
+  if (hasRequestControls) sectionBody.append(requestControls);
+  card.append(header, cardBody);
+  sectionBody.append(card);
 
   const notify = () => {
     if (routePreviewInput) {
@@ -523,10 +526,10 @@ function applyParamValues(container: HTMLElement, values: Record<string, string>
 }
 
 function createParamInput(param: SpecParameter, initialValue?: string): HTMLElement {
-  const wrapper = h('div', { className: `param-input-row${param.required ? ' field-required' : ''}` });
+  const wrapper = h('div', { className: `params row${param.required ? ' is-required' : ''}` });
 
   const label = h('span', {
-    className: 'param-input-label',
+    className: 'label',
     textContent: param.name,
   });
 
@@ -574,7 +577,7 @@ function createParamInput(param: SpecParameter, initialValue?: string): HTMLElem
 }
 
 export function createHeaderRow(name: string, value: string): HTMLElement {
-  const row = h('div', { className: 'try-it-header-row' });
+  const row = h('div', { className: 'header-row' });
   const nameInput = createInput({
     placeholder: 'Header name',
     value: name,
@@ -590,7 +593,7 @@ export function createHeaderRow(name: string, value: string): HTMLElement {
     variant: 'icon',
     icon: icons.close,
     ariaLabel: 'Remove header',
-    className: 'try-it-header-remove-btn',
+    className: 'header-remove-btn',
     onClick: () => row.remove(),
   });
 
@@ -625,7 +628,7 @@ function collectRequestConfigImpl(container: HTMLElement, operation: SpecOperati
   }
 
   // Collect headers
-  const headerRows = container.querySelectorAll('.try-it-header-row');
+  const headerRows = container.querySelectorAll('.header-row');
   const headers: Record<string, string> = {};
   headerRows.forEach((row) => {
     const nameInput = row.querySelector('[data-header-name]') as HTMLInputElement;
@@ -679,15 +682,15 @@ function renderResponse(container: HTMLElement, response: TryItResponse): void {
 
   const el = h('div', { className: 'card' });
 
-  // Одна строка в шапке: Body|Headers | response-meta | код ответа | Copy
-  const header = h('div', { className: 'card-header response-header--row' });
+  // Одна строка в шапке: Body|Headers | meta | код ответа | Copy
+  const header = h('div', { className: 'card-head response-header' });
   const bodyTab = createTab('Body', { active: true });
   const headersTab = createTab(`Headers (${Object.keys(response.headers).length})`);
-  const tabs = h('div', { className: 'tabs' });
+  const tabs = h('div', { className: 'tabs tabs-code' });
   tabs.append(bodyTab, headersTab);
 
   const metaEl = h('div', {
-    className: 'response-meta',
+    className: 'meta',
     innerHTML: `<span>${formatDuration(response.duration)}</span><span>${formatBytes(response.size)}</span>`,
   });
   const codeBadge = createBadge({
@@ -707,9 +710,9 @@ function renderResponse(container: HTMLElement, response: TryItResponse): void {
   el.append(header);
 
   // Body content — один режим, без Pretty/Raw
-  const bodyWrapper = h('div', { className: 'card-body card-body--no-padding' });
-  const bodyContent = h('div', { className: 'response-body' });
-  const bodyInner = h('div', { className: 'try-it-body-inner' });
+  const bodyWrapper = h('div', { className: 'card-content flush' });
+  const bodyContent = h('div', { className: 'response-pane' });
+  const bodyInner = h('div', { className: 'pane-inner' });
   const pre = h('pre', { className: 'code-display' });
   const codeEl = h('code', { className: 'hljs' });
   const displayText = formatResponseBody(response.body, true);
@@ -718,8 +721,8 @@ function renderResponse(container: HTMLElement, response: TryItResponse): void {
   bodyInner.append(pre);
   bodyContent.append(bodyInner);
 
-  const headersContent = h('div', { className: 'response-body', style: 'display:none' });
-  const headersInner = h('div', { className: 'try-it-body-inner' });
+  const headersContent = h('div', { className: 'response-pane', style: 'display:none' });
+  const headersInner = h('div', { className: 'pane-inner' });
   const headersTextarea = h('textarea', {
     readonly: true,
     wrap: 'off',

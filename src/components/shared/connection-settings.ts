@@ -29,26 +29,26 @@ function createAuthenticationSection(
 
   for (const [name, scheme] of Object.entries(securitySchemes)) {
     const configured = isSchemeConfigured(name);
-    const card = createCard({ className: 'tag-group-card auth-card' });
+    const card = createCard({ className: 'card-group card-auth' });
 
-    const top = h('div', { className: 'auth-card-main' });
+    const top = h('div', { className: 'card-auth-main' });
 
-    const info = h('div', { className: 'tag-card-info auth-card-info' });
+    const info = h('div', { className: 'card-info card-auth-info' });
     const typeText = `${scheme.type}${scheme.scheme ? ` / ${scheme.scheme}` : ''}`;
     info.append(
       h('h3', { textContent: name }),
-      h('p', { className: 'auth-card-type', textContent: typeText }),
+      h('p', { className: 'card-auth-type', textContent: typeText }),
     );
 
     if (scheme.description) {
-      info.append(h('p', { className: 'auth-card-desc', textContent: String(scheme.description) }));
+      info.append(h('p', { className: 'card-auth-desc', textContent: String(scheme.description) }));
     }
 
     const configureBtn = createButton({
       variant: 'secondary',
       icon: configured ? icons.check : icons.settings,
       label: configured ? 'Success' : 'Set',
-      className: `auth-configure-btn-sm${configured ? ' active is-configured' : ''}`,
+      className: `card-auth-config${configured ? ' active is-configured' : ''}`,
       onClick: (event) => {
         event.stopPropagation();
         openAuthModal(securitySchemes, portalRoot, name);
@@ -66,7 +66,7 @@ function createAuthenticationSection(
   store.subscribe(() => {
     for (const ref of cardRefs) {
       const configured = isSchemeConfigured(ref.name);
-      ref.btn.className = `btn secondary m auth-configure-btn-sm${configured ? ' active is-configured' : ''}`;
+      ref.btn.className = `btn secondary m card-auth-config${configured ? ' active is-configured' : ''}`;
       ref.btn.innerHTML = `<span class="btn-icon-slot">${configured ? icons.check : icons.settings}</span><span>${configured ? 'Success' : 'Set'}</span>`;
     }
   });

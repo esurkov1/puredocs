@@ -37,7 +37,7 @@ export async function renderWebhookPage(pageSlot: HTMLElement, webhook: SpecWebh
   );
 
   // Header
-  const header = h('div', { className: 'header' });
+  const header = h('div', { className: 'block header' });
   if (webhook.summary) {
     header.append(h('h1', { textContent: webhook.summary }));
   } else {
@@ -118,7 +118,7 @@ export async function renderWebhookPage(pageSlot: HTMLElement, webhook: SpecWebh
 
   const routeNav = renderRouteNavigation({ type: 'webhook', webhookName: webhook.name });
   if (routeNav) {
-    pageSlot.append(h('div', { className: 'section' }, routeNav));
+    pageSlot.append(h('div', { className: 'block section' }, routeNav));
   }
 }
 

@@ -82,7 +82,7 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
   });
 
   // Header — заголовок
-  const header = h('div', { className: 'header' });
+  const header = h('div', { className: 'block header' });
   header.append(h('h1', {
     textContent: operation.summary || `${operation.method.toUpperCase()} ${operation.path}`,
   }));
@@ -91,7 +91,7 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
   if (operation.deprecated) {
     const warnIcon = h('span', { className: 'icon-muted' });
     warnIcon.innerHTML = icons.warning;
-    header.append(h('div', {}, h('span', { className: 'endpoint-deprecated' }, warnIcon, 'Deprecated')));
+    header.append(h('div', {}, h('span', { className: 'endpoint-meta deprecated' }, warnIcon, 'Deprecated')));
   }
   if (hasOperationAuth(operation.resolvedSecurity)) {
     const hasConfiguredAuth = isOperationAuthConfigured(state, operation);
@@ -102,7 +102,7 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
       title: formatOperationAuthTitle(operation.resolvedSecurity),
     });
     header.append(h('span', {
-      className: `endpoint-auth${hasConfiguredAuth ? ' active' : ''}`,
+      className: `endpoint-meta auth${hasConfiguredAuth ? ' is-active' : ''}`,
       title: formatOperationAuthTitle(operation.resolvedSecurity),
       'aria-label': formatOperationAuthTitle(operation.resolvedSecurity),
     }, lock, authBadge));
@@ -137,7 +137,7 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
   }
 
   if (visibleParams.length === 0 && !operation.requestBody) {
-    const emptyHint = h('div', { className: 'request-empty', textContent: 'Параметры и тело запроса не требуются' });
+    const emptyHint = h('div', { className: 'params empty', textContent: 'Параметры и тело запроса не требуются' });
     requestSection.append(emptyHint);
   }
 
@@ -156,7 +156,7 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
     path: operation.path,
   });
   const appendRouteNav = () => {
-    if (routeNav) pageSlot.append(h('div', { className: 'section' }, routeNav));
+    if (routeNav) pageSlot.append(h('div', { className: 'block section' }, routeNav));
   };
   if (responsesRendered) appendRouteNav();
 
@@ -214,16 +214,16 @@ function renderHeadersSection(operation: SpecOperation): HTMLElement | null {
   if (rows.length === 0) return null;
 
   const rowsEl = rows.map((r) => {
-    const row = h('div', { className: 'schema-row headers-list-row' });
+    const row = h('div', { className: 'schema-row role-flat role-headers' });
     const mainRow = h('div', { className: 'schema-main-row' });
 
-    const nameWrap = h('div', { className: 'schema-name-wrapper headers-list-name-wrap' });
+    const nameWrap = h('div', { className: 'schema-name-wrapper' });
     nameWrap.append(
       h('span', { className: 'schema-spacer' }),
       h('span', { textContent: r.name }),
     );
 
-    const metaWrap = h('div', { className: 'schema-meta-wrapper headers-list-meta' });
+    const metaWrap = h('div', { className: 'schema-meta-wrapper' });
     if (r.required) {
       metaWrap.append(createBadge({ text: 'required', kind: 'required', size: 'm' }));
     }
@@ -231,7 +231,7 @@ function renderHeadersSection(operation: SpecOperation): HTMLElement | null {
     mainRow.append(nameWrap, metaWrap);
     row.append(mainRow);
 
-    const descCol = h('div', { className: 'schema-desc-col schema-desc-col--root' });
+    const descCol = h('div', { className: 'schema-desc-col is-root' });
     if (r.description) {
       descCol.append(h('p', { textContent: r.description }));
     }
@@ -249,10 +249,13 @@ function renderHeadersSection(operation: SpecOperation): HTMLElement | null {
     return row;
   });
 
-  const card = createCard({ className: 'headers-card headers-list-card' });
+  const card = createCard();
   const body = createCardBody('no-padding');
-  body.classList.add('headers-list-body');
-  body.append(...rowsEl);
+  const paramsWrap = h('div', { className: 'params' });
+  const paramsBody = h('div', { className: 'body role-headers' });
+  paramsBody.append(...rowsEl);
+  paramsWrap.append(paramsBody);
+  body.append(paramsWrap);
   card.append(body);
 
   return createSection(
@@ -303,16 +306,16 @@ function renderResponseHeadersBlock(headers: Record<string, SpecResponseHeader>)
       ? String(hdr.example)
       : (hdr.schema?.example !== undefined ? String(hdr.schema.example) : '—');
 
-    const row = h('div', { className: 'schema-row headers-list-row' });
+    const row = h('div', { className: 'schema-row role-flat role-headers' });
     const mainRow = h('div', { className: 'schema-main-row' });
 
-    const nameWrap = h('div', { className: 'schema-name-wrapper headers-list-name-wrap' });
+    const nameWrap = h('div', { className: 'schema-name-wrapper' });
     nameWrap.append(
       h('span', { className: 'schema-spacer' }),
       h('span', { textContent: name }),
     );
 
-    const metaWrap = h('div', { className: 'schema-meta-wrapper headers-list-meta' });
+    const metaWrap = h('div', { className: 'schema-meta-wrapper' });
     metaWrap.append(createBadge({ text: typeLabel, kind: 'chip', size: 's', mono: true }));
     if (hdr.required) {
       metaWrap.append(createBadge({ text: 'required', kind: 'required', size: 'm' }));
@@ -321,7 +324,7 @@ function renderResponseHeadersBlock(headers: Record<string, SpecResponseHeader>)
     mainRow.append(nameWrap, metaWrap);
     row.append(mainRow);
 
-    const descCol = h('div', { className: 'schema-desc-col schema-desc-col--root' });
+    const descCol = h('div', { className: 'schema-desc-col is-root' });
     if (hdr.description) {
       descCol.append(h('p', { textContent: hdr.description }));
     }
@@ -339,9 +342,9 @@ function renderResponseHeadersBlock(headers: Record<string, SpecResponseHeader>)
     return row;
   });
 
-  const block = h('div', { className: 'response-headers-block' });
-  const title = h('div', { className: 'response-headers-title', textContent: 'Headers' });
-  const listBody = h('div', { className: 'headers-list-body' });
+  const block = h('div', { className: 'params block' });
+  const title = h('div', { className: 'title', textContent: 'Headers' });
+  const listBody = h('div', { className: 'body role-headers' });
   listBody.append(...rowsEl);
   block.append(title, listBody);
   return block;
@@ -357,10 +360,10 @@ function renderResponsesSection(operation: SpecOperation): HTMLElement {
 
   // Одна карточка как Request: шапка (коды + application/json + collapse) + контент
   const card = createCard();
-  const headerRow = h('div', { className: 'card-header-row responses-header-row' });
+  const headerRow = h('div', { className: 'card-row responses-header-row' });
 
   // Слева: селектор кодов ответа
-  const codesWrap = h('div', { className: 'response-codes-wrap' });
+  const codesWrap = h('div', { className: 'tabs-code codes' });
   let activeCode = responses[0][0];
   let activeContentType = 'application/json';
   const tabData = new Map<string, {
@@ -392,8 +395,11 @@ function renderResponsesSection(operation: SpecOperation): HTMLElement {
       isExpanded = result.isExpanded;
       hasExpandable = result.hasExpandable;
     } else {
-      bodyEl = h('div', { className: 'schema-body' });
-      bodyEl.append(h('p', { textContent: response.description || 'No schema' }));
+      const schemaContainer = h('div', { className: 'schema' });
+      const schemaBody = h('div', { className: 'body' });
+      schemaBody.append(h('p', { textContent: response.description || 'No schema' }));
+      schemaContainer.append(schemaBody);
+      bodyEl = schemaContainer;
       toggleCollapse = () => {};
       isExpanded = () => false;
       hasExpandable = false;
@@ -421,7 +427,7 @@ function renderResponsesSection(operation: SpecOperation): HTMLElement {
       contentTypeSpan.textContent = data.contentType;
       schemaTypeBadge.textContent = data.schemaType;
       collapseBtn.style.display = data.hasExpandable ? 'inline-flex' : 'none';
-      collapseBtn.classList.toggle('expanded', data.hasExpandable && data.isExpanded());
+      collapseBtn.classList.toggle('is-expanded', data.hasExpandable && data.isExpanded());
       collapseBtn.title = data.hasExpandable && data.isExpanded() ? 'Collapse all' : 'Expand all';
       headersContainer.innerHTML = '';
       if (data.headers) {
@@ -451,7 +457,7 @@ function renderResponsesSection(operation: SpecOperation): HTMLElement {
     mono: true,
   });
   const collapseBtn = h('button', {
-    className: 'schema-collapse-btn expanded',
+    className: 'schema-collapse-btn is-expanded',
     type: 'button',
     title: 'Collapse all',
   });
@@ -461,7 +467,7 @@ function renderResponsesSection(operation: SpecOperation): HTMLElement {
     const data = tabData.get(activeCode);
     if (data?.hasExpandable) {
       data.toggleCollapse();
-      collapseBtn.classList.toggle('expanded', data.isExpanded());
+      collapseBtn.classList.toggle('is-expanded', data.isExpanded());
       collapseBtn.title = data.isExpanded() ? 'Collapse all' : 'Expand all';
     }
   });
@@ -471,7 +477,7 @@ function renderResponsesSection(operation: SpecOperation): HTMLElement {
   card.append(createCardHeader(headerRow));
 
   const bodyWrapper = createCardBody('no-padding');
-  const headersContainer = h('div', { className: 'response-headers-wrap' });
+  const headersContainer = h('div', { className: 'params wrap' });
   const bodyContainer = h('div');
   const initialData = tabData.get(activeCode);
   if (initialData) {
@@ -483,7 +489,7 @@ function renderResponsesSection(operation: SpecOperation): HTMLElement {
     }
     bodyContainer.append(initialData.body);
     collapseBtn.style.display = initialData.hasExpandable ? 'inline-flex' : 'none';
-    collapseBtn.classList.toggle('expanded', initialData.hasExpandable && initialData.isExpanded());
+    collapseBtn.classList.toggle('is-expanded', initialData.hasExpandable && initialData.isExpanded());
     collapseBtn.title = initialData.hasExpandable && initialData.isExpanded() ? 'Collapse all' : 'Expand all';
   }
 

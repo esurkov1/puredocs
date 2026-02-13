@@ -27,7 +27,10 @@ export function createModalBase(options: ModalBaseOptions): ModalBase {
   });
   overlay.append(modal);
 
+  let isClosed = false;
   const close = () => {
+    if (isClosed) return;
+    isClosed = true;
     overlay.remove();
     options.onClose?.();
   };

@@ -3,21 +3,18 @@
  */
 
 .modal.overlay.search-modal-overlay {
-  z-index: 9998;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 15vh;
-  backdrop-filter: none;
-  background: var(--overlay-color);
-  animation: fade-in 0.12s ease;
+  --modal-overlay-z-index: 9998;
+  --modal-overlay-align: flex-start;
+  --modal-overlay-padding-top: 15vh;
+  --modal-overlay-backdrop: none;
+  --modal-overlay-animation: fade-in 0.12s ease;
 }
 
 .modal.container.search-modal {
-  width: 560px;
-  max-width: 90vw;
-  max-height: 480px;
-  border-radius: 14px;
-  animation: slide-up 0.15s ease;
+  --modal-width: min(560px, 90vw);
+  --modal-max-height: 480px;
+  --modal-radius: 14px;
+  --modal-animation: slide-up 0.15s ease;
 }
 
 .search-modal .search-input-wrap {

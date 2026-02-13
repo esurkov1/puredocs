@@ -1,76 +1,64 @@
-# puredocs
+# PureDocs
 
-Framework-agnostic OpenAPI portal built with native Web Components.
+`PureDocs` это UI-портал для OpenAPI, который делает документацию API визуально чистой, быстрой и удобной для ежедневной работы разработчиков.
 
-`puredocs` renders a full API docs experience using a single custom element: `<pure-docs>`.
-No framework adapters are required.
+Проект разработан [esurkov1](https://github.com/esurkov1).  
+Исходный код открыт, и проект полностью бесплатен для некоммерческого использования.
 
-## Install
+## Что делает PureDocs
+
+PureDocs превращает OpenAPI-спецификацию в полноценный интерактивный портал:
+
+- обзор API с группами, схемами и webhooks;
+- удобная навигация по роутам;
+- встроенный `Try It` для отправки запросов прямо из документации;
+- автоматическая генерация сниппетов (`cURL`, `JavaScript`, `Python`, `Go`);
+- поиск по endpoint/тегам/схемам/Webhooks (`Cmd/Ctrl + K`);
+- работа с auth-схемами (Bearer, Basic, API Key, OAuth2/OpenID Connect);
+- поддержка JSON и YAML спецификаций.
+
+## Ключевые преимущества
+
+- Минимальная интеграция: один тег `<pure-docs>` и документация готова.
+- Framework-agnostic: работает как Web Component, подходит для React/Vue/vanilla.
+- Продуман для реальной разработки: окружения, авторизация, живые запросы, копирование готовых URL/примеров.
+- Поддержка сложных API-структур: callbacks, webhooks, схемы, security requirements.
+- Быстрая кастомизация внешнего вида: тема, цвет акцента и заголовок портала.
+
+## Быстрый старт
+
+### 1. Установка
 
 ```bash
-bun add puredocs
-# or
 npm install puredocs
+# или
+bun add puredocs
 ```
 
-## Quick start (ESM)
+### 2. Подключение (ESM)
 
 ```html
 <pure-docs spec-url="/openapi.json" theme="auto"></pure-docs>
+
 <script type="module">
   import 'puredocs';
   import 'puredocs/style.css';
 </script>
 ```
 
-## Quick start (UMD / script tag)
+### 3. Готово
+
+Если `spec-url` указывает на валидный OpenAPI (JSON/YAML), портал отрисуется автоматически.
+
+## Подключение в проект
+
+### HTML + script (UMD)
 
 ```html
 <link rel="stylesheet" href="/assets/puredocs.css" />
-<pure-docs spec-url="/openapi.json"></pure-docs>
+<pure-docs spec-url="/openapi.yaml"></pure-docs>
 <script src="/assets/puredocs.umd.cjs"></script>
 ```
-
-## Public API
-
-### Custom element
-
-Package registration defines one element: `pure-docs`.
-
-### Attributes
-
-- `spec-url`
-- `spec-json`
-- `theme` (`light` | `dark` | `auto`)
-- `primary-color`
-- `font-family`
-- `code-font-family`
-- `base-path`
-- `default-environment`
-- `environments-array` (JSON-массив URL строк)
-- `spec-sources-json`
-- `title`
-- `logo`
-- `favicon`
-- `class-name`
-
-JSON attributes accept serialized JSON strings.
-
-### Runtime methods on element
-
-```ts
-const el = document.querySelector('pure-docs');
-
-el.reload();
-el.getState();
-el.subscribe((state) => console.log(state));
-el.navigate('/operations/auth/post/auth%2Flogin');
-el.setToken('token');
-el.setEnvironment('Production');
-el.switchSpec('v2');
-```
-
-## Framework usage
 
 ### React
 
@@ -78,7 +66,7 @@ el.switchSpec('v2');
 import 'puredocs';
 import 'puredocs/style.css';
 
-export function Docs() {
+export function ApiDocsPage() {
   return <pure-docs spec-url="/openapi.json" theme="auto" />;
 }
 ```
@@ -96,41 +84,86 @@ import 'puredocs/style.css';
 </script>
 ```
 
-### Vanilla JS
+### Программное подключение (JS API)
+
+```ts
+import PureDocs from 'puredocs';
+import 'puredocs/style.css';
+
+PureDocs.mount({
+  mount: '#docs',
+  specUrl: '/openapi.yaml',
+  theme: 'auto',
+});
+```
+
+## Конфигурация через атрибуты
+
+Элемент: `pure-docs`
+
+- `spec-url`: URL OpenAPI файла
+- `spec-json`: встроенная JSON-спека (строка JSON)
+- `theme`: `light` | `dark` | `auto`
+- `primary-color`: цвет акцента
+- `base-path`: базовый путь роутера
+- `default-environment`: окружение по умолчанию
+- `environments-array`: JSON-массив URL для окружений
+- `title`: заголовок в навигации
+
+Пример:
 
 ```html
-<pure-docs id="docs" spec-url="/openapi.json"></pure-docs>
-<script type="module">
-  import 'puredocs';
-  import 'puredocs/style.css';
-
-  const docs = document.getElementById('docs');
-  docs.setAttribute('theme', 'dark');
-</script>
+<pure-docs
+  spec-url="/openapi.json"
+  environments-array='["https://api.dev.example.com","https://api.example.com"]'
+  default-environment="api.dev.example.com"
+  theme="auto"
+  primary-color="#0ea5e9"
+  title="Example API"
+></pure-docs>
 ```
 
-## Build output
+## Runtime API элемента
 
-```txt
-dist/
-├── puredocs.js
-├── puredocs.umd.cjs
-├── puredocs.css
-└── index.d.ts
+```ts
+const docs = document.querySelector('pure-docs');
+
+docs.reload();
+docs.getState();
+docs.subscribe((state) => console.log(state));
+docs.navigate('/operations/auth/post/auth%2Flogin');
+docs.setToken('token');
+docs.setEnvironment('api.example.com');
 ```
 
-## Development
+## Разработка
 
 ```bash
-cd packages/puredocs
 bun run dev
 bun run typecheck
 bun run build
 ```
 
-## Notes
+## Важно знать
 
-- Custom element names must include a dash (`-`), so the valid tag is `<pure-docs>`.
-- Routing works in `history` mode only.
-- Portal state (environment + auth) is persisted in `localStorage`.
-- No Fastify/Express plugin is bundled.
+- Одновременно может быть смонтирован только один `<pure-docs>`.
+- Состояние окружения и авторизации сохраняется в `localStorage`.
+- Роутинг основан на `history` API.
+
+## AI-скиллы для разработки
+
+В проекте установлен **UI/UX Pro Max** скилл для улучшения дизайна и пользовательского опыта:
+
+```bash
+# Генерация дизайн-системы для компонентов
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "query" --design-system
+
+# Подробнее см. .claude/UI-UX-PRO-MAX-INFO.md
+```
+
+Скилл предоставляет 67 UI-стилей, 96 цветовых палитр, 57 шрифтовых пар и автоматическую генерацию дизайн-систем.
+
+## Лицензия
+
+См. файл [`LICENSE`](./LICENSE).  
+PureDocs бесплатен для некоммерческого использования.

@@ -1,5 +1,5 @@
 import './styles/index.css';
-import type { PortalConfig, PortalApi, PortalState, SpecSource, PortalEnvironment } from './core/types';
+import type { PortalConfig, PortalApi, PortalState, PortalEnvironment } from './core/types';
 import { store } from './core/state';
 import { initRouter, destroyRouter, navigate as routerNavigate } from './core/router';
 import { parseSpec, loadSpec } from './core/parser';
@@ -16,7 +16,6 @@ import { debounce } from './helpers/debounce';
 import { formatBaseUrlForDisplay, normalizeBaseUrl } from './services/env';
 
 let mounted = false;
-let currentConfig: PortalConfig | null = null;
 let currentApi: PortalApi | null = null;
 let cleanupSearchShortcut: (() => void) | null = null;
 
@@ -30,8 +29,6 @@ async function mount(config: PortalConfig): Promise<PortalApi> {
     unmount();
   }
 
-  currentConfig = config;
-
   const target = typeof config.mount === 'string'
     ? document.querySelector<HTMLElement>(config.mount)
     : config.mount;
@@ -42,9 +39,6 @@ async function mount(config: PortalConfig): Promise<PortalApi> {
 
   store.reset();
 
-  const specSources = config.specSources || [];
-  const activeSpecSource = specSources.length > 0 ? specSources[0].name : '';
-
   const configEnvs = config.environments || [{ name: 'default', baseUrl: '' }];
   const configActiveEnv = config.defaultEnvironment || configEnvs[0]?.name || 'default';
 
@@ -54,8 +48,6 @@ async function mount(config: PortalConfig): Promise<PortalApi> {
     environments: [...configEnvs],
     initialEnvironments: [...configEnvs],
     activeEnvironment: configActiveEnv,
-    specSources,
-    activeSpecSource,
   });
 
   const persisted = loadPersisted();
@@ -90,7 +82,7 @@ async function mount(config: PortalConfig): Promise<PortalApi> {
 
   try {
     let rawSpec: Record<string, unknown>;
-    const initialSpecUrl = config.specUrl ?? config.specSources?.[0]?.specUrl;
+    const initialSpecUrl = config.specUrl;
 
     if (config.spec) {
       rawSpec = config.spec;
@@ -148,44 +140,7 @@ function unmount(): void {
   store.reset();
 
   mounted = false;
-  currentConfig = null;
   currentApi = null;
-}
-
-/** Switch active spec source */
-async function switchSpec(name: string): Promise<void> {
-  const source = store.get().specSources.find((s) => s.name === name);
-  if (!source) return;
-
-  store.set({ loading: true, error: null, activeSpecSource: name, route: { type: 'overview' } });
-
-  try {
-    const rawSpec = await loadSpec(source.specUrl);
-    const parsed = parseSpec(rawSpec);
-
-    if (currentConfig && !currentConfig.environments && parsed.servers.length > 0) {
-      const envs = parsed.servers.map((s, i) => ({
-        name: s.description || (i === 0 ? 'default' : `Server ${i + 1}`),
-        baseUrl: s.url,
-      }));
-      store.set({ environments: envs, initialEnvironments: envs.map((e) => ({ ...e })) });
-      store.setActiveEnvironment(envs[0].name);
-    }
-
-    const auth = store.get().auth;
-    const reconciledAuth = reconcileAuthWithSecuritySchemes(auth, parsed.securitySchemes);
-    if (!areAuthStatesEqual(auth, reconciledAuth)) {
-      store.setAuth(reconciledAuth);
-    }
-
-    buildSearchIndex(parsed);
-    store.set({ spec: parsed, loading: false, error: null });
-  } catch (err) {
-    store.set({
-      loading: false,
-      error: (err as Error).message || 'Failed to load specification',
-    });
-  }
 }
 
 function createApi(): PortalApi {
@@ -210,16 +165,10 @@ const OBSERVED_ATTRIBUTES = [
   'spec-json',
   'theme',
   'primary-color',
-  'font-family',
-  'code-font-family',
   'base-path',
   'default-environment',
   'environments-array',
-  'spec-sources-json',
   'title',
-  'logo',
-  'favicon',
-  'class-name',
 ] as const;
 
 export class PureDocsElement extends HTMLElement {
@@ -285,10 +234,6 @@ export class PureDocsElement extends HTMLElement {
     this.api?.setEnvironment(name);
   }
 
-  async switchSpec(name: string): Promise<void> {
-    await switchSpec(name);
-  }
-
   private async mountFromAttributes(): Promise<void> {
     try {
       this.innerHTML = '';
@@ -303,23 +248,16 @@ export class PureDocsElement extends HTMLElement {
   private parseConfig(): Omit<PortalConfig, 'mount'> {
     const rawSpec = this.getAttribute('spec-json');
     const rawEnvs = this.getAttribute('environments-array');
-    const rawSpecSources = this.getAttribute('spec-sources-json');
 
     return {
       specUrl: this.getAttribute('spec-url') || undefined,
       spec: rawSpec ? parseJsonAttr<Record<string, unknown>>(rawSpec, 'spec-json') : undefined,
       theme: toTheme(this.getAttribute('theme')),
       primaryColor: this.getAttribute('primary-color') || undefined,
-      fontFamily: this.getAttribute('font-family') || undefined,
-      codeFontFamily: this.getAttribute('code-font-family') || undefined,
       basePath: this.getAttribute('base-path') || undefined,
       defaultEnvironment: this.getAttribute('default-environment') || undefined,
       environments: rawEnvs ? parseEnvironmentArrayAttr(rawEnvs) : undefined,
-      specSources: rawSpecSources ? parseJsonAttr<SpecSource[]>(rawSpecSources, 'spec-sources-json') : undefined,
       title: this.getAttribute('title') || undefined,
-      logo: this.getAttribute('logo') || undefined,
-      favicon: this.getAttribute('favicon') || undefined,
-      className: this.getAttribute('class-name') || undefined,
     };
   }
 
@@ -374,7 +312,6 @@ if (!customElements.get('pure-docs')) {
 export const PureDocs = {
   mount,
   unmount,
-  switchSpec,
   version: '0.0.1',
 };
 

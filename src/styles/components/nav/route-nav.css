@@ -1,7 +1,4 @@
-/**
- * Route navigation
- */
-
+/* ─── RouteNav: base ─── */
 .route-nav {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -11,26 +8,17 @@
   border-top: 1px solid var(--border-base-color);
 }
 
-.route-nav--single { grid-template-columns: minmax(0, 1fr); }
-
-.route-nav-link {
+.route-card {
   display: grid;
   align-items: stretch;
   column-gap: var(--space-sm);
-  min-height: 82px;
   padding: var(--space-md);
   text-decoration: none;
-  transition: transform var(--transition);
+  color: inherit;
+  transition: transform 0.14s ease;
 }
 
-.route-nav-link--previous { grid-template-columns: 24px minmax(0, 1fr); }
-.route-nav-link--next { grid-template-columns: minmax(0, 1fr) 24px; }
-
-.route-nav-link:hover {
-  transform: translateY(-1px);
-}
-
-.route-nav-main {
+.route-main {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -38,7 +26,7 @@
   min-width: 0;
 }
 
-.route-nav-category {
+.route-category {
   font-size: var(--text-xs);
   line-height: 1.2;
   color: var(--text-subtle-color);
@@ -49,7 +37,7 @@
   text-overflow: ellipsis;
 }
 
-.route-nav-title {
+.route-title {
   color: var(--text-primary-color);
   font-size: var(--text-md);
   font-weight: 500;
@@ -59,7 +47,7 @@
   text-overflow: ellipsis;
 }
 
-.route-nav-meta {
+.route-meta {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
@@ -68,28 +56,49 @@
   overflow: hidden;
 }
 
-.route-nav-path {
+.route-path {
   font-family: var(--font-family-mono);
   color: var(--text-muted-color);
   font-size: 11px;
+  min-width: 0;
+  flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 0;
-  flex: 1;
 }
 
-.route-nav-side {
+.route-side {
   color: var(--text-subtle-color);
   display: flex;
   align-self: stretch;
   align-items: center;
   justify-content: center;
 }
-.route-nav-side svg { width: 14px; height: 14px; display: block; }
+
+.route-side svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+/* ─── RouteNav: sizes ─── */
+.route-card.is-prev { grid-template-columns: 24px minmax(0, 1fr); }
+.route-card.is-next { grid-template-columns: minmax(0, 1fr) 24px; }
 
 @media (max-width: 860px) {
   .route-nav { grid-template-columns: minmax(0, 1fr); }
-  .route-nav-link { min-height: 78px; padding: var(--space-sm) var(--space-md); }
-  .route-nav-title { font-size: 13px; }
+  .route-card { min-height: 78px; padding: var(--space-sm) var(--space-md); }
+  .route-title { font-size: 13px; }
 }
+
+/* ─── RouteNav: interactive states ─── */
+.route-card:hover {
+  transform: translateY(-1px);
+}
+
+.route-card:active {
+  transform: translateY(0);
+}
+
+/* ─── RouteNav: context variants ─── */
+.route-nav.is-single { grid-template-columns: minmax(0, 1fr); }

@@ -62,13 +62,6 @@
   box-shadow: var(--shadow-lg);
 }
 
-/* Tag page: deprecated card */
-.section .card.tag-group-card.deprecated .tag-card-info > h3,
-.section .card.tag-group-card.deprecated .tag-card-info > p {
-  color: var(--text-subtle-color);
-  text-decoration: line-through;
-}
-
 /* Shared content blocks */
 .response-block,
 .callback-block {

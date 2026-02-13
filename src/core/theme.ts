@@ -2,8 +2,6 @@ import { store } from './state';
 
 export interface ThemeConfig {
   primaryColor?: string;
-  fontFamily?: string;
-  codeFontFamily?: string;
 }
 
 const THEME_KEY = 'puredocs-theme';
@@ -13,23 +11,11 @@ export function applyTheme(root: HTMLElement, themeMode: 'light' | 'dark', confi
   root.classList.remove('light', 'dark');
   root.classList.add(`${themeMode}`);
 
-  /* Config overrides (primary, fonts) — из PortalConfig */
+  /* Config overrides (primary) — из PortalConfig */
   if (config?.primaryColor) {
     root.style.setProperty('--primary-color', config.primaryColor);
   } else {
     root.style.removeProperty('--primary-color');
-  }
-
-  if (config?.fontFamily) {
-    root.style.setProperty('--font-family-base', config.fontFamily);
-  } else {
-    root.style.removeProperty('--font-family-base');
-  }
-
-  if (config?.codeFontFamily) {
-    root.style.setProperty('--font-family-mono', config.codeFontFamily);
-  } else {
-    root.style.removeProperty('--font-family-mono');
   }
 }
 

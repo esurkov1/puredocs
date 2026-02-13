@@ -14,7 +14,7 @@ export interface EmptyStateOptions {
 export function createEmptyStatePage(opts: EmptyStateOptions): HTMLElement {
   const { title, message, icon, variant = 'empty' } = opts;
   if (variant === 'loading') {
-    return h('div', { className: 'header' },
+    return h('div', { className: 'block header' },
       h('h2', { textContent: title }),
       h('div', { className: 'loading' },
         h('div', { className: 'spinner' }),
@@ -23,7 +23,7 @@ export function createEmptyStatePage(opts: EmptyStateOptions): HTMLElement {
     );
   }
 
-  const header = h('div', { className: 'header' });
+  const header = h('div', { className: 'block header' });
   if (icon) {
     header.append(h('span', { innerHTML: icon, className: 'icon-muted' }));
   }

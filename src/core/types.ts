@@ -9,18 +9,10 @@ export interface PortalConfig {
   spec?: Record<string, unknown>;
   /** Portal title override */
   title?: string;
-  /** Logo URL */
-  logo?: string;
-  /** Favicon URL */
-  favicon?: string;
   /** Initial theme */
   theme?: 'light' | 'dark' | 'auto';
   /** Primary accent color (hex) */
   primaryColor?: string;
-  /** Font family override */
-  fontFamily?: string;
-  /** Code font family override */
-  codeFontFamily?: string;
   /** Hide Try It console */
   hideTryIt?: boolean;
   /** Hide deprecated endpoints */
@@ -37,17 +29,6 @@ export interface PortalConfig {
   locale?: 'en' | 'ru';
   /** Plugin hooks */
   plugins?: PortalPlugin[];
-  /** Custom CSS class added to root */
-  className?: string;
-  /** Multiple spec sources for spec switching UI */
-  specSources?: SpecSource[];
-}
-
-export interface SpecSource {
-  /** Display name */
-  name: string;
-  /** URL to fetch the OpenAPI spec from */
-  specUrl: string;
 }
 
 export interface PortalEnvironment {
@@ -87,10 +68,6 @@ export interface PortalState {
   initialEnvironments: PortalEnvironment[];
   auth: AuthState;
   tryItState: TryItState | null;
-  /** Available spec sources for switching */
-  specSources: SpecSource[];
-  /** Currently active spec source name */
-  activeSpecSource: string;
 }
 
 export interface AuthState {

@@ -1,6 +1,4 @@
-/**
- * Try It console: request body, headers, response
- */
+/* ─── Try It: base ─── */
 
 .aside.try-it {
   display: flex;
@@ -8,34 +6,57 @@
   gap: var(--space-lg);
 }
 
-.try-it-body-editor { position: relative; }
+.try-it > .body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
 
-.try-it-body-highlight {
+.try-it .body-editor {
+  position: relative;
+}
+
+.try-it .body-highlight {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  inset: 0;
+  z-index: 0;
   margin: 0;
   padding: var(--space-sm) var(--space-sm);
   overflow: auto;
+  pointer-events: none;
   font-family: var(--font-family-mono);
   font-size: 13px;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-all;
-  pointer-events: none;
-  z-index: 0;
   background: var(--surface-base-color);
   border: 1px solid var(--border-base-color);
   border-radius: var(--radius);
 }
 
-.try-it-body-highlight .hljs { background: transparent; padding: 0; }
-.try-it-body-highlight .hljs-attr { color: #059669; }
-.try-it-body-highlight .hljs-string { color: #0369a1; }
-.try-it-body-highlight .hljs-number,
-.try-it-body-highlight .hljs-literal { color: #D97706; }
-.try-it-body-highlight .hljs-punctuation { color: var(--text-primary-color); }
+.try-it .body-highlight .hljs {
+  background: transparent;
+  padding: 0;
+}
 
-.try-it-body-editor .try-it-textarea-json {
+.try-it .body-highlight .hljs-attr {
+  color: #059669;
+}
+
+.try-it .body-highlight .hljs-string {
+  color: #0369a1;
+}
+
+.try-it .body-highlight .hljs-number,
+.try-it .body-highlight .hljs-literal {
+  color: #D97706;
+}
+
+.try-it .body-highlight .hljs-punctuation {
+  color: var(--text-primary-color);
+}
+
+.try-it .body-editor .textarea-json {
   position: relative;
   z-index: 1;
   color: transparent;
@@ -45,86 +66,61 @@
   resize: none;
 }
 
-.try-it-body-editor .try-it-textarea-json:focus { border-color: transparent; }
+.try-it .body-editor .textarea-json:focus {
+  border-color: transparent;
+}
 
-.try-it-body-editor .try-it-textarea-json::selection {
+.try-it .body-editor .textarea-json::selection {
   background: rgba(59, 130, 246, 0.25);
 }
 
-.try-it-headers,
-.try-it-headers-body,
-.request-params-group {
+.try-it .headers-list,
+.try-it .params-group,
+.try-it .route-preview,
+.try-it .body-section,
+.try-it .headers-section,
+.try-it .multipart {
   display: flex;
   flex-direction: column;
+}
+
+.try-it .headers-list,
+.try-it .params-group {
   gap: var(--space-md);
 }
 
-.try-it-add-header-btn {
-  margin-top: 0;
-  height: 32px;
-  padding: 0 var(--space-sm);
-  border: 1px solid var(--border-base-color);
-  background: var(--surface-hover-color);
-  color: var(--text-primary-color);
-  font-weight: 500;
-  font-size: 12px;
-}
-
-.try-it-add-header-btn:hover {
-  background: color-mix(in srgb, var(--primary-light-color) 45%, var(--surface-hover-color));
-  border-color: color-mix(in srgb, var(--border-base-color) 60%, var(--primary-color) 40%);
-  color: var(--primary-color);
-}
-
-.request-headers-section {
-  display: flex;
-  flex-direction: column;
+.try-it .route-preview,
+.try-it .body-section,
+.try-it .headers-section {
   gap: var(--space-xs);
 }
 
-.try-it-header-row {
-  display: grid;
-  grid-template-columns: minmax(140px, 0.9fr) 1fr auto;
+.try-it .multipart {
   gap: var(--space-sm);
-  align-items: center;
 }
 
-.try-it-header-row input { width: 100%; }
-
-.try-it-header-row .try-it-header-remove-btn {
-  width: 32px;
-  height: 36px;
-  min-width: 32px;
-  min-height: 36px;
-}
-
-.try-it-header-row .try-it-header-remove-btn:hover { color: var(--color-red); }
-
-.try-it-headers-actions {
+.try-it .field-header {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-  padding-top: 0;
-  border-top: none;
+  gap: var(--space-sm);
 }
 
-.request-route-preview,
-.request-body-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
+.try-it .field-copy-btn {
+  margin-inline-start: auto;
 }
 
-.request-route-input-row {
+.try-it .route-input-row {
   display: flex;
   align-items: stretch;
   gap: var(--space-sm);
 }
 
-.request-route-input-row .request-route-input { flex: 1; min-width: 0; }
+.try-it .route-input-row .route-input {
+  flex: 1;
+  min-width: 0;
+}
 
-.request-route-input-row .request-route-copy-btn {
+.try-it .route-input-row .route-copy-btn {
   width: 32px;
   height: 36px;
   min-width: 32px;
@@ -132,81 +128,131 @@
   flex-shrink: 0;
 }
 
-.try-it-multipart {
-  display: flex;
-  flex-direction: column;
+.try-it .header-row {
+  display: grid;
+  align-items: center;
+  grid-template-columns: minmax(140px, 0.9fr) 1fr auto;
   gap: var(--space-sm);
 }
 
-.request-field-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
+.try-it .header-row input {
+  width: 100%;
+}
+
+.try-it .header-row .header-remove-btn {
+  width: 32px;
+  height: 36px;
+  min-width: 32px;
+  min-height: 36px;
 }
 
 .validation-error {
   display: none;
   width: 100%;
   flex-basis: 100%;
-  font-size: 11px;
-  color: var(--color-red);
   margin-top: 2px;
+  font-size: 11px;
   line-height: 1.3;
+  color: var(--color-red);
 }
 
 .validation-error.visible {
   display: block;
 }
 
-.request-field-copy-btn { margin-inline-start: auto; }
+.try-it .send-inline {
+  margin-top: 0;
+}
 
-.try-it-send-inline-wrap { margin-top: 0; }
-
-.try-it-send-bottom-wrap {
+.try-it .send-bottom {
   padding: var(--space-md);
   border-top: 1px solid var(--border-base-color);
 }
 
-/* Response Viewer */
-.response-header--row { flex-wrap: wrap; }
-.response-header--row .tabs { flex: 1; min-width: 0; }
-.response-header--row .response-meta { margin-left: 0; }
+.try-it .send-btn {
+  width: 100%;
+}
 
-.response-status-text { font-size: 13px; color: var(--text-muted-color); }
-
-.response-placeholder {
+.try-it .placeholder {
+  margin-top: 0;
   padding: var(--space-lg) var(--space-md);
-  text-align: center;
-  color: var(--text-subtle-color);
-  font-size: 13px;
-  background: var(--surface-base-color);
   border: 1px dashed var(--border-base-color);
   border-radius: var(--radius);
-  margin-top: 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-subtle-color);
+  background: var(--surface-base-color);
 }
 
-.response-meta {
-  font-size: 12px;
-  color: var(--text-subtle-color);
+.try-it .meta {
   display: flex;
   gap: var(--space-sm);
+  font-size: 12px;
+  color: var(--text-subtle-color);
 }
 
-.response-body { overflow-x: auto; }
+.try-it .response-pane {
+  overflow-x: auto;
+}
 
-.response-body .try-it-body-inner {
+.try-it .response-pane .pane-inner {
   padding: var(--space-sm);
   border-top: 1px solid var(--border-base-color);
 }
 
-.response-body .try-it-textarea {
-  resize: none;
-  cursor: text;
-  width: 100%;
+.try-it .response-pane textarea,
+.try-it .response-pane pre {
+  margin: 0;
+  padding: var(--space-sm) var(--space-sm);
+  background: var(--surface-base-color);
+  border: 1px solid var(--border-base-color);
+  border-radius: var(--radius);
+  font-family: var(--font-family-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary-color);
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
-.response-body .hljs { background: transparent; padding: 0; }
-.response-body .hljs-attr { color: #059669; }
-.response-body .hljs-string { color: #0369a1; }
-.response-body .hljs-number,
-.response-body .hljs-literal { color: #D97706; }
+.try-it .response-pane .hljs {
+  background: transparent;
+  padding: 0;
+}
+
+.try-it .response-pane .hljs-attr {
+  color: #059669;
+}
+
+.try-it .response-pane .hljs-string {
+  color: #0369a1;
+}
+
+.try-it .response-pane .hljs-number,
+.try-it .response-pane .hljs-literal {
+  color: #D97706;
+}
+
+/* ─── Try It: interactive states ─── */
+
+.try-it .header-row .header-remove-btn:hover {
+  color: var(--color-red);
+}
+
+/* ─── Try It: context variants ─── */
+
+.try-it .response-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.try-it .response-header .tabs-code.tabs {
+  flex: 1;
+  min-width: 0;
+}
+
+.try-it .response-header .meta {
+  margin-left: 0;
+}
