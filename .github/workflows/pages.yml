@@ -32,6 +32,7 @@ jobs:
           mkdir -p _site/demo/img
           cp index.html _site/
           cp demo/img/screen1.png demo/img/screen2.png _site/demo/img/
+          echo "puredocs.dev" > _site/CNAME
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
