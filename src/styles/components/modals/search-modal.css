@@ -55,7 +55,7 @@
   padding: var(--space-sm) var(--space-sm);
   border-radius: var(--radius);
   cursor: pointer;
-  transition: background 0.12s;
+  transition: background 0.15s ease;
 }
 
 .search-modal .search-result:hover,

@@ -12,64 +12,78 @@
   gap: var(--space-lg);
 }
 
+/* ─── Editor: CSS Grid overlay ─── */
+
 .try-it .body-editor {
-  position: relative;
+  display: grid;
+  min-height: 60px;
 }
 
-.try-it .body-highlight {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
+/* Both elements share identical grid cell + text styling so they overlay perfectly */
+.try-it .body-editor > .body-highlight,
+.try-it .body-editor > .textarea-json {
+  grid-area: 1 / 1 / 2 / 2;
   margin: 0;
-  padding: var(--space-sm) var(--space-sm);
-  overflow: auto;
-  pointer-events: none;
+  padding: var(--space-sm);
   font-family: var(--font-family-mono);
   font-size: 13px;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-all;
-  background: var(--surface-base-color);
-  border: 1px solid var(--border-base-color);
+  tab-size: 2;
+  border: 1px solid transparent;
   border-radius: var(--radius);
+  overflow: hidden;
 }
 
-.try-it .body-highlight .hljs {
-  background: transparent;
-  padding: 0;
+.try-it .body-highlight {
+  pointer-events: none;
+  text-indent: 0;
+  background: var(--surface-base-color);
+  border-color: var(--border-base-color);
 }
 
-.try-it .body-highlight .hljs-attr {
+.try-it .body-highlight .hl-property {
   color: #059669;
 }
 
-.try-it .body-highlight .hljs-string {
+.try-it .body-highlight .hl-string {
   color: #0369a1;
 }
 
-.try-it .body-highlight .hljs-number,
-.try-it .body-highlight .hljs-literal {
+.try-it .body-highlight .hl-number,
+.try-it .body-highlight .hl-literal {
   color: #D97706;
 }
 
-.try-it .body-highlight .hljs-punctuation {
+.try-it .body-highlight .hl-keyword {
+  color: #cf222e;
+}
+
+.try-it .body-highlight .hl-comment {
+  color: #6e7781;
+  font-style: italic;
+}
+
+.try-it .body-highlight .hl-sign {
+  color: #8250df;
+}
+
+.try-it .body-highlight .hl-punctuation {
   color: var(--text-primary-color);
 }
 
 .try-it .body-editor .textarea-json {
-  display: block;
-  width: 100%;
-  min-height: 60px;
-  position: relative;
-  z-index: 1;
+  text-indent: 0; /* override base form style — must match <pre> */
   color: transparent;
   caret-color: var(--text-primary-color);
   background: transparent !important;
-  border-color: transparent;
-  overflow: auto;
-  resize: vertical;
+  resize: none;
+  outline: none;
 }
 
+.try-it .body-editor .textarea-json,
+.try-it .body-editor .textarea-json:hover,
 .try-it .body-editor .textarea-json:focus {
   border-color: transparent;
 }
@@ -136,14 +150,6 @@
   min-width: 0;
 }
 
-.try-it .route-input-row .route-copy-btn {
-  width: 32px;
-  height: 36px;
-  min-width: 32px;
-  min-height: 36px;
-  flex-shrink: 0;
-}
-
 .try-it .header-row {
   display: grid;
   align-items: center;
@@ -153,13 +159,6 @@
 
 .try-it .header-row input {
   width: 100%;
-}
-
-.try-it .header-row .header-remove-btn {
-  width: 32px;
-  height: 36px;
-  min-width: 32px;
-  min-height: 36px;
 }
 
 .validation-error {
@@ -231,29 +230,33 @@
   word-break: break-all;
 }
 
-.try-it .response-pane .hljs {
-  background: transparent;
-  padding: 0;
-}
-
-.try-it .response-pane .hljs-attr {
+.try-it .response-pane .hl-property {
   color: #059669;
 }
 
-.try-it .response-pane .hljs-string {
+.try-it .response-pane .hl-string {
   color: #0369a1;
 }
 
-.try-it .response-pane .hljs-number,
-.try-it .response-pane .hljs-literal {
+.try-it .response-pane .hl-number,
+.try-it .response-pane .hl-literal {
   color: #D97706;
 }
 
-/* ─── Try It: interactive states ─── */
-
-.try-it .header-row .header-remove-btn:hover {
-  color: var(--color-red);
+.try-it .response-pane .hl-keyword {
+  color: #cf222e;
 }
+
+.try-it .response-pane .hl-comment {
+  color: #6e7781;
+  font-style: italic;
+}
+
+.try-it .response-pane .hl-sign {
+  color: #8250df;
+}
+
+/* ─── Try It: interactive states ─── */
 
 /* ─── Try It: context variants ─── */
 

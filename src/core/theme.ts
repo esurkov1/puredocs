@@ -8,6 +8,13 @@ const THEME_KEY = 'puredocs-theme';
 
 /** Theme class switching only and optional config overrides */
 export function applyTheme(root: HTMLElement, themeMode: 'light' | 'dark', config?: ThemeConfig): void {
+  const isSwitch = root.classList.contains('light') || root.classList.contains('dark');
+
+  /* Enable smooth 0.5s transition for theme changes (not for initial paint) */
+  if (isSwitch) {
+    root.classList.add('theme-transitioning');
+  }
+
   root.classList.remove('light', 'dark');
   root.classList.add(`${themeMode}`);
 
@@ -16,6 +23,11 @@ export function applyTheme(root: HTMLElement, themeMode: 'light' | 'dark', confi
     root.style.setProperty('--primary-color', config.primaryColor);
   } else {
     root.style.removeProperty('--primary-color');
+  }
+
+  /* Remove transition class after animation completes */
+  if (isSwitch) {
+    setTimeout(() => root.classList.remove('theme-transitioning'), 550);
   }
 }
 

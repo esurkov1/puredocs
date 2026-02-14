@@ -1,23 +1,12 @@
 import { h, clear } from '../../lib/dom';
 import { store } from '../../core/state';
-import { navigate, buildPath } from '../../core/router';
+import { navigate, buildPath, slugifyTag } from '../../core/router';
 import { createSummaryLine } from '../shared/summary';
 import { createBadge, createBreadcrumb, createCard, createSection, createLockIcon } from '../ui';
 import { getDisplayBaseUrl } from '../../services/env';
 import { isOperationAuthConfigured } from '../modals/auth-modal';
 import { formatOperationAuthTitle, hasOperationAuth } from '../../core/security';
 import type { SpecTag, RouteInfo } from '../../core/types';
-
-/**
- * Convert tag name to slug for URL matching
- */
-function tagToSlug(tag: string): string {
-  return tag
-    .toLowerCase()
-    .replace(/[^\w\-]/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
 
 /** Render a tag page — list of group operations */
 export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, tagName: string): void {
@@ -27,7 +16,9 @@ export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, ta
   if (!spec) return;
 
   // Find tag by exact match or by slug match
-  const tag = spec.tags.find((t) => t.name === tagName || tagToSlug(t.name) === tagName.toLowerCase());
+  const tagSlug = slugifyTag(tagName);
+  const tag = spec.tags.find((t) => t.name === tagName)
+    || spec.tags.find((t) => slugifyTag(t.name) === tagSlug);
   if (!tag || tag.operations.length === 0) {
     const header = h('div', { className: 'block header' });
     header.append(h('h1', { textContent: 'Tag not found' }));
@@ -51,7 +42,7 @@ export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, ta
       className: 'breadcrumb-item',
       onClick: (e: Event) => { e.preventDefault(); navigate('/'); },
     },
-    { label: tagName, className: 'breadcrumb-current' },
+    { label: tag.name, className: 'breadcrumb-current' },
   ], {
     className: 'breadcrumb-tag-page',
     leading: [createBadge({ text: 'Category', kind: 'chip', size: 'm', mono: true })],

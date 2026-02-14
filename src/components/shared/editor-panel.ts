@@ -1,25 +1,13 @@
 import { h } from '../../lib/dom';
 import { highlightCode } from '../../lib/highlight';
 
-const MIN_TEXTAREA_HEIGHT = 60;
-const MAX_TEXTAREA_HEIGHT = 400;
-
+/**
+ * Auto-resize a plain textarea to fit its content.
+ * Used for response body/headers textareas (NOT the editor panel).
+ */
 export function autoResizeTextarea(ta: HTMLTextAreaElement): void {
-  ta.style.height = 'auto';
-  const contentHeight = Math.max(MIN_TEXTAREA_HEIGHT, ta.scrollHeight);
-  
-  if (contentHeight > MAX_TEXTAREA_HEIGHT) {
-    ta.style.height = MAX_TEXTAREA_HEIGHT + 'px';
-    ta.style.overflowY = 'auto';
-  } else {
-    ta.style.height = contentHeight + 'px';
-    ta.style.overflowY = 'hidden';
-  }
-}
-
-export function syncScrollFromTextarea(ta: HTMLTextAreaElement, pre: HTMLElement): void {
-  pre.scrollTop = ta.scrollTop;
-  pre.scrollLeft = ta.scrollLeft;
+  ta.style.height = '0';
+  ta.style.height = `${ta.scrollHeight}px`;
 }
 
 export function createEditorPanel(
@@ -33,34 +21,32 @@ export function createEditorPanel(
   syncLayout: () => void;
 } {
   const editorWrap = h('div', { className: 'body-editor' });
+
   const highlightPre = h('pre', { className: 'body-highlight' });
-  const highlightCodeEl = h('code', { className: 'hljs' });
+  const highlightCodeEl = h('code', {});
   highlightPre.append(highlightCodeEl);
 
   const textarea = h('textarea', {
     className: 'textarea-json',
     spellcheck: 'false',
+    rows: '1',
     ...(options?.dataField ? { 'data-field': options.dataField } : {}),
   }) as HTMLTextAreaElement;
   textarea.value = initialValue;
-  highlightCodeEl.innerHTML = highlightCode(initialValue || ' ', lang);
-  const syncEditorLayout = (): void => {
-    autoResizeTextarea(textarea);
-    highlightPre.style.height = `${textarea.offsetHeight}px`;
-    syncScrollFromTextarea(textarea, highlightPre);
-  };
-  syncEditorLayout();
 
-  const updateHighlight = (val?: string, hlLang?: string) => {
-    highlightCodeEl.innerHTML = highlightCode((val ?? textarea.value) || ' ', hlLang ?? lang);
+  /** Update the highlighted <pre> to mirror the textarea content */
+  const applyHighlight = (text: string, hlLang: string) => {
+    // A trailing newline is collapsed by <pre> — append a space to keep it visible
+    const display = text.endsWith('\n') ? text + ' ' : (text || ' ');
+    highlightCodeEl.innerHTML = highlightCode(display, hlLang);
   };
+
+  applyHighlight(initialValue, lang);
 
   textarea.addEventListener('input', () => {
-    updateHighlight();
-    syncEditorLayout();
+    applyHighlight(textarea.value, lang);
     options?.onInput?.();
   });
-  textarea.addEventListener('scroll', () => syncScrollFromTextarea(textarea, highlightPre));
 
   editorWrap.append(highlightPre, textarea);
 
@@ -69,9 +55,8 @@ export function createEditorPanel(
     textarea,
     setValue: (v, hlLang) => {
       textarea.value = v;
-      updateHighlight(v, hlLang ?? lang);
-      syncEditorLayout();
+      applyHighlight(v, hlLang ?? lang);
     },
-    syncLayout: syncEditorLayout,
+    syncLayout: () => {}, // no-op — CSS Grid handles layout
   };
 }

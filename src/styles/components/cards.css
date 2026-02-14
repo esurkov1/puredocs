@@ -191,7 +191,7 @@
 /* ─── Cards: interactive states ─── */
 .card.interactive {
   cursor: pointer;
-  transition: background-color 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, transform 0.14s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .card.interactive:hover {

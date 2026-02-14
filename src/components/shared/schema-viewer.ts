@@ -47,7 +47,7 @@ export function renderSchemaViewer(schema: SchemaObject, title?: string | HTMLEl
     const titleEl = typeof title === 'string' ? h('h3', { textContent: title }) : title;
     const hasNestedLevels = rowData.length > 0;
     const anyExpanded = hasNestedLevels && rowData.some(({ children }) => children.style.display !== 'none');
-    const typeBadge = createBadge({ text: rootType, kind: 'chip', size: 'm', mono: true });
+    const typeBadge = createBadge({ text: rootType, kind: 'chip', color: 'primary', size: 'm', mono: true });
     const collapseBtn = hasNestedLevels
       ? h('button', {
           className: anyExpanded ? 'schema-collapse-btn is-expanded' : 'schema-collapse-btn',
@@ -109,6 +109,7 @@ export function renderParametersCard(params: SpecParameter[], options: Parameter
     metaWrap.append(createBadge({
       text: p.schema ? getSchemaTypeLabel(p.schema) : 'unknown',
       kind: 'chip',
+      color: 'primary',
       size: 'm',
       mono: true,
     }));
@@ -285,7 +286,7 @@ function createRow(
   mainRow.append(nameWrapper);
 
   const metaWrapper = h('div', { className: 'schema-meta-wrapper' });
-  metaWrapper.append(createBadge({ text: type, kind: 'chip', size: 'm', mono: true }));
+  metaWrapper.append(createBadge({ text: type, kind: 'chip', color: 'primary', size: 'm', mono: true }));
   if (required) {
     metaWrapper.append(createBadge({ text: 'required', kind: 'required', size: 'm' }));
   }
@@ -312,7 +313,7 @@ function createRow(
       constraintsRow.append(createBadge({
         text: c,
         kind: 'chip',
-        size: c.startsWith('default: ') ? 's' : 'm',
+        size: 's',
         mono: true,
       }));
     }

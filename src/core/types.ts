@@ -107,7 +107,6 @@ export interface RouteInfo {
   tag?: string;
   method?: string;
   path?: string;
-  pathSlug?: string; // URL slug for the API path (e.g., "users-id" for /users/{id})
   operationId?: string;
   schemaName?: string;
   guidePath?: string;

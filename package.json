@@ -1,6 +1,6 @@
 {
   "name": "puredocs",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "PureDocs — framework-agnostic Web Components OpenAPI portal",
   "author": "esurkov1",
   "license": "SEE LICENSE IN LICENSE",
@@ -58,7 +58,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "highlight.js": "^11.11.1",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {

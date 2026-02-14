@@ -1,8 +1,20 @@
 # PureDocs
 
-`PureDocs` transforms OpenAPI specs into an interactive docs portal with search, auth handling, and live requests.
+Beautiful, interactive API documentation from any OpenAPI spec. One Web Component — zero config.
 
-**Full OpenAPI 3.1 support** — paths, callbacks (runtime expressions), webhooks, all HTTP methods (GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS, TRACE), security schemes (Bearer, Basic, API Key, OAuth2), JSON Schema references, and JSON/YAML input.
+![PureDocs Screenshot](assets/screenshot.png)
+
+## Full OpenAPI 3.1 Support
+
+PureDocs fully supports the **OpenAPI 3.1** specification:
+
+- **Paths** — all HTTP methods (GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS, TRACE)
+- **Callbacks** — including runtime expressions
+- **Webhooks** — first-class webhook documentation
+- **Security schemes** — Bearer, Basic, API Key, OAuth2, OpenID Connect
+- **JSON Schema** — `$ref` resolution, `oneOf` / `anyOf` / `allOf`, nested objects, arrays
+- **Input formats** — JSON and YAML spec files
+- **Servers** — environments from the `servers` array with switching support
 
 ## Installation
 
@@ -10,37 +22,169 @@
 npm install puredocs
 # or
 bun add puredocs
+# or
+yarn add puredocs
+# or
+pnpm add puredocs
 ```
 
-## One Import API
+## Quick Start
+
+### HTML / Vanilla JS
+
+```html
+<pure-docs
+  spec-url="/openapi.json"
+  theme="auto"
+  title="My API"
+></pure-docs>
+
+<script type="module">
+  import 'puredocs/web';
+  import 'puredocs/style.css';
+</script>
+```
+
+### React
+
+```tsx
+// app/docs/page.tsx (Next.js) or src/pages/Docs.tsx (Vite/CRA)
+import 'puredocs/web';
+import 'puredocs/style.css';
+
+export default function DocsPage() {
+  return (
+    <pure-docs
+      spec-url="/openapi.json"
+      theme="auto"
+      title="My API"
+      primary-color="#0ea5e9"
+    />
+  );
+}
+```
+
+> For TypeScript, add a global declaration for the custom element:
+>
+> ```ts
+> // types/puredocs.d.ts
+> declare namespace JSX {
+>   interface IntrinsicElements {
+>     'pure-docs': React.DetailedHTMLProps<
+>       React.HTMLAttributes<HTMLElement> & {
+>         'spec-url'?: string;
+>         'spec-json'?: string;
+>         theme?: 'light' | 'dark' | 'auto';
+>         title?: string;
+>         'primary-color'?: string;
+>       },
+>       HTMLElement
+>     >;
+>   }
+> }
+> ```
+
+### Vue
+
+```vue
+<!-- src/views/DocsView.vue -->
+<template>
+  <pure-docs
+    spec-url="/openapi.json"
+    theme="auto"
+    title="My API"
+    primary-color="#0ea5e9"
+  />
+</template>
+
+<script setup lang="ts">
+import 'puredocs/web';
+import 'puredocs/style.css';
+</script>
+```
+
+> In `vite.config.ts`, tell Vue to treat `pure-docs` as a custom element:
+>
+> ```ts
+> // vite.config.ts
+> export default defineConfig({
+>   plugins: [
+>     vue({
+>       template: {
+>         compilerOptions: {
+>           isCustomElement: (tag) => tag === 'pure-docs',
+>         },
+>       },
+>     }),
+>   ],
+> });
+> ```
+
+### Angular
+
+```ts
+// app.module.ts
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
+
+@NgModule({
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  // ...
+})
+export class AppModule {}
+```
+
+```ts
+// docs.component.ts
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-docs',
+  template: `
+    <pure-docs
+      spec-url="/openapi.json"
+      theme="auto"
+      title="My API"
+      primary-color="#0ea5e9"
+    ></pure-docs>
+  `,
+})
+export class DocsComponent implements OnInit {
+  ngOnInit() {
+    import('puredocs/web');
+    import('puredocs/style.css');
+  }
+}
+```
+
+### Nuxt 3
+
+```vue
+<!-- pages/docs.vue -->
+<template>
+  <pure-docs
+    spec-url="/openapi.json"
+    theme="auto"
+    title="My API"
+  />
+</template>
+
+<script setup>
+if (import.meta.client) {
+  await import('puredocs/web');
+  await import('puredocs/style.css');
+}
+</script>
+```
+
+## Server-Side API
+
+PureDocs also provides server wrappers for Express and Fastify that generate self-contained HTML.
 
 ```ts
 import { pureDocs } from 'puredocs';
 ```
 
-## API Methods (3)
-
-1. `pureDocs.html()` - universal inline HTML (JS/CSS embedded)
-2. `pureDocs.express()` - one-line Express route
-3. `pureDocs.fastify()` - one-line Fastify route
-
-## 1) `pureDocs.html()`
-
-Generates full ready-to-send HTML with inline JS/CSS.
-
-```ts
-import { pureDocs } from 'puredocs';
-
-const html = pureDocs.html({
-  specUrl: '/openapi.json',
-  title: 'My API',
-  theme: 'auto',
-});
-```
-
-## 2) `pureDocs.express()`
-
-Registers route in one line and returns generated HTML.
+### Express
 
 ```ts
 import express from 'express';
@@ -58,9 +202,7 @@ pureDocs.express(app, {
 app.listen(3000);
 ```
 
-## 3) `pureDocs.fastify()`
-
-Registers route in one line and returns generated HTML.
+### Fastify
 
 ```ts
 import Fastify from 'fastify';
@@ -78,12 +220,21 @@ pureDocs.fastify(app, {
 await app.listen({ port: 3000 });
 ```
 
-## UMD Manual Setup (without `pureDocs` API)
+### Raw HTML
 
-This is a direct browser integration via stylesheet + script + web component. Pass parameters as attributes:
+```ts
+const html = pureDocs.html({
+  specUrl: '/openapi.json',
+  title: 'My API',
+  theme: 'auto',
+});
+// Returns full HTML string with embedded JS/CSS — serve it however you want
+```
+
+## UMD (CDN / No Bundler)
 
 ```html
-<link rel="stylesheet" href="/assets/puredocs.css" />
+<link rel="stylesheet" href="https://unpkg.com/puredocs/dist/puredocs.css" />
 
 <pure-docs
   spec-url="/openapi.json"
@@ -92,20 +243,8 @@ This is a direct browser integration via stylesheet + script + web component. Pa
   primary-color="#0ea5e9"
 ></pure-docs>
 
-<script src="/assets/puredocs.umd.js"></script>
+<script src="https://unpkg.com/puredocs/dist/puredocs.umd.js"></script>
 ```
-
-### UMD Attributes
-
-| Attribute | Description |
-|-----------|-------------|
-| `spec-url` | OpenAPI URL (JSON/YAML) |
-| `spec-json` | Inline OpenAPI object (JSON string) |
-| `theme` | `light` \| `dark` \| `auto` |
-| `title` | Docs title inside portal |
-| `primary-color` | Accent color (hex) |
-
-Servers/environments are taken from the OpenAPI `servers` array.
 
 ## CommonJS
 
@@ -113,87 +252,49 @@ Servers/environments are taken from the OpenAPI `servers` array.
 const { pureDocs } = require('puredocs');
 ```
 
-## Options
+## Attributes
 
-Common options (for `html()`, `express()`, `fastify()`, and `PureDocs.bootstrap()`):
+| Attribute | Description |
+|-----------|-------------|
+| `spec-url` | OpenAPI spec URL (JSON or YAML) |
+| `spec-json` | Inline OpenAPI object (JSON string) |
+| `theme` | `light` \| `dark` \| `auto` |
+| `title` | Title displayed inside the portal |
+| `primary-color` | Accent color (hex) |
 
-- `specUrl`: OpenAPI URL (JSON/YAML)
-- `spec`: inline OpenAPI object
-- `title`: docs title inside portal (HTML `<title>` auto-generated as `{title} — pureDocs`)
-- `theme`: `light` | `dark` | `auto`
-- `primaryColor`: accent color
+Servers and environments are taken from the OpenAPI `servers` array.
 
-Servers/environments come from the OpenAPI spec `servers` array.
+## Options (Server API)
 
-Wrapper-only option:
-
-- `route`: route path for `express()` and `fastify()` (default: `/docs`)
+| Option | Description |
+|--------|-------------|
+| `specUrl` | OpenAPI spec URL |
+| `spec` | Inline OpenAPI object |
+| `title` | Portal title (HTML `<title>` auto-set as `{title} — pureDocs`) |
+| `theme` | `light` \| `dark` \| `auto` |
+| `primaryColor` | Accent color |
+| `route` | Route path for `express()` / `fastify()` (default: `/docs`) |
 
 ## URL Structure
 
-PureDocs uses clean, human-readable URLs for navigation:
+PureDocs generates clean, human-readable URLs:
 
-### Endpoint Routes
+| Pattern | Example | Description |
+|---------|---------|-------------|
+| `/` | `/` | Overview page |
+| `/{tag}` | `/users` | Tag (category) page |
+| `/{tag}/{method}-{slug}` | `/users/get-users-id` | Endpoint page |
+| `/schemas/{name}` | `/schemas/User` | Schema details |
+| `/webhooks/{name}` | `/webhooks/orderCreated` | Webhook details |
 
-Format: `/{category}/{method}-{path-slug}`
-
-Examples:
-- `/users/get-users` — GET /users
-- `/users/get-users-id` — GET /users/{id}
-- `/auth/post-login` — POST /auth/login
-- `/products/put-products-id` — PUT /products/{id}
-
-The path slug is automatically generated from the API path:
-- Path parameters like `{id}` are converted to readable segments
-- Slashes are replaced with dashes
-- Special characters are normalized
-
-### Category Pages
-
-Format: `/{category}`
-
-Examples:
-- `/users` — All endpoints in the "users" category
-- `/auth` — All endpoints in the "auth" category
-
-### Other Routes
-
-- `/` — Overview/home page
-- `/schemas/{name}` — Schema details
-- `/webhooks/{name}` — Webhook details
-
-This structure ensures:
-- ✅ URLs work correctly when refreshing the page
-- ✅ Deep linking to specific endpoints
-- ✅ Readable and shareable links
-- ✅ SEO-friendly structure
-
-## Browser Web Component Entry
-
-If you need direct browser import instead of server API:
-
-```ts
-import 'puredocs/web';
-import 'puredocs/style.css';
-```
-
-## Demo and Landing
-
-- Landing: `apps/landing/index.html`
-- Interactive demo: `apps/demo/index.html`
-- Demo OpenAPI spec: `apps/demo/public/sample-spec.json`
-
-On GitHub Pages:
-
-- `/` -> landing
-- `/demo/` -> live demo with the showcase spec
+URLs support deep linking, page refresh, and sharing.
 
 ## Development
 
 ```bash
-npm run dev
-npm run typecheck
-npm run build
+bun run dev        # dev server
+bun run build      # production build
+bun run typecheck   # type checking
 ```
 
 ## License

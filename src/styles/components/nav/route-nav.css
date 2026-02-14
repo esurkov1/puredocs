@@ -3,7 +3,6 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-md);
-  margin-top: var(--space-xl);
   padding-top: var(--space-xl);
   border-top: 1px solid var(--border-base-color);
 }
@@ -15,7 +14,7 @@
   padding: var(--space-md);
   text-decoration: none;
   color: inherit;
-  transition: transform 0.14s ease;
+  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .route-main {
@@ -93,6 +92,8 @@
 
 /* ─── RouteNav: interactive states ─── */
 .route-card:hover {
+  background: var(--surface-hover-color);
+  border-color: var(--border-strong-base-color);
   transform: translateY(-1px);
 }
 
@@ -102,3 +103,30 @@
 
 /* ─── RouteNav: context variants ─── */
 .route-nav.is-single { grid-template-columns: minmax(0, 1fr); }
+
+/* ─── RouteNav: responsive placement ─── */
+/* Desktop copy (inside .main scroll area): hidden on mobile */
+.route-nav-wrap.is-desktop {
+  display: block;
+}
+
+/* Mobile copy (direct child of .page, after .aside): hidden on desktop */
+.route-nav-wrap.is-mobile {
+  padding-bottom: var(--page-bottom, 40px);
+}
+
+.route-nav-wrap.is-mobile .route-nav {
+  margin-top: 0;
+}
+
+@media (max-width: 1199px) {
+  .route-nav-wrap.is-desktop {
+    display: none;
+  }
+}
+
+@media (min-width: 1200px) {
+  .route-nav-wrap.is-mobile {
+    display: none;
+  }
+}

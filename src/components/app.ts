@@ -1,6 +1,7 @@
 import { h, clear, render } from '../lib/dom';
 import { icons } from '../lib/icons';
 import { store } from '../core/state';
+import { slugifyTag } from '../core/router';
 import { applyTheme, type ThemeConfig } from '../core/theme';
 import { renderSidebar, updateSidebarActiveState } from './nav/sidebar';
 import { renderOverview } from './pages/overview';
@@ -160,6 +161,9 @@ async function updateContent(state: PortalState, config: PortalConfig): Promise<
   prevRoute = { ...route };
   prevEnvState = envState;
 
+  // Clean up mobile route-nav from previous render (lives outside main/aside, in .page directly)
+  currentPageEl.querySelectorAll(':scope > .route-nav-wrap').forEach((el) => el.remove());
+
   clear(currentMainEl);
   clear(currentAsideEl);
 
@@ -293,119 +297,34 @@ function updateEnvironmentState(root: HTMLElement, state: PortalState, _config: 
 function findOperation(state: PortalState, route: RouteInfo) {
   if (!state.spec || route.type !== 'endpoint') return null;
 
+  // 1. Match by operationId (highest priority)
   if (route.operationId) {
-    const byOperationId = state.spec.operations.find((op) => op.operationId === route.operationId);
-    if (byOperationId) return byOperationId;
+    const op = state.spec.operations.find((o) => o.operationId === route.operationId);
+    if (op) return op;
   }
 
-  const routeMethod = (route.method || '').toLowerCase();
-  if (!routeMethod) return null;
+  const method = (route.method || '').toLowerCase();
+  if (!method) return null;
 
-  /**
-   * Convert tag name to slug for matching
-   */
-  const tagToSlug = (tag: string): string => {
-    return tag
-      .toLowerCase()
-      .replace(/[^\w\-]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-+|-+$/g, '');
-  };
+  // 2. Match by method + exact path
+  const path = route.path || '';
+  const candidates = state.spec.operations.filter(
+    (op) => op.method.toLowerCase() === method && op.path === path,
+  );
 
-  /**
-   * Convert API path to slug for matching
-   */
-  const pathToSlug = (apiPath: string): string => {
-    return apiPath
-      .replace(/^\/+/, '')
-      .replace(/\/+$/, '')
-      .replace(/\{([^}]+)\}/g, '$1')
-      .replace(/[^\w\-/]/g, '-')
-      .replace(/\/+/g, '-')
-      .replace(/-+/g, '-')
-      .toLowerCase();
-  };
+  if (candidates.length === 0) return null;
+  if (candidates.length === 1) return candidates[0];
 
-  // If we have both method and path, try exact match first
-  if (route.path) {
-    const routePath = normalizePathForMatch(route.path);
-    
-    const exactMatches = state.spec.operations.filter(
-      (op) => op.method === routeMethod && op.path === routePath,
+  // 3. Multiple matches — disambiguate by tag (slug comparison)
+  if (route.tag) {
+    const routeTagSlug = slugifyTag(route.tag);
+    const tagged = candidates.find((op) =>
+      op.tags.some((t) => slugifyTag(t) === routeTagSlug),
     );
-    if (exactMatches.length > 0) {
-      if (route.tag) {
-        const routeTagSlug = tagToSlug(route.tag);
-        const tagged = exactMatches.find((op) => 
-          op.tags.some(t => tagToSlug(t) === routeTagSlug)
-        );
-        if (tagged) return tagged;
-      }
-      return exactMatches[0];
-    }
-
-    const normalizedMatches = state.spec.operations.filter(
-      (op) => op.method.toLowerCase() === routeMethod && normalizePathForMatch(op.path) === routePath,
-    );
-    if (normalizedMatches.length > 0) {
-      if (route.tag) {
-        const routeTagSlug = tagToSlug(route.tag);
-        const tagged = normalizedMatches.find((op) => 
-          op.tags.some(t => tagToSlug(t) === routeTagSlug)
-        );
-        if (tagged) return tagged;
-      }
-      return normalizedMatches[0];
-    }
+    if (tagged) return tagged;
   }
 
-  // If we have tag + method + pathSlug (from new URL format), find by matching all three
-  if (route.tag && route.pathSlug) {
-    const routeTagSlug = tagToSlug(route.tag);
-    const routePathSlug = route.pathSlug.toLowerCase();
-    
-    const candidates = state.spec.operations.filter(
-      (op) => {
-        const opMethodMatch = op.method.toLowerCase() === routeMethod;
-        const opTagMatch = op.tags.some(t => tagToSlug(t) === routeTagSlug);
-        const opPathSlug = pathToSlug(op.path);
-        const opPathMatch = opPathSlug === routePathSlug;
-        
-        return opMethodMatch && opTagMatch && opPathMatch;
-      }
-    );
-    
-    if (candidates.length > 0) return candidates[0];
-  }
-
-  // Fallback: If we only have tag + method (without pathSlug), find first match
-  if (route.tag && !route.path && !route.pathSlug) {
-    const routeTagSlug = tagToSlug(route.tag);
-    const candidates = state.spec.operations.filter(
-      (op) => op.method.toLowerCase() === routeMethod && 
-              op.tags.some(t => tagToSlug(t) === routeTagSlug)
-    );
-    
-    return candidates[0] || null;
-  }
-
-  return null;
-}
-
-function normalizePathForMatch(path?: string): string {
-  if (!path) return '';
-
-  const noQuery = path.split('?')[0]?.split('#')[0] || '';
-  let normalized = noQuery.trim().replace(/\/{2,}/g, '/');
-  try {
-    normalized = decodeURIComponent(normalized).replace(/\/{2,}/g, '/');
-  } catch {
-    // Keep raw value if decodeURIComponent fails for malformed input
-  }
-
-  if (!normalized.startsWith('/')) normalized = `/${normalized}`;
-  if (normalized.length > 1) normalized = normalized.replace(/\/+$/, '');
-  return normalized;
+  return candidates[0];
 }
 
 function setupViewportSidebarSync(): void {
@@ -444,7 +363,6 @@ function isSameRoute(a: RouteInfo, b: RouteInfo): boolean {
     && a.operationId === b.operationId
     && a.method === b.method
     && a.path === b.path
-    && a.pathSlug === b.pathSlug
     && a.schemaName === b.schemaName
     && a.tag === b.tag
     && a.webhookName === b.webhookName;

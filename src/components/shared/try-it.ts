@@ -113,11 +113,7 @@ export function renderTryIt(
     container.addEventListener('change', notify);
   }
 
-  // Final sync after insertion into DOM
-  const bodyTextarea = container.querySelector('textarea[data-field="body"]') as HTMLTextAreaElement | null;
-  if (bodyTextarea) {
-    autoResizeTextarea(bodyTextarea);
-  }
+  // No body textarea auto-resize needed — CSS Grid overlay handles sizing
 }
 
 /** Combined Request Body / Query / Path + Code Examples block with tabs */
@@ -130,6 +126,17 @@ function renderRequestCodeBlock(
   const pathParams = operation.parameters.filter((p) => p.in === 'path');
   const queryParams = operation.parameters.filter((p) => p.in === 'query');
   const paramExampleSets = extractParamExampleSets([...pathParams, ...queryParams]);
+
+  // Extract body examples early for the Examples picker inside the card
+  let bodyExamples: ReturnType<typeof extractExamples> = [];
+  if (operation.requestBody) {
+    const ct = Object.keys(operation.requestBody.content || {})[0] || 'application/json';
+    if (!ct.includes('multipart')) {
+      const mt = operation.requestBody.content?.[ct];
+      if (mt) bodyExamples = extractExamples(mt);
+    }
+  }
+  let bodyEditorRef: { setValue: (v: string, lang?: string) => void; syncLayout: () => void } | null = null;
 
   // First tab unified for all operations
   const firstTabLabel = 'Request';
@@ -186,26 +193,6 @@ function renderRequestCodeBlock(
   const sectionBody = h('div', { className: 'body' });
   const sectionTitle = h('h2', { textContent: 'Request' });
   section.append(sectionTitle, sectionBody);
-  const requestControls = h('div', { className: 'controls' });
-  let hasRequestControls = false;
-
-  if (paramExampleSets.length > 1 && (pathParams.length > 0 || queryParams.length > 0)) {
-    requestControls.append(createSelect({
-      options: paramExampleSets.map((ex) => ({ value: ex.name, label: ex.summary || ex.name })),
-      value: paramExampleSets[0].name,
-      ariaLabel: 'Select example',
-      className: 'example-select',
-      onChange: (val) => {
-        const chosen = paramExampleSets.find((e) => e.name === val);
-        if (chosen) {
-          applyParamValues(tryItBody, chosen.values);
-          tryItBody.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      },
-    }));
-    hasRequestControls = true;
-  }
-
   const state = store.get();
   const card = h('div', { className: 'card' });
   const header = h('div', { className: 'card-head' });
@@ -225,6 +212,46 @@ function renderRequestCodeBlock(
     tabButtons.push(tabBtn);
 
     firstTabPanel = h('div', { className: 'panel is-request', 'data-tab': 'first' });
+
+    // Examples picker — first item in the card panel
+    const hasParamExamples = paramExampleSets.length > 1 && (pathParams.length > 0 || queryParams.length > 0);
+    const hasBodyExamples = bodyExamples.length > 1;
+    if (hasParamExamples || hasBodyExamples) {
+      const examplesGroup = h('div', { className: 'params-group' });
+      examplesGroup.append(h('h3', { textContent: 'Examples' }));
+      if (hasParamExamples) {
+        examplesGroup.append(createSelect({
+          options: paramExampleSets.map((ex) => ({ value: ex.name, label: ex.summary || ex.name })),
+          value: paramExampleSets[0].name,
+          ariaLabel: 'Select parameter example',
+          className: 'example-select',
+          onChange: (val) => {
+            const chosen = paramExampleSets.find((e) => e.name === val);
+            if (chosen) {
+              applyParamValues(tryItBody, chosen.values);
+              tryItBody.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+          },
+        }));
+      }
+      if (hasBodyExamples) {
+        examplesGroup.append(createSelect({
+          options: bodyExamples.map((ex) => ({ value: ex.name, label: getExampleLabel(ex) })),
+          value: bodyExamples[0].name,
+          ariaLabel: 'Select body example',
+          className: 'example-select',
+          onChange: (val) => {
+            const chosen = bodyExamples.find((e) => e.name === val);
+            if (chosen && bodyEditorRef) {
+              bodyEditorRef.setValue(formatExampleValue(chosen.value), 'json');
+              bodyEditorRef.syncLayout();
+              onConfigChange?.(collectRequestConfigImpl(tryItBody, operation));
+            }
+          },
+        }));
+      }
+      firstTabPanel.append(examplesGroup);
+    }
 
     if (pathParams.length > 0 || queryParams.length > 0) {
       const paramsSection = h('div', { className: 'params-group' });
@@ -261,7 +288,6 @@ function renderRequestCodeBlock(
       routePreviewHeader.append(h('h3', { textContent: 'URL' }));
       const copyRouteBtn = createCopyButton({
         ariaLabel: 'Copy URL',
-        className: 'route-copy-btn',
         getText: () => routePreviewInput?.value || collectRequestConfigImpl(tryItBody, operation).url,
       });
       routePreviewInput = createInput({
@@ -325,33 +351,15 @@ function renderRequestCodeBlock(
         }
         bodySection.append(formWrap);
       } else {
-        const examples = mediaType ? extractExamples(mediaType) : [];
-        const initialExample = examples[0];
+        const initialExample = bodyExamples[0];
         const initialVal = initialExample ? formatExampleValue(initialExample.value) : '';
         const editor = createEditorPanel(initialVal, 'json', {
           dataField: 'body',
           onInput: () => onConfigChange?.(collectRequestConfigImpl(tryItBody, operation)),
         });
+        bodyEditorRef = editor;
         syncRequestBodyEditor = editor.syncLayout;
         bodySection.append(editor.wrap);
-        if (examples.length > 1) {
-          const exampleSelect = createSelect({
-            options: examples.map((ex) => ({ value: ex.name, label: getExampleLabel(ex) })),
-            value: examples[0].name,
-            ariaLabel: 'Select example',
-            className: 'example-select',
-            onChange: (val) => {
-              const chosen = examples.find((e) => e.name === val);
-              if (chosen) {
-                editor.setValue(formatExampleValue(chosen.value), 'json');
-                editor.syncLayout();
-                onConfigChange?.(collectRequestConfigImpl(tryItBody, operation));
-              }
-            },
-          });
-          requestControls.append(exampleSelect);
-          hasRequestControls = true;
-        }
       }
       bodySection.append(createErrorPlaceholder('body'));
       firstTabPanel.append(bodySection);
@@ -485,7 +493,6 @@ function renderRequestCodeBlock(
     firstTabPanel?.append(routePreviewEl);
   }
 
-  if (hasRequestControls) sectionBody.append(requestControls);
   card.append(header, cardBody);
   sectionBody.append(card);
 
@@ -601,7 +608,6 @@ export function createHeaderRow(name: string, value: string): HTMLElement {
     variant: 'icon',
     icon: icons.close,
     ariaLabel: 'Remove header',
-    className: 'header-remove-btn',
     onClick: () => row.remove(),
   });
 
@@ -722,7 +728,7 @@ function renderResponse(container: HTMLElement, response: TryItResponse): void {
   const bodyContent = h('div', { className: 'response-pane' });
   const bodyInner = h('div', { className: 'pane-inner' });
   const pre = h('pre', { className: 'code-display' });
-  const codeEl = h('code', { className: 'hljs' });
+  const codeEl = h('code', {});
   const displayText = formatResponseBody(response.body, true);
   codeEl.innerHTML = highlightCode(displayText, looksLikeJson(displayText) ? 'json' : '');
   pre.append(codeEl);

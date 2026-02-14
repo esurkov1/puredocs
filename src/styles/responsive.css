@@ -27,6 +27,14 @@
   overflow: visible;
 }
 
+.page > .main > .content {
+  padding-bottom: 0;
+}
+
+.page > .aside > .content {
+  padding-top: 0;
+}
+
 .sidebar {
   position: fixed;
   top: 0;
@@ -121,5 +129,10 @@ h1 { font-size: 18px; }
     width: var(--aside-width);
     min-width: var(--aside-width);
     max-width: var(--aside-width);
+  }
+
+  .page > .main > .content,
+  .page > .aside > .content {
+    padding: var(--page-y) 0;
   }
 }

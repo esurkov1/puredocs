@@ -1,7 +1,7 @@
 import { h, clear } from '../../lib/dom';
 import { icons } from '../../lib/icons';
 import { store } from '../../core/state';
-import { navigate, buildPath, parsePath } from '../../core/router';
+import { navigate, buildPath, parsePath, slugifyTag } from '../../core/router';
 import { toggleTheme } from '../../core/theme';
 import { formatBaseUrlForDisplay } from '../../services/env';
 import { showSearchModal } from '../modals/search-modal';
@@ -37,17 +37,17 @@ export function updateSidebarActiveState(container: HTMLElement, currentRoute: R
   // Expand group containing active endpoint or tag
   const tagToExpand = currentRoute.type === 'endpoint' ? currentRoute.tag
     : currentRoute.type === 'tag' ? currentRoute.tag
-    : currentRoute.type === 'schema' ? 'schemas'
     : null;
+  const expandSlug = currentRoute.type === 'schema' ? 'schemas'
+    : tagToExpand ? slugifyTag(tagToExpand) : null;
 
-  if (tagToExpand) {
-    const group = container.querySelector(`[data-nav-tag="${CSS.escape(tagToExpand)}"]`) as HTMLElement | null;
+  if (expandSlug) {
+    const group = container.querySelector(`[data-nav-tag="${CSS.escape(expandSlug)}"]`) as HTMLElement | null;
     if (group) {
       const header = group.querySelector('.nav-group-header');
       const itemsWrap = group.querySelector('.nav-group-items');
-      if (header && itemsWrap) {
-        header.classList.add('expanded');
-        itemsWrap.classList.remove('collapsed');
+      if (header instanceof HTMLElement && itemsWrap instanceof HTMLElement) {
+        setNavGroupExpanded(header, itemsWrap, true);
       }
     }
   }
@@ -188,13 +188,11 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
     }
 
     whHeader.addEventListener('click', () => {
-      whHeader.classList.toggle('expanded');
-      whItems.classList.toggle('collapsed');
+      setNavGroupExpanded(whHeader, whItems);
     });
 
     const isActiveWebhook = state.route.type === 'webhook';
-    whHeader.classList.toggle('expanded', isActiveWebhook);
-    whItems.classList.toggle('collapsed', !isActiveWebhook);
+    setNavGroupExpanded(whHeader, whItems, isActiveWebhook, { animate: false });
     whGroup.append(whHeader, whItems);
     nav.append(whGroup);
   }
@@ -213,13 +211,11 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
     }
 
     schemasHeader.addEventListener('click', () => {
-      schemasHeader.classList.toggle('expanded');
-      schemasItems.classList.toggle('collapsed');
+      setNavGroupExpanded(schemasHeader, schemasItems);
     });
 
     const isActiveSchema = state.route.type === 'schema';
-    schemasHeader.classList.toggle('expanded', isActiveSchema);
-    schemasItems.classList.toggle('collapsed', !isActiveSchema);
+    setNavGroupExpanded(schemasHeader, schemasItems, isActiveSchema, { animate: false });
     schemasGroup.setAttribute('data-nav-tag', 'schemas');
     schemasGroup.append(schemasHeader, schemasItems);
     nav.append(schemasGroup);
@@ -230,6 +226,29 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
   // Footer: credit + theme button
   const footer = h('div', { className: 'footer' });
 
+  // Logo button
+  const logoBtn = h('button', {
+    type: 'button',
+    className: 'btn icon s soft u-text-muted theme',
+    'aria-label': 'PureDocs',
+  });
+  // Import the logo SVG content
+  logoBtn.innerHTML = `<svg viewBox="0 0 593 465" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(0,465) scale(0.1,-0.1)" fill="currentColor" stroke="none">
+      <path d="M895 4308 c-41 -15 -105 -56 -128 -82 -10 -12 -28 -41 -40 -66 l-22 -45 -3 -983 c-2 -618 1 -983 7 -980 5 1 66 37 135 78 l126 75 1 335 c1 184 3 570 4 857 4 588 1 569 78 604 40 18 83 19 1140 19 l1097 0 0 -192 c0 -106 3 -264 7 -351 7 -173 14 -195 76 -241 27 -20 43 -21 385 -26 l357 -5 3 -1363 c2 -1336 2 -1365 -18 -1408 -34 -78 22 -74 -962 -74 l-873 0 -50 -26 c-28 -15 -109 -60 -181 -101 l-131 -74 -287 -1 -287 -2 -29 30 c-16 16 -51 58 -77 92 -45 59 -63 73 -278 201 l-230 137 -3 -175 c-2 -142 0 -184 13 -218 21 -54 84 -119 143 -146 l47 -22 1640 0 1640 0 51 27 c27 14 67 45 87 67 71 79 67 -20 67 1607 0 804 -3 1475 -6 1491 -4 23 -122 147 -474 502 l-467 471 -1264 -1 c-877 0 -1273 -4 -1294 -11z"/>
+      <path d="M5361 3645 c-2 -51 -36 -167 -69 -231 -64 -126 -193 -201 -407 -237 -11 -2 10 -9 46 -15 239 -43 359 -147 414 -357 8 -32 15 -74 15 -93 0 -19 4 -31 10 -27 6 3 10 18 10 32 0 48 32 157 62 215 62 116 174 191 343 227 50 10 78 19 64 20 -44 2 -180 41 -232 67 -113 58 -185 161 -223 319 -9 39 -20 79 -25 90 -6 17 -8 15 -8 -10z"/>
+      <path d="M1354 3527 c-3 -8 -4 -45 -2 -83 l3 -69 743 -3 742 -2 0 85 0 85 -740 0 c-612 0 -742 -2 -746 -13z"/>
+      <path d="M1350 3005 l0 -75 1185 0 1186 0 -3 68 -3 67 -120 6 c-66 4 -598 7 -1182 8 l-1063 1 0 -75z"/>
+      <path d="M2033 2638 c-6 -7 -41 -137 -78 -288 -79 -327 -349 -1427 -405 -1656 -22 -89 -40 -170 -40 -181 0 -23 -11 -20 208 -49 115 -16 134 -16 146 -3 7 7 35 102 61 209 26 107 87 359 136 560 49 201 125 514 169 695 44 182 96 393 115 469 21 87 30 146 25 155 -7 13 -150 58 -311 97 -9 3 -21 -1 -26 -8z"/>
+      <path d="M4810 2585 c0 -28 -34 -68 -73 -85 l-38 -17 30 -12 c36 -16 66 -47 82 -86 l12 -30 8 29 c10 36 42 71 80 87 l30 12 -38 17 c-39 17 -73 57 -73 85 0 8 -4 15 -10 15 -5 0 -10 -7 -10 -15z"/>
+      <path d="M2706 2230 c-48 -58 -136 -197 -136 -217 0 -20 121 -106 587 -416 84 -56 153 -106 153 -110 0 -4 -34 -29 -75 -55 -68 -43 -272 -171 -510 -321 -49 -32 -150 -95 -222 -141 -73 -46 -133 -88 -133 -93 0 -5 35 -63 77 -129 52 -80 84 -120 99 -124 23 -6 174 85 739 441 182 115 345 216 438 273 77 47 107 83 107 132 0 22 -5 50 -11 64 -7 15 -77 69 -173 134 -843 570 -877 592 -898 592 -9 0 -28 -14 -42 -30z"/>
+      <path d="M1205 2171 c-145 -90 -429 -266 -510 -316 -374 -230 -527 -328 -544 -349 -7 -8 -15 -34 -18 -57 -9 -61 17 -102 91 -146 67 -40 298 -183 650 -403 298 -185 323 -200 346 -200 22 0 160 211 160 245 0 12 -8 29 -17 38 -18 15 -433 278 -610 386 -51 30 -93 58 -93 61 0 5 526 336 710 447 36 22 66 47 68 55 2 9 -30 69 -70 134 -65 105 -77 119 -103 122 -17 1 -43 -6 -60 -17z"/>
+    </g>
+  </svg>`;
+  logoBtn.addEventListener('click', () => {
+    window.open('https://puredocs.dev', '_blank', 'noopener,noreferrer');
+  });
+
   const credit = h('a', {
     className: 'credit',
     href: 'https://puredocs.dev',
@@ -237,7 +256,8 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
     rel: 'noopener noreferrer',
   });
   credit.textContent = `puredocs.dev${version ? ` ${version}` : ''}`;
-  footer.append(credit);
+  
+  footer.append(logoBtn, credit);
 
   // Theme button moved to footer
   footer.append(themeBtn);
@@ -260,11 +280,12 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
 }
 
 function createTagGroup(tag: SpecTag, currentRoute: RouteInfo, state: { route: RouteInfo }): HTMLElement {
-  const group = h('div', { className: 'nav-group', 'data-nav-tag': tag.name });
+  const group = h('div', { className: 'nav-group', 'data-nav-tag': slugifyTag(tag.name) });
   const header = createTagGroupHeader(tag, currentRoute);
   const items = h('div', { className: 'nav-group-items' });
 
-  const isActiveTag = currentRoute.type === 'tag' && currentRoute.tag === tag.name
+  const tagSlug = slugifyTag(tag.name);
+  const isActiveTag = (currentRoute.type === 'tag' && slugifyTag(currentRoute.tag || '') === tagSlug)
     || tag.operations.some((op) => isRouteMatch(routeForOp(op, tag.name), currentRoute));
 
   for (const op of tag.operations) {
@@ -276,18 +297,18 @@ function createTagGroup(tag: SpecTag, currentRoute: RouteInfo, state: { route: R
   header.addEventListener('click', (e: Event) => {
     const target = e.target as HTMLElement;
     if (target.closest('.nav-group-link')) return;
-    header.classList.toggle('expanded');
-    items.classList.toggle('collapsed');
+    setNavGroupExpanded(header, items);
   });
 
-  items.classList.toggle('collapsed', !isActiveTag);
+  setNavGroupExpanded(header, items, isActiveTag, { animate: false });
 
   group.append(header, items);
   return group;
 }
 
 function createTagGroupHeader(tag: SpecTag, currentRoute: RouteInfo): HTMLElement {
-  const isActiveTag = currentRoute.type === 'tag' && currentRoute.tag === tag.name
+  const tagSlug = slugifyTag(tag.name);
+  const isActiveTag = (currentRoute.type === 'tag' && slugifyTag(currentRoute.tag || '') === tagSlug)
     || tag.operations.some((op) => isRouteMatch(routeForOp(op, tag.name), currentRoute));
 
   const header = h('div', { className: 'nav-group-header focus-ring', 'aria-expanded': String(isActiveTag), tabIndex: 0 });
@@ -318,7 +339,6 @@ function createTagGroupHeader(tag: SpecTag, currentRoute: RouteInfo): HTMLElemen
   });
 
   header.append(chevronBtn, link);
-  header.classList.toggle('expanded', isActiveTag);
 
   header.addEventListener('keydown', (e: Event) => {
     if ((e as KeyboardEvent).key === 'Enter' || (e as KeyboardEvent).key === ' ') {
@@ -360,6 +380,48 @@ function createGroupHeader(name: string, count: number): HTMLElement {
   });
 
   return header;
+}
+
+function setNavGroupExpanded(
+  header: HTMLElement,
+  items: HTMLElement,
+  expanded: boolean = !header.classList.contains('expanded'),
+  options: { animate?: boolean } = {},
+): void {
+  const shouldAnimate = options.animate !== false;
+
+  if (!shouldAnimate) {
+    header.classList.toggle('expanded', expanded);
+    header.setAttribute('aria-expanded', String(expanded));
+    updateGroupChevronAriaLabel(header, expanded);
+    items.classList.toggle('collapsed', !expanded);
+    syncNavGroupHeight(items);
+    return;
+  }
+
+  if (expanded) {
+    items.classList.remove('collapsed');
+    syncNavGroupHeight(items);
+  } else {
+    syncNavGroupHeight(items);
+    // Keep current height for one frame so collapse animates smoothly from content height.
+    void items.offsetHeight;
+    items.classList.add('collapsed');
+  }
+
+  header.classList.toggle('expanded', expanded);
+  header.setAttribute('aria-expanded', String(expanded));
+  updateGroupChevronAriaLabel(header, expanded);
+}
+
+function syncNavGroupHeight(items: HTMLElement): void {
+  items.style.setProperty('--nav-group-max-height', `${items.scrollHeight}px`);
+}
+
+function updateGroupChevronAriaLabel(header: HTMLElement, expanded: boolean): void {
+  const chevron = header.querySelector('.nav-group-chevron');
+  if (!(chevron instanceof HTMLElement)) return;
+  chevron.setAttribute('aria-label', expanded ? 'Collapse' : 'Expand');
 }
 
 function createNavItem(label: string, method: string | undefined, route: RouteInfo, currentRoute: RouteInfo): HTMLElement {
@@ -476,10 +538,10 @@ function routeForOp(op: SpecOperation, tag: string): RouteInfo {
 function isRouteMatch(a: RouteInfo, b: RouteInfo): boolean {
   if (a.type !== b.type) return false;
   if (a.type === 'overview') return true;
-  if (a.type === 'tag') return a.tag === b.tag;
+  if (a.type === 'tag') return slugifyTag(a.tag || '') === slugifyTag(b.tag || '');
   if (a.type === 'endpoint') {
     if (a.operationId && b.operationId) return a.operationId === b.operationId;
-    return a.method === b.method && a.path === b.path;
+    return (a.method || '').toLowerCase() === (b.method || '').toLowerCase() && a.path === b.path;
   }
   if (a.type === 'schema') return a.schemaName === b.schemaName;
   if (a.type === 'webhook') return a.webhookName === b.webhookName;

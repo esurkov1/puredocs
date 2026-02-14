@@ -1,6 +1,6 @@
 export type BadgeSize = 's' | 'm' | 'l';
 export type BadgeKind = 'method' | 'status' | 'webhook' | 'required' | 'chip';
-export type BadgeColor = 'default' | 'transparent' | 'green' | 'blue' | 'orange' | 'purple' | 'red';
+export type BadgeColor = 'default' | 'transparent' | 'primary' | 'green' | 'blue' | 'orange' | 'purple' | 'red';
 
 export interface BadgeProps {
   text: string;
@@ -16,12 +16,14 @@ export interface BadgeProps {
 
 function colorClass(color: BadgeColor): string {
   if (color === 'default' || color === 'transparent') return 'u-text-muted';
+  if (color === 'primary') return 'u-text-accent';
   return `u-text-${color}`;
 }
 
 function bgClass(color: BadgeColor): string {
   if (color === 'default') return 'u-bg-surface-hover';
   if (color === 'transparent') return 'u-bg-transparent';
+  if (color === 'primary') return 'u-bg-accent-soft';
   return `u-bg-${color}-soft`;
 }
 

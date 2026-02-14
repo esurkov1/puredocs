@@ -12,7 +12,7 @@ import { createCopyButton } from '../shared/copy-button';
 import { createBadge, createButton, createSection, createBreadcrumb, createSectionTitleWrap, createCard, createCardHeader, createCardBody, createCardHeaderRow, createResponseCodeTab, createLockIcon, setResponseCodeTabActive } from '../ui';
 import { renderRouteNavigation } from '../nav/route-nav';
 import { getSchemaTypeLabel } from '../../helpers/schema-utils';
-import type { SpecOperation, SpecResponse, SpecResponseHeader, SpecMediaType, SchemaObject, PortalState } from '../../core/types';
+import type { SpecOperation, SpecResponse, SpecResponseHeader, SpecMediaType, SchemaObject, PortalState, RouteInfo } from '../../core/types';
 
 /** Render an endpoint detail page. Main block divided into 2 parts: doc | Try It + Code Examples */
 export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLElement, operation: SpecOperation): Promise<void> {
@@ -150,14 +150,24 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
     responsesRendered = true;
   }
 
-  const routeNav = renderRouteNavigation({
+  const routeNavArgs: RouteInfo = {
     type: 'endpoint',
     method: operation.method,
     path: operation.path,
     operationId: operation.operationId,
-  });
+  };
+  const routeNavDesktop = renderRouteNavigation(routeNavArgs);
+  const routeNavMobile = renderRouteNavigation(routeNavArgs);
   const appendRouteNav = () => {
-    if (routeNav) pageSlot.append(h('div', { className: 'block section' }, routeNav));
+    if (routeNavDesktop) {
+      pageSlot.append(h('div', { className: 'route-nav-wrap is-desktop' }, routeNavDesktop));
+    }
+    if (routeNavMobile) {
+      const pageContainer = pageSlot.closest('.page');
+      if (pageContainer) {
+        pageContainer.append(h('div', { className: 'route-nav-wrap is-mobile' }, routeNavMobile));
+      }
+    }
   };
   if (responsesRendered) appendRouteNav();
 
@@ -317,7 +327,7 @@ function renderResponseHeadersBlock(headers: Record<string, SpecResponseHeader>)
     );
 
     const metaWrap = h('div', { className: 'schema-meta-wrapper' });
-    metaWrap.append(createBadge({ text: typeLabel, kind: 'chip', size: 's', mono: true }));
+    metaWrap.append(createBadge({ text: typeLabel, kind: 'chip', color: 'primary', size: 's', mono: true }));
     if (hdr.required) {
       metaWrap.append(createBadge({ text: 'required', kind: 'required', size: 'm' }));
     }
@@ -454,6 +464,7 @@ function renderResponsesSection(operation: SpecOperation): HTMLElement {
   const schemaTypeBadge = createBadge({
     text: tabData.get(activeCode)?.schemaType || 'plain',
     kind: 'chip',
+    color: 'primary',
     size: 's',
     mono: true,
   });
