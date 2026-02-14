@@ -52,7 +52,7 @@ jobs:
           cp apps/landing/index.html _site/index.html
           cp apps/landing/assets/img/image1.png apps/landing/assets/img/image2.png apps/landing/assets/img/image3.png apps/landing/assets/img/logo.svg _site/assets/img/
           cp apps/demo/index.html _site/demo/index.html
-          cp apps/demo/public/sample-spec.json _site/demo/sample-spec.json
+          cp apps/demo/spec.json _site/demo/spec.json
           cp dist/puredocs.umd.js dist/puredocs.css _site/demo/assets/
           echo "puredocs.dev" > _site/CNAME
 

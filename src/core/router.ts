@@ -6,6 +6,8 @@ import { store } from './state';
 const HTTP_METHODS = new Set([
   'get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace',
 ]);
+const ROUTE_MARKER = '~';
+const ROUTE_MARKER_PATH = `/${ROUTE_MARKER}`;
 
 let basePath = '';
 
@@ -13,7 +15,7 @@ let basePath = '';
 
 /** Initialize the History API router */
 export function initRouter(base = ''): void {
-  basePath = base.replace(/\/+$/, '');
+  basePath = normalizeBasePath(base || inferBasePath());
   window.addEventListener('popstate', handleRouteChange);
   handleRouteChange();
 }
@@ -27,7 +29,8 @@ export function destroyRouter(): void {
 
 /** Push a new path onto the history stack and trigger a route change */
 export function navigate(path: string): void {
-  window.history.pushState(null, '', basePath + path);
+  const externalPath = toExternalPath(path);
+  window.history.pushState(null, '', basePath + externalPath);
   handleRouteChange();
 }
 
@@ -38,19 +41,24 @@ export function navigate(path: string): void {
  *
  * URL patterns:
  *   /                              → Overview
- *   /{tag}                         → Tag page
- *   /{tag}/{method}/{apiPath}      → Endpoint
- *   /schemas/{name}                → Schema
- *   /webhooks/{name}               → Webhook
- *   /guides/{path}                 → Guide
+ *   /~/{tag}                       → Tag page
+ *   /~/{tag}/{method}/{apiPath}    → Endpoint
+ *   /~/schemas/{name}              → Schema
+ *   /~/webhooks/{name}             → Webhook
+ *   /~/guides/{path}               → Guide
  *
  * Examples:
- *   /users                         → "Users" tag page
- *   /users/get/users/{id}          → GET /users/{id} in "Users" tag
- *   /pets/post/pets                → POST /pets in "Pets" tag
- *   /schemas/UserResponse          → Schema "UserResponse"
+ *   /~/users                       → "Users" tag page
+ *   /~/users/get/users/{id}        → GET /users/{id} in "Users" tag
+ *   /~/pets/post/pets              → POST /pets in "Pets" tag
+ *   /~/schemas/UserResponse        → Schema "UserResponse"
  */
 export function buildPath(route: RouteInfo): string {
+  const internal = buildInternalPath(route);
+  return toExternalPath(internal);
+}
+
+function buildInternalPath(route: RouteInfo): string {
   switch (route.type) {
     case 'overview':
       return '/';
@@ -89,8 +97,7 @@ export function buildPath(route: RouteInfo): string {
  * and strips query strings / hash fragments.
  */
 export function parsePath(rawPath: string): RouteInfo {
-  const pathOnly = rawPath.split('?')[0]?.split('#')[0] || '/';
-  const normalized = pathOnly.replace(/\/+/g, '/').replace(/\/+$/, '') || '/';
+  const normalized = toInternalPath(rawPath);
 
   if (normalized === '/') return { type: 'overview' };
 
@@ -178,10 +185,8 @@ function safeDecode(segment: string): string {
 /** Read the current pathname, stripping the configured base path */
 function getCurrentPath(): string {
   const path = window.location.pathname;
-  if (!basePath) return path || '/';
-  if (path === basePath || path === `${basePath}/`) return '/';
-  if (path.startsWith(`${basePath}/`)) return path.slice(basePath.length) || '/';
-  return path || '/';
+  const pathInBase = stripBasePath(path || '/');
+  return toInternalPath(pathInBase, { requireMarker: true });
 }
 
 /** Called on popstate and after navigate() — parses the URL and updates the store */
@@ -189,4 +194,90 @@ function handleRouteChange(): void {
   const path = getCurrentPath();
   const route = parsePath(path);
   store.setRoute(route);
+}
+
+function normalizeBasePath(rawBase: string): string {
+  const normalized = normalizePath(rawBase);
+  if (normalized === '/') return '';
+  return normalized;
+}
+
+function inferBasePath(): string {
+  const path = normalizePath(window.location.pathname || '/');
+  if (path === '/') return '';
+
+  const markerIndex = getRouteMarkerIndex(path);
+  if (markerIndex >= 0) {
+    return path.slice(0, markerIndex) || '';
+  }
+
+  const segments = path.slice(1).split('/');
+  const lastSegment = segments[segments.length - 1] || '';
+  if (/\.[a-z0-9]+$/i.test(lastSegment)) {
+    const lastSlash = path.lastIndexOf('/');
+    if (lastSlash <= 0) return '';
+    return path.slice(0, lastSlash);
+  }
+
+  return path;
+}
+
+function stripBasePath(path: string): string {
+  if (!basePath) return path || '/';
+  if (path === basePath || path === `${basePath}/`) return '/';
+  if (path.startsWith(`${basePath}/`)) return path.slice(basePath.length) || '/';
+  return path || '/';
+}
+
+function normalizePath(rawPath: string): string {
+  const pathOnly = rawPath.split('?')[0]?.split('#')[0] || '/';
+  const withLeadingSlash = pathOnly.startsWith('/') ? pathOnly : `/${pathOnly}`;
+  return withLeadingSlash.replace(/\/+/g, '/').replace(/\/+$/, '') || '/';
+}
+
+function hasRouteMarker(path: string): boolean {
+  return getRouteMarkerIndex(path) >= 0;
+}
+
+function getRouteMarkerIndex(path: string): number {
+  if (path === ROUTE_MARKER_PATH || path.startsWith(`${ROUTE_MARKER_PATH}/`)) return 0;
+
+  const nested = path.indexOf(`${ROUTE_MARKER_PATH}/`);
+  if (nested >= 0) return nested;
+
+  if (path.endsWith(ROUTE_MARKER_PATH)) {
+    return path.length - ROUTE_MARKER_PATH.length;
+  }
+
+  return -1;
+}
+
+function stripRouteMarker(path: string): string {
+  if (!hasRouteMarker(path)) return path;
+  const markerIndex = getRouteMarkerIndex(path);
+  if (markerIndex < 0) return path;
+
+  const suffix = path.slice(markerIndex + ROUTE_MARKER_PATH.length);
+  return suffix || '/';
+}
+
+function toInternalPath(rawPath: string, options: { requireMarker?: boolean } = {}): string {
+  const normalized = normalizePath(rawPath);
+  if (normalized === '/') return '/';
+
+  if (hasRouteMarker(normalized)) {
+    return stripRouteMarker(normalized);
+  }
+
+  if (options.requireMarker) {
+    return '/';
+  }
+
+  return normalized;
+}
+
+function toExternalPath(rawPath: string): string {
+  const internal = toInternalPath(rawPath);
+  if (internal === '/') return '/';
+  return `${ROUTE_MARKER_PATH}${internal}`;
 }

@@ -67,6 +67,35 @@ function applyFullPageLayout(target: HTMLElement): void {
   target.style.display = 'block';
 }
 
+function getAssetBasePath(pathname: string): string {
+  const normalized = (pathname || '/').replace(/\/+/g, '/');
+  const markerWithTail = normalized.indexOf('/~/');
+  if (markerWithTail >= 0) return `${normalized.slice(0, markerWithTail) || ''}/`;
+  if (normalized.endsWith('/~')) return `${normalized.slice(0, -2) || ''}/`;
+  if (normalized.endsWith('/')) return normalized;
+
+  const lastSegment = normalized.split('/').filter(Boolean).pop() || '';
+  if (lastSegment && !lastSegment.includes('.')) return `${normalized}/`;
+
+  const lastSlash = normalized.lastIndexOf('/');
+  if (lastSlash < 0) return '/';
+  return normalized.slice(0, lastSlash + 1);
+}
+
+function resolveSpecUrl(specUrl: string): string {
+  if (!specUrl) return specUrl;
+
+  const absoluteLike = /^(?:[a-zA-Z][a-zA-Z\d+.-]*:)?\/\//.test(specUrl);
+  if (absoluteLike || specUrl.startsWith('/')) return specUrl;
+
+  const base = new URL(window.location.href);
+  base.pathname = getAssetBasePath(window.location.pathname || '/');
+  base.search = '';
+  base.hash = '';
+
+  return new URL(specUrl, base.href).toString();
+}
+
 /** Mount the portal into the DOM */
 async function mount(config: PortalConfig): Promise<PortalApi> {
   let preservedAuth = null;
@@ -132,7 +161,7 @@ async function mount(config: PortalConfig): Promise<PortalApi> {
     if (config.spec) {
       rawSpec = config.spec;
     } else if (initialSpecUrl) {
-      rawSpec = await loadSpec(initialSpecUrl);
+      rawSpec = await loadSpec(resolveSpecUrl(initialSpecUrl));
     } else {
       throw new Error('Either spec or specUrl must be provided');
     }
