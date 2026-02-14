@@ -1,6 +1,7 @@
 import { h, clear } from '../../lib/dom';
 import { icons } from '../../lib/icons';
 import { store } from '../../core/state';
+import { useEffects } from '../../core/effects';
 import { navigate, buildPath } from '../../core/router';
 import { createSummaryLine } from '../shared/summary';
 import { createConnectionSettingsSections } from '../shared/connection-settings';
@@ -51,15 +52,24 @@ export async function renderOverview(pageSlot: HTMLElement, _asideSlot: HTMLElem
 
     const curState = store.get();
     const initialEnvs = curState.initialEnvironments || curState.environments;
+    const serverCards: { el: HTMLElement; envName: string }[] = [];
+
     for (const server of spec.servers) {
       const env = initialEnvs.find((e) => e.baseUrl === server.url);
-      const isActive = env?.name === curState.activeEnvironment;
+      const envName = env?.name || '';
+      const isActive = envName === curState.activeEnvironment;
       const item = createCard({
         interactive: true,
         active: isActive,
         className: 'card-group',
         onClick: () => {
-          if (env) store.setActiveEnvironment(env.name);
+          // Dynamic lookup: always resolve from current store state
+          const st = store.get();
+          const envs = st.initialEnvironments || st.environments;
+          const target = envs.find((e) => e.baseUrl === server.url);
+          if (target && target.name !== st.activeEnvironment) {
+            store.setActiveEnvironment(target.name);
+          }
         },
       });
       const info = h('div', { className: 'card-info' });
@@ -74,7 +84,17 @@ export async function renderOverview(pageSlot: HTMLElement, _asideSlot: HTMLElem
       const badges = h('div', { className: 'card-badges' });
       item.append(info, badges);
       serversSection.append(item);
+      serverCards.push({ el: item, envName });
     }
+
+    // Reactive: update active server card when environment changes
+    const updateServerCards = (state: { activeEnvironment: string }) => {
+      for (const { el, envName } of serverCards) {
+        el.classList.toggle('active', envName === state.activeEnvironment);
+      }
+    };
+
+    useEffects().on('overview:servers', updateServerCards);
 
     pageSlot.append(serversSection);
   }

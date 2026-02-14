@@ -1,9 +1,10 @@
 import { h, clear } from '../../lib/dom';
 import { icons } from '../../lib/icons';
 import { store } from '../../core/state';
+import { useEffects } from '../../core/effects';
 import { navigate, buildPath } from '../../core/router';
 import { renderSchemaViewer, renderSchemaBody } from '../shared/schema-viewer';
-import { renderTryIt, type InitialResponseExample } from '../shared/try-it';
+import { renderTryIt, createHeaderRow, type InitialResponseExample } from '../shared/try-it';
 import { extractExamples } from '../shared/example-picker';
 import { resolveAuthHeaders, getAuthHeaderPlaceholder, openAuthModal } from '../modals/auth-modal';
 import { getDisplayBaseUrl, getNormalizedBaseUrl } from '../../services/env';
@@ -197,6 +198,54 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
   const initialResponse = getFirstResponseExample(operation);
   if (operation.method.toLowerCase() !== 'trace') {
     renderTryIt(operation, asideSlot, initialResponse);
+  }
+
+  // --- Reactive effects ---
+  const effects = useEffects();
+
+  // Breadcrumb: update base URL when environment changes
+  const breadcrumbHomeEl = breadcrumb.querySelector('.breadcrumb-item') as HTMLAnchorElement | null;
+  if (breadcrumbHomeEl) {
+    effects.on('endpoint:breadcrumb', (st) => {
+      breadcrumbHomeEl.textContent = getDisplayBaseUrl(st) || st.spec?.info.title || 'Home';
+    });
+  }
+
+  // Auth headers in Try It: swap auth rows when token/env changes
+  const tryItContent = asideSlot.querySelector('.content') as HTMLElement | null;
+  if (tryItContent && hasOperationAuth(operation.resolvedSecurity)) {
+    effects.on('endpoint:auth-headers', (st) => {
+      if (!st.spec) return;
+      const headersContainer = tryItContent.querySelector('.headers-list');
+      if (!headersContainer) return;
+
+      // Remove existing auth rows
+      const authNames = ['Authorization', 'Cookie'];
+      for (const row of Array.from(headersContainer.querySelectorAll('.header-row'))) {
+        const nameInput = row.querySelector('[data-header-name]') as HTMLInputElement;
+        if (nameInput && authNames.includes(nameInput.value)) row.remove();
+      }
+
+      // Insert fresh auth rows
+      const authHeaders = resolveAuthHeaders(operation.resolvedSecurity, st.spec.securitySchemes);
+      const placeholders = getAuthHeaderPlaceholder(operation.resolvedSecurity, st.spec.securitySchemes);
+      const merged = { ...placeholders, ...authHeaders };
+
+      const remaining = Array.from(headersContainer.querySelectorAll('.header-row'));
+      const anchor = remaining.find((r) => {
+        const inp = r.querySelector('[data-header-name]') as HTMLInputElement;
+        return inp && inp.value === 'Content-Type';
+      }) || remaining[0];
+
+      for (const [name, value] of Object.entries(merged).reverse()) {
+        const row = createHeaderRow(name, value);
+        if (anchor) anchor.insertAdjacentElement('beforebegin', row);
+        else headersContainer.prepend(row);
+      }
+
+      // Trigger code-example refresh
+      tryItContent.dispatchEvent(new Event('input', { bubbles: true }));
+    });
   }
 }
 

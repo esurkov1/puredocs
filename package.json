@@ -1,10 +1,10 @@
 {
   "name": "puredocs",
-  "version": "0.1.0",
-  "description": "PureDocs — framework-agnostic Web Components OpenAPI portal",
+  "version": "1.0.0",
+  "description": "Beautiful API documentation portal from any OpenAPI 3.1 spec. One-liner for Express & Fastify. Standard Web Component for everything else.",
   "author": "esurkov1",
   "license": "SEE LICENSE IN LICENSE",
-  "homepage": "https://github.com/esurkov1/puredocs",
+  "homepage": "https://puredocs.dev",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/esurkov1/puredocs.git"
@@ -14,13 +14,18 @@
   },
   "keywords": [
     "openapi",
+    "openapi-3.1",
     "api-docs",
+    "api-documentation",
     "documentation",
     "swagger",
     "web-components",
     "api-portal",
     "developer-portal",
-    "rest-api"
+    "rest-api",
+    "express",
+    "fastify",
+    "api-reference"
   ],
   "type": "module",
   "main": "dist/server.cjs",
@@ -46,6 +51,11 @@
     },
     "./style.css": "./dist/puredocs.css"
   },
+  "sideEffects": [
+    "./dist/puredocs.css",
+    "./dist/puredocs.js",
+    "./dist/puredocs.umd.js"
+  ],
   "files": [
     "dist",
     "README.md",

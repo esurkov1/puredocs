@@ -348,7 +348,7 @@ export const PureDocs = {
   mount,
   bootstrap,
   unmount,
-  version: '0.0.1',
+  version: '1.0.0',
 };
 
 export type { PortalConfig, PortalBootstrapConfig, PortalApi, PortalState } from './core/types';

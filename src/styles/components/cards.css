@@ -75,7 +75,7 @@
 
 .card-group-top {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-xs);
   width: 100%;
 }
@@ -140,6 +140,10 @@
   gap: var(--space-xs);
   flex-wrap: wrap;
   flex-shrink: 0;
+}
+
+.card-group-top > .tag-op-lock {
+  margin-left: 0;
 }
 
 .card-group-top > .card-badges {

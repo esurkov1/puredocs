@@ -1,6 +1,7 @@
 import { h, clear } from '../../lib/dom';
 import { navigate } from '../../core/router';
 import { store } from '../../core/state';
+import { useEffects } from '../../core/effects';
 import { getDisplayBaseUrl } from '../../services/env';
 import { renderSchemaViewer, renderParametersCard } from '../shared/schema-viewer';
 import {
@@ -192,6 +193,14 @@ export async function renderWebhookPage(pageSlot: HTMLElement, webhook: SpecWebh
   const routeNav = renderRouteNavigation({ type: 'webhook', webhookName: webhook.name });
   if (routeNav) {
     pageSlot.append(h('div', { className: 'block section' }, routeNav));
+  }
+
+  // Reactive: update breadcrumb base URL when environment changes
+  const breadcrumbHomeEl = breadcrumb.querySelector('.breadcrumb-item') as HTMLAnchorElement | null;
+  if (breadcrumbHomeEl) {
+    useEffects().on('webhook:breadcrumb', (st) => {
+      breadcrumbHomeEl.textContent = getDisplayBaseUrl(st) || st.spec?.info.title || 'Home';
+    });
   }
 }
 

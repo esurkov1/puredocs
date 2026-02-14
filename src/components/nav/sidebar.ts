@@ -695,6 +695,15 @@ function parseRouteFromDataset(link: HTMLAnchorElement): RouteInfo | null {
 
 /* ─── Environment Selector ─── */
 
+/** Update the sidebar env <select> value to match current activeEnvironment */
+export function updateSidebarEnvironment(container: HTMLElement): void {
+  const select = container.querySelector('select.env') as HTMLSelectElement | null;
+  if (select) {
+    const active = store.get().activeEnvironment;
+    if (select.value !== active) select.value = active;
+  }
+}
+
 function renderEnvironmentSelector(state: ReturnType<typeof store.get>): HTMLSelectElement {
   const canonical = state.initialEnvironments || state.environments;
   const options = state.environments.map((env) => {

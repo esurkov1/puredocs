@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PureDocs — Beautiful API Documentation Portal</title>
-  <meta name="description" content="Transform any OpenAPI 3.1 specification into a beautiful, interactive developer portal. One Web Component. Zero config. Works with React, Vue, Angular, and plain HTML.">
+  <meta name="description" content="Transform any OpenAPI 3.1 specification into a beautiful, interactive developer portal. One function call for Express or Fastify. Works as a standard Web Component everywhere.">
   <meta name="theme-color" content="#080a10">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,7 +28,7 @@
     #ascii{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
 
     /* ── LAYOUT ─────────────────────────────────── */
-    .w{max-width:1120px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+    .w{max-width:1240px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
     section{position:relative;z-index:1}
 
     /* ── REVEAL ──────────────────────────────────── */
@@ -40,7 +40,7 @@
     .nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:100;display:flex;align-items:center;gap:4px;padding:6px 6px 6px 18px;background:rgba(11,15,25,.5);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);border:1px solid var(--bdr);border-radius:100px;transition:all .25s var(--ease)}
     .nav.scrolled{background:rgba(11,15,25,.82);border-color:var(--bdr-h);box-shadow:0 8px 32px rgba(0,0,0,.3)}
     .nav__b{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;color:var(--pri);cursor:pointer;margin-right:10px}
-    .nav__b svg{width:22px;height:22px;fill:var(--pri)}
+    .nav__b img{width:22px;height:22px;display:block}
     .nav__ver{font-size:10px;font-weight:600;color:var(--pri-h);background:var(--pri-s);padding:2px 7px;border-radius:100px;letter-spacing:.03em}
     .nav__ls{display:flex;gap:2px;list-style:none}
     .nav__l{font-size:13px;font-weight:500;color:var(--tm);padding:8px 14px;border-radius:100px;transition:color .2s,background .2s;cursor:pointer}
@@ -160,14 +160,6 @@
     .oa-badge:hover{background:rgba(255,255,255,.07);border-color:var(--bdr-h);color:var(--t)}
     .oa-badge svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;color:var(--pri)}
 
-    /* ── API SECTION ─────────────────────────────── */
-    .api{padding:0 0 96px}
-    .api__grid{display:grid;grid-template-columns:1fr 1.2fr;gap:40px;align-items:start}
-    .api__methods{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:20px}
-    .api__m{display:flex;align-items:baseline;gap:10px;font-size:13px}
-    .api__m code{font-family:var(--mono);font-size:12px;color:var(--pri-h);background:var(--pri-s);padding:2px 8px;border-radius:4px;white-space:nowrap}
-    .api__m span{color:var(--tm);font-size:12px}
-
     /* ── CTA ─────────────────────────────────────── */
     .cta{padding:80px 0 96px;position:relative}
     .cta__glow{position:absolute;top:50%;left:30%;transform:translate(-50%,-50%);width:500px;height:280px;background:radial-gradient(ellipse,rgba(37,99,235,.10) 0%,transparent 65%);filter:blur(40px);pointer-events:none}
@@ -179,7 +171,7 @@
     .foot{padding:28px 0;border-top:1px solid var(--bdr)}
     .foot__in{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
     .foot__b{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--pri)}
-    .foot__b svg{width:18px;height:18px;fill:var(--pri)}
+    .foot__b img{width:18px;height:18px;display:block}
     .foot__ls{display:flex;gap:20px;list-style:none}
     .foot__l{font-size:13px;color:var(--tm);transition:color .2s;cursor:pointer}
     .foot__l:hover{color:var(--t)}
@@ -194,7 +186,7 @@
       .hero__fl--html{left:0;width:68%;bottom:-8%}
       .hero__fl .fl__code{font-size:11px;padding:10px 12px}
       .fgrid{grid-template-columns:repeat(2,1fr)}
-      .int__grid,.api__grid{grid-template-columns:1fr}
+      .int__grid{grid-template-columns:1fr}
     }
     @media(max-width:768px){
       .nav__ls{display:none}.nav{padding:6px 6px 6px 14px}
@@ -226,10 +218,10 @@
 <!-- NAV -->
 <nav class="nav" role="navigation" aria-label="Main">
   <a href="#" class="nav__b" aria-label="PureDocs home">
-    <svg viewBox="0 0 593 465"><path d="M89.5 430.8c-4.1-1.5-10.5-5.6-12.8-8.2-1-1.2-2.8-4.1-4-6.6l-2.2-4.5-.3-98.3c-.2-61.8.1-98.3.7-98 .5.1 6.6 3.7 13.5 7.8l12.6 7.5.1 33.5c.1 18.4.3 57 .4 85.7.4 58.8.1 56.9 7.8 60.4 4 1.8 8.3 1.9 114 1.9l109.7 0 0-19.2c0-10.6.3-26.4.7-35.1.7-17.3 1.4-19.5 7.6-24.1 2.7-2 4.3-2.1 38.5-2.6l35.7-.5.3-136.3c.2-133.6.2-136.5-1.8-140.8-3.4-7.8 2.2-7.4-96.2-7.4l-87.3 0-5-2.6c-2.8-1.5-10.9-6-18.1-10.1l-13.1-7.4-28.7-.1-28.7-.2-2.9 3c-1.6 1.6-5.1 5.8-7.7 9.2-4.5 5.9-6.3 7.3-27.8 20.1l-23 13.7-.3-17.5c-.2-14.2 0-18.4 1.3-21.8 2.1-5.4 8.4-11.9 14.3-14.6l4.7-2.2 164 0 164 0 5.1 2.7c2.7 1.4 6.7 4.5 8.7 6.7 7.1 7.9 6.7-2 6.7 160.7 0 80.4-.3 147.5-.6 149.1-.4 2.3-12.2 14.7-47.4 50.2l-46.7 47.1-126.4-.1c-87.7 0-127.3-.4-129.4-1.1z"/><path d="M536.1 364.5c-.2-5.1-3.6-16.7-6.9-23.1-6.4-12.6-19.3-20.1-40.7-23.7-1.1-.2 1-.9 4.6-1.5 23.9-4.3 35.9-14.7 41.4-35.7.8-3.2 1.5-7.4 1.5-9.3 0-1.9.4-3.1 1-2.7.6.3 1 1.8 1 3.2 0 4.8 3.2 15.7 6.2 21.5 6.2 11.6 17.4 19.1 34.3 22.7 5 1 7.8 1.9 6.4 2-4.4.2-18 4.1-23.2 6.7-11.3 5.8-18.5 16.1-22.3 31.9-.9 3.9-2 7.9-2.5 9-.6 1.7-.8 1.5-.8-1z"/></svg>
+    <img src="./assets/img/logo.svg" alt="" width="22" height="22">
     PureDocs
   </a>
-  <span class="nav__ver">v0.1</span>
+  <span class="nav__ver">v1.0</span>
   <ul class="nav__ls">
     <li><a href="#features" class="nav__l">Features</a></li>
     <li><a href="#preview" class="nav__l">Preview</a></li>
@@ -249,7 +241,7 @@
       <div class="hero__text">
         <div class="hero__badge r"><span class="hero__dot"></span>OpenAPI 3.1 &middot; Open Source</div>
         <h1 class="r d1">API docs that developers <em>actually enjoy</em></h1>
-        <p class="hero__sub r d2">Turn any OpenAPI 3.1 spec into a clean, interactive developer portal. One Web Component — zero config. Works with React, Vue, Angular, and plain HTML.</p>
+        <p class="hero__sub r d2">Turn any OpenAPI 3.1 spec into a clean, interactive developer portal. Add a /docs route to Express or Fastify in one call — or use the Web Component anywhere.</p>
         <div class="hero__acts r d3">
           <a href="/demo/" class="btn btn--p">Open Live Demo <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
           <a href="https://github.com/esurkov1/puredocs" target="_blank" rel="noopener" class="btn btn--g"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
@@ -258,21 +250,21 @@
       <div class="hero__vis r d2">
         <div class="hero__browser">
           <div class="bbar"><span class="bdot bd-r"></span><span class="bdot bd-y"></span><span class="bdot bd-g"></span><span class="burl">puredocs.dev</span></div>
-          <img src="./assets/img/screen1.png" alt="PureDocs API documentation portal" width="1920" height="1080">
+          <img src="./assets/img/image1.png" alt="PureDocs API documentation portal" width="1920" height="1080">
         </div>
         <!-- Floating terminal -->
         <div class="hero__fl hero__fl--term">
           <div class="fl__bar"><span class="bdot bd-r"></span><span class="bdot bd-y"></span><span class="bdot bd-g"></span>&nbsp;&nbsp;Terminal</div>
           <div class="fl__code"><span class="cc">$</span> <span id="term-typed"></span><span class="cursor"></span></div>
         </div>
-        <!-- Floating HTML -->
+        <!-- Floating Express -->
         <div class="hero__fl hero__fl--html">
-          <div class="fl__bar"><span class="bdot bd-r"></span><span class="bdot bd-y"></span><span class="bdot bd-g"></span>&nbsp;&nbsp;index.html</div>
-          <div class="fl__code"><span class="ct">&lt;pure-docs</span>
-  <span class="ca">spec-url</span>=<span class="cs">"/openapi.json"</span>
-  <span class="ca">theme</span>=<span class="cs">"auto"</span>
-  <span class="ca">primary-color</span>=<span class="cs">"#0ea5e9"</span>
-<span class="ct">&gt;&lt;/pure-docs&gt;</span><span class="cursor"></span></div>
+          <div class="fl__bar"><span class="bdot bd-r"></span><span class="bdot bd-y"></span><span class="bdot bd-g"></span>&nbsp;&nbsp;server.js</div>
+          <div class="fl__code"><span class="ck">import</span> { <span class="cf">pureDocs</span> } <span class="ck">from</span> <span class="cs">'puredocs'</span>;
+
+pureDocs.<span class="cf">express</span>(app, {
+  <span class="ca">specUrl</span>: <span class="cs">'/openapi.json'</span>,
+});<span class="cursor"></span></div>
         </div>
       </div>
     </div>
@@ -289,7 +281,7 @@
       <div class="fc r"><div class="fc__ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="fc__t">OpenAPI 3.1 Complete</div><div class="fc__d">Paths, callbacks (runtime expressions), webhooks, all HTTP methods, <code>$ref</code> resolution, <code>oneOf</code>/<code>anyOf</code>/<code>allOf</code>.</div></div>
       <div class="fc r d1"><div class="fc__ic"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div><div class="fc__t">Live Try It Console</div><div class="fc__d">Send real API requests from the docs. Configure environments, switch auth, test endpoints in place.</div></div>
       <div class="fc r d2"><div class="fc__ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="fc__t">Smart Search</div><div class="fc__d">Find endpoints, schemas, webhooks, and tags instantly with Cmd+K. Keyboard-first navigation.</div></div>
-      <div class="fc r d3"><div class="fc__ic"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div><div class="fc__t">Any Framework</div><div class="fc__d">Drop <code>&lt;pure-docs&gt;</code> into React, Vue, Angular, Nuxt, Next.js, or plain HTML. One Web Component — works everywhere.</div></div>
+      <div class="fc r d3"><div class="fc__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></svg></div><div class="fc__t">Light &amp; Dark Theme</div><div class="fc__d">Auto-detects system preference or set light / dark manually. Consistent, polished look across both themes.</div></div>
       <div class="fc r d4"><div class="fc__ic"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div><div class="fc__t">Full Auth Support</div><div class="fc__d">Bearer, Basic, API Key, OAuth2, OpenID Connect. Configured once, applied everywhere.</div></div>
       <div class="fc r d5"><div class="fc__ic"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><div class="fc__t">Multi-Language Snippets</div><div class="fc__d">Auto-generated code in cURL, JavaScript, Python, and Go. One-click copy, ready to paste.</div></div>
     </div>
@@ -303,6 +295,9 @@
       <span class="oa-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>$ref Resolution</span>
       <span class="oa-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Server Environments</span>
       <span class="oa-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>All HTTP Methods</span>
+      <span class="oa-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Express &amp; Fastify</span>
+      <span class="oa-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Web Component</span>
+      <span class="oa-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Code Snippets</span>
     </div>
   </div>
 </section>
@@ -312,15 +307,15 @@
   <div class="w">
     <div class="sec__l r">02 / Preview</div>
     <h2 class="sec__h r d1">Designed for clarity</h2>
-    <p class="sec__p r d2">A clean interface that makes complex APIs feel approachable.</p>
+    <p class="sec__p r d2">A clean interface with light and dark themes that makes complex APIs feel approachable.</p>
     <div class="prev__grid">
       <div class="hero__browser r d2">
-        <div class="bbar"><span class="bdot bd-r"></span><span class="bdot bd-y"></span><span class="bdot bd-g"></span><span class="burl">Overview</span></div>
-        <img src="./assets/img/screen2.png" alt="API overview with grouped endpoints" loading="lazy" width="1920" height="1080">
+        <div class="bbar"><span class="bdot bd-r"></span><span class="bdot bd-y"></span><span class="bdot bd-g"></span><span class="burl">POST /workspaces — Try It</span></div>
+        <img src="./assets/img/image3.png" alt="Endpoint detail with Try It console" loading="lazy" width="1920" height="1080">
       </div>
       <div class="hero__browser r d3">
-        <div class="bbar"><span class="bdot bd-r"></span><span class="bdot bd-y"></span><span class="bdot bd-g"></span><span class="burl">POST /workspaces — Try It</span></div>
-        <img src="./assets/img/screen1.png" alt="Endpoint detail with Try It console" loading="lazy" width="1920" height="1080">
+        <div class="bbar"><span class="bdot bd-r"></span><span class="bdot bd-y"></span><span class="bdot bd-g"></span><span class="burl">Overview</span></div>
+        <img src="./assets/img/image2.png" alt="API overview with grouped endpoints" loading="lazy" width="1920" height="1080">
       </div>
     </div>
   </div>
@@ -331,20 +326,56 @@
   <div class="w">
     <div class="sec__l r">03 / Integration</div>
     <h2 class="sec__h r d1">Up and running in 30 seconds</h2>
-    <p class="sec__p r d2">Works with every major framework. Pick your stack.</p>
+    <p class="sec__p r d2">One function call for Express or Fastify. One Web Component for everything else.</p>
     <div class="int__grid">
       <!-- Tabbed install -->
       <div class="int__tabs r d2">
         <div class="tabs" id="install-tabs">
           <div class="tabs__bar">
-            <button class="tabs__btn active" data-tab="html">HTML</button>
-            <button class="tabs__btn" data-tab="react">React</button>
-            <button class="tabs__btn" data-tab="vue">Vue</button>
-            <button class="tabs__btn" data-tab="angular">Angular</button>
-            <button class="tabs__btn" data-tab="nuxt">Nuxt</button>
-            <button class="tabs__btn" data-tab="umd">UMD</button>
+            <button class="tabs__btn active" data-tab="express">Express</button>
+            <button class="tabs__btn" data-tab="fastify">Fastify</button>
+            <button class="tabs__btn" data-tab="anyhttp">Any Server</button>
+            <button class="tabs__btn" data-tab="html">HTML</button>
+            <button class="tabs__btn" data-tab="cdn">CDN</button>
           </div>
-          <div class="tabs__p active" id="tab-html">
+          <div class="tabs__p active" id="tab-express">
+            <div class="code"><pre><span class="ck">import</span> express <span class="ck">from</span> <span class="cs">'express'</span>;
+<span class="ck">import</span> { <span class="cf">pureDocs</span> } <span class="ck">from</span> <span class="cs">'puredocs'</span>;
+
+<span class="ck">const</span> app = <span class="cf">express</span>();
+
+pureDocs.<span class="cf">express</span>(app, {
+  <span class="ca">route</span>: <span class="cs">'/docs'</span>,
+  <span class="ca">specUrl</span>: <span class="cs">'/openapi.json'</span>,
+});
+
+app.<span class="cf">listen</span>(<span class="ca">3000</span>);</pre></div>
+          </div>
+          <div class="tabs__p" id="tab-fastify">
+            <div class="code"><pre><span class="ck">import</span> Fastify <span class="ck">from</span> <span class="cs">'fastify'</span>;
+<span class="ck">import</span> { <span class="cf">pureDocs</span> } <span class="ck">from</span> <span class="cs">'puredocs'</span>;
+
+<span class="ck">const</span> app = <span class="cf">Fastify</span>();
+
+pureDocs.<span class="cf">fastify</span>(app, {
+  <span class="ca">route</span>: <span class="cs">'/docs'</span>,
+  <span class="ca">specUrl</span>: <span class="cs">'/openapi.json'</span>,
+});
+
+app.<span class="cf">listen</span>({ <span class="ca">port</span>: <span class="ca">3000</span> });</pre></div>
+          </div>
+          <div class="tabs__p" id="tab-anyhttp">
+            <div class="code"><pre><span class="ck">import</span> { <span class="cf">pureDocs</span> } <span class="ck">from</span> <span class="cs">'puredocs'</span>;
+
+<span class="ck">const</span> html = pureDocs.<span class="cf">html</span>({
+  <span class="ca">specUrl</span>: <span class="cs">'/openapi.json'</span>,
+  <span class="ca">title</span>: <span class="cs">'My API'</span>,
+});
+
+<span class="cc">// Serve `html` from any HTTP framework:</span>
+<span class="cc">// Hono, Koa, Hapi, Elysia, h3, etc.</span></pre></div>
+          </div>
+          <div class="tabs__p" id="tab-html">
             <div class="code"><pre><span class="ct">&lt;pure-docs</span>
   <span class="ca">spec-url</span>=<span class="cs">"/openapi.json"</span>
   <span class="ca">theme</span>=<span class="cs">"auto"</span>
@@ -355,71 +386,7 @@
   <span class="ck">import</span> <span class="cs">'puredocs/style.css'</span>;
 <span class="ct">&lt;/script&gt;</span></pre></div>
           </div>
-          <div class="tabs__p" id="tab-react">
-            <div class="code"><pre><span class="cc">// app/docs/page.tsx</span>
-<span class="ck">import</span> <span class="cs">'puredocs/web'</span>;
-<span class="ck">import</span> <span class="cs">'puredocs/style.css'</span>;
-
-<span class="ck">export default function</span> <span class="cf">DocsPage</span>() {
-  <span class="ck">return</span> (
-    <span class="ct">&lt;pure-docs</span>
-      <span class="ca">spec-url</span>=<span class="cs">"/openapi.json"</span>
-      <span class="ca">theme</span>=<span class="cs">"auto"</span>
-    <span class="ct">/&gt;</span>
-  );
-}</pre></div>
-          </div>
-          <div class="tabs__p" id="tab-vue">
-            <div class="code"><pre><span class="cc">&lt;!-- src/views/DocsView.vue --&gt;</span>
-<span class="ct">&lt;template&gt;</span>
-  <span class="ct">&lt;pure-docs</span>
-    <span class="ca">spec-url</span>=<span class="cs">"/openapi.json"</span>
-    <span class="ca">theme</span>=<span class="cs">"auto"</span>
-  <span class="ct">/&gt;</span>
-<span class="ct">&lt;/template&gt;</span>
-
-<span class="ct">&lt;script</span> <span class="ca">setup</span> <span class="ca">lang</span>=<span class="cs">"ts"</span><span class="ct">&gt;</span>
-<span class="ck">import</span> <span class="cs">'puredocs/web'</span>;
-<span class="ck">import</span> <span class="cs">'puredocs/style.css'</span>;
-<span class="ct">&lt;/script&gt;</span></pre></div>
-          </div>
-          <div class="tabs__p" id="tab-angular">
-            <div class="code"><pre><span class="cc">// docs.component.ts</span>
-<span class="ck">import</span> { <span class="cf">Component</span>, <span class="cf">OnInit</span> } <span class="ck">from</span> <span class="cs">'@angular/core'</span>;
-
-@<span class="cf">Component</span>({
-  <span class="ca">selector</span>: <span class="cs">'app-docs'</span>,
-  <span class="ca">template</span>: <span class="cs">`
-    &lt;pure-docs
-      spec-url="/openapi.json"
-      theme="auto"
-    &gt;&lt;/pure-docs&gt;
-  `</span>,
-})
-<span class="ck">export class</span> <span class="cf">DocsComponent</span> <span class="ck">implements</span> <span class="cf">OnInit</span> {
-  <span class="cf">ngOnInit</span>() {
-    <span class="ck">import</span>(<span class="cs">'puredocs/web'</span>);
-    <span class="ck">import</span>(<span class="cs">'puredocs/style.css'</span>);
-  }
-}</pre></div>
-          </div>
-          <div class="tabs__p" id="tab-nuxt">
-            <div class="code"><pre><span class="cc">&lt;!-- pages/docs.vue --&gt;</span>
-<span class="ct">&lt;template&gt;</span>
-  <span class="ct">&lt;pure-docs</span>
-    <span class="ca">spec-url</span>=<span class="cs">"/openapi.json"</span>
-    <span class="ca">theme</span>=<span class="cs">"auto"</span>
-  <span class="ct">/&gt;</span>
-<span class="ct">&lt;/template&gt;</span>
-
-<span class="ct">&lt;script</span> <span class="ca">setup</span><span class="ct">&gt;</span>
-<span class="ck">if</span> (<span class="ca">import</span>.meta.client) {
-  <span class="ck">await import</span>(<span class="cs">'puredocs/web'</span>);
-  <span class="ck">await import</span>(<span class="cs">'puredocs/style.css'</span>);
-}
-<span class="ct">&lt;/script&gt;</span></pre></div>
-          </div>
-          <div class="tabs__p" id="tab-umd">
+          <div class="tabs__p" id="tab-cdn">
             <div class="code"><pre><span class="ct">&lt;link</span> <span class="ca">rel</span>=<span class="cs">"stylesheet"</span>
   <span class="ca">href</span>=<span class="cs">"https://unpkg.com/puredocs/dist/puredocs.css"</span> <span class="ct">/&gt;</span>
 
@@ -429,7 +396,7 @@
           </div>
         </div>
       </div>
-      <!-- Full config -->
+      <!-- Right column -->
       <div class="r d3">
         <div style="font-size:13px;font-weight:600;color:var(--w);margin-bottom:12px">Full configuration</div>
         <div class="code code--full"><pre><span class="ct">&lt;pure-docs</span>
@@ -438,53 +405,8 @@
   <span class="ca">primary-color</span>=<span class="cs">"#0ea5e9"</span>
   <span class="ca">title</span>=<span class="cs">"Example API"</span>
 <span class="ct">&gt;&lt;/pure-docs&gt;</span></pre></div>
-        <div style="margin-top:20px;font-size:13px;font-weight:600;color:var(--w);margin-bottom:12px">Server-side (Express / Fastify)</div>
-        <div class="code code--full"><pre><span class="ck">import</span> { <span class="cf">pureDocs</span> } <span class="ck">from</span> <span class="cs">'puredocs'</span>;
-
-<span class="cc">// Express</span>
-pureDocs.<span class="cf">express</span>(app, {
-  <span class="ca">route</span>: <span class="cs">'/docs'</span>,
-  <span class="ca">specUrl</span>: <span class="cs">'/openapi.json'</span>,
-});
-
-<span class="cc">// Fastify</span>
-pureDocs.<span class="cf">fastify</span>(app, {
-  <span class="ca">route</span>: <span class="cs">'/docs'</span>,
-  <span class="ca">specUrl</span>: <span class="cs">'/openapi.json'</span>,
-});</pre></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- 04 RUNTIME API -->
-<section class="api">
-  <div class="w">
-    <div class="api__grid">
-      <div>
-        <div class="sec__l r">04 / Runtime API</div>
-        <h2 class="sec__h r d1">Full programmatic control</h2>
-        <p class="sec__p r d2">Navigate, subscribe to state changes, set auth tokens, and switch environments from code.</p>
-        <ul class="api__methods r d3">
-          <li class="api__m"><code>reload()</code><span>Refresh the spec</span></li>
-          <li class="api__m"><code>getState()</code><span>Get current portal state</span></li>
-          <li class="api__m"><code>subscribe(fn)</code><span>Listen to state changes</span></li>
-          <li class="api__m"><code>navigate(path)</code><span>Navigate to a route</span></li>
-          <li class="api__m"><code>setToken(token)</code><span>Set auth token</span></li>
-          <li class="api__m"><code>setEnvironment(url)</code><span>Switch environment</span></li>
-        </ul>
-      </div>
-      <div class="r d2">
-        <div class="code code--full">
-          <div class="code__bar"><span class="code__tag">JavaScript</span><button class="code__cp" onclick="cc(this)">Copy</button></div>
-          <pre><span class="ck">const</span> docs = document.<span class="cf">querySelector</span>(<span class="cs">'pure-docs'</span>);
-
-docs.<span class="cf">reload</span>();
-docs.<span class="cf">getState</span>();
-docs.<span class="cf">subscribe</span>(<span class="ca">state</span> <span class="ck">=&gt;</span> console.<span class="cf">log</span>(state));
-docs.<span class="cf">navigate</span>(<span class="cs">'/users/get-users-id'</span>);
-docs.<span class="cf">setToken</span>(<span class="cs">'your-jwt-token'</span>);
-docs.<span class="cf">setEnvironment</span>(<span class="cs">'api.example.com'</span>);</pre>
+        <div style="margin-top:20px;padding:16px;background:var(--bg-card);border:1px solid var(--bdr);border-radius:10px;font-size:13px;color:var(--td);line-height:1.65">
+          <span style="color:var(--w);font-weight:600">Works with any framework</span> — it's a standard Web Component. Drop <code style="font-family:var(--mono);font-size:11px;color:var(--pri-h);background:var(--pri-s);padding:1px 5px;border-radius:3px">&lt;pure-docs&gt;</code> into React, Vue, Angular, Next.js, Nuxt, Svelte, or plain HTML.
         </div>
       </div>
     </div>
@@ -511,7 +433,7 @@ docs.<span class="cf">setEnvironment</span>(<span class="cs">'api.example.com'</
 <footer class="foot">
   <div class="w">
     <div class="foot__in">
-      <div class="foot__b"><svg viewBox="0 0 593 465"><path d="M89.5 430.8c-4.1-1.5-10.5-5.6-12.8-8.2-1-1.2-2.8-4.1-4-6.6l-2.2-4.5-.3-98.3c-.2-61.8.1-98.3.7-98 .5.1 6.6 3.7 13.5 7.8l12.6 7.5.1 33.5c.1 18.4.3 57 .4 85.7.4 58.8.1 56.9 7.8 60.4 4 1.8 8.3 1.9 114 1.9l109.7 0 0-19.2c0-10.6.3-26.4.7-35.1.7-17.3 1.4-19.5 7.6-24.1 2.7-2 4.3-2.1 38.5-2.6l35.7-.5.3-136.3c.2-133.6.2-136.5-1.8-140.8-3.4-7.8 2.2-7.4-96.2-7.4l-87.3 0-5-2.6c-2.8-1.5-10.9-6-18.1-10.1l-13.1-7.4-28.7-.1-28.7-.2-2.9 3c-1.6 1.6-5.1 5.8-7.7 9.2-4.5 5.9-6.3 7.3-27.8 20.1l-23 13.7-.3-17.5c-.2-14.2 0-18.4 1.3-21.8 2.1-5.4 8.4-11.9 14.3-14.6l4.7-2.2 164 0 164 0 5.1 2.7c2.7 1.4 6.7 4.5 8.7 6.7 7.1 7.9 6.7-2 6.7 160.7 0 80.4-.3 147.5-.6 149.1-.4 2.3-12.2 14.7-47.4 50.2l-46.7 47.1-126.4-.1c-87.7 0-127.3-.4-129.4-1.1z"/><path d="M536.1 364.5c-.2-5.1-3.6-16.7-6.9-23.1-6.4-12.6-19.3-20.1-40.7-23.7-1.1-.2 1-.9 4.6-1.5 23.9-4.3 35.9-14.7 41.4-35.7.8-3.2 1.5-7.4 1.5-9.3 0-1.9.4-3.1 1-2.7.6.3 1 1.8 1 3.2 0 4.8 3.2 15.7 6.2 21.5 6.2 11.6 17.4 19.1 34.3 22.7 5 1 7.8 1.9 6.4 2-4.4.2-18 4.1-23.2 6.7-11.3 5.8-18.5 16.1-22.3 31.9-.9 3.9-2 7.9-2.5 9-.6 1.7-.8 1.5-.8-1z"/></svg>PureDocs <span class="nav__ver" style="margin-left:4px">v0.1</span></div>
+      <div class="foot__b"><img src="./assets/img/logo.svg" alt="" width="18" height="18">PureDocs <span class="nav__ver" style="margin-left:4px">v1.0</span></div>
       <ul class="foot__ls">
         <li><a href="#features" class="foot__l">Features</a></li>
         <li><a href="#start" class="foot__l">Integration</a></li>
@@ -669,14 +591,6 @@ document.querySelectorAll('.tabs').forEach(tabs => {
   });
 });
 
-/* ── Copy ─────────────────────────────────────── */
-function cc(btn){
-  const pre = btn.closest('.code').querySelector('pre');
-  navigator.clipboard.writeText(pre.textContent).then(() => {
-    btn.textContent = 'Copied!'; btn.style.color = '#22c55e';
-    setTimeout(() => { btn.textContent = 'Copy'; btn.style.color = '' }, 1500);
-  });
-}
 </script>
 </body>
 </html>

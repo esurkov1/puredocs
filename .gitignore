@@ -30,6 +30,13 @@ yarn-error.log*
 .cache/
 .parcel-cache/
 .vite/
-.claude
+
+# AI / tools
+.claude/
 .venv
-dist
+
+# npm pack artifacts
+*.tgz
+
+# Coverage
+coverage/

@@ -1,5 +1,6 @@
 import { h, clear } from '../../lib/dom';
 import { store } from '../../core/state';
+import { useEffects } from '../../core/effects';
 import { navigate, buildPath, slugifyTag } from '../../core/router';
 import { createSummaryLine } from '../shared/summary';
 import { createBadge, createBreadcrumb, createCard, createSection, createLockIcon } from '../ui';
@@ -104,17 +105,19 @@ export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, ta
       onClick: () => navigate(buildPath(route)),
     });
 
-    const badges = h('div', { className: 'card-badges' });
-    badges.append(createBadge({ text: op.method.toUpperCase(), kind: 'method', method: op.method, size: 'm', mono: true }));
-    if (hasOperationAuth(op.resolvedSecurity)) {
-      badges.append(createLockIcon({
+    const lockEl = hasOperationAuth(op.resolvedSecurity)
+      ? createLockIcon({
         configured: isOperationAuthConfigured(op.resolvedSecurity, spec.securitySchemes || {}),
         variant: 'tag',
         title: formatOperationAuthTitle(op.resolvedSecurity),
-      }));
-    }
+      })
+      : null;
+
+    const badges = h('div', { className: 'card-badges' });
+    badges.append(createBadge({ text: op.method.toUpperCase(), kind: 'method', method: op.method, size: 'm', mono: true }));
 
     const top = h('div', { className: 'card-group-top' });
+    if (lockEl) top.append(lockEl);
     top.append(h('h3', { className: 'card-group-title' }, h('code', { textContent: op.path })), badges);
 
     const desc = op.summary || op.operationId
@@ -128,6 +131,13 @@ export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, ta
 
   pageSlot.append(opsSection);
 
+  // Reactive: update breadcrumb base URL when environment changes
+  const breadcrumbHomeEl = breadcrumb.querySelector('.breadcrumb-item') as HTMLAnchorElement | null;
+  if (breadcrumbHomeEl) {
+    useEffects().on('tag:breadcrumb', (st) => {
+      breadcrumbHomeEl.textContent = getDisplayBaseUrl(st) || st.spec?.info.title || 'Home';
+    });
+  }
 }
 
 function getTagMethodBreakdown(tag: SpecTag): Record<string, number> {

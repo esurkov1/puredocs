@@ -1,23 +1,21 @@
 import { h, clear, render } from '../lib/dom';
 import { icons } from '../lib/icons';
 import { store } from '../core/state';
+import { useEffects, notifyEffects, disposeEffects } from '../core/effects';
 import { slugifyTag, navigate, buildPath } from '../core/router';
 import { applyTheme, type ThemeConfig } from '../core/theme';
-import { renderSidebar, updateSidebarActiveState, updateSidebarAuthState } from './nav/sidebar';
+import { renderSidebar, updateSidebarActiveState, updateSidebarAuthState, updateSidebarEnvironment } from './nav/sidebar';
 import { renderOverview } from './pages/overview';
 import { renderEndpoint } from './pages/endpoint';
 import { renderTagPage } from './pages/tag-page';
 import { renderSchemaViewer } from './shared/schema-viewer';
 import { renderWebhookPage } from './pages/webhook';
-import { resolveAuthHeaders, getAuthHeaderPlaceholder } from './modals/auth-modal';
 import { createBreadcrumb, createBadge, createCard, createSection } from './ui';
 import { createCopyButton } from './shared/copy-button';
 import { createSummaryLine } from './shared/summary';
 import { createContentArea, setContentAreaAside } from './layout/page-layout';
 import { createEmptyStatePage } from './layout/empty-state-page';
-import { createHeaderRow } from './shared/try-it';
 import { getBaseUrl, formatBaseUrlForDisplay } from '../services/env';
-import { hasOperationAuth } from '../core/security';
 import type { PortalConfig, PortalState, RouteInfo } from '../core/types';
 
 let rootEl: HTMLElement | null = null;
@@ -86,6 +84,7 @@ export function mountApp(container: HTMLElement, config: PortalConfig): void {
 export function unmountApp(): void {
   cleanupViewportSync?.();
   cleanupViewportSync = null;
+  disposeEffects();
 
   if (rootEl) {
     rootEl.remove();
@@ -154,16 +153,22 @@ async function updateContent(state: PortalState, config: PortalConfig): Promise<
   // Skip re-render if same route AND env/auth unchanged
   if (isSameCurrentRoute && prevEnvState === envState) return;
   
-  // Route unchanged but env/auth changed — patch sidebar in-place and update page content
+  // Route unchanged but env/auth changed — notify page effects + sidebar
   if (isSameRouteWithEnvOrAuthChange) {
     prevEnvState = envState;
-    updateEnvironmentState(currentPageEl, state, config);
-    if (sidebarEl && state.spec) updateSidebarAuthState(sidebarEl);
+    notifyEffects(state);
+    if (sidebarEl && state.spec) {
+      updateSidebarAuthState(sidebarEl);
+      updateSidebarEnvironment(sidebarEl);
+    }
     return;
   }
   
   prevRoute = { ...route };
   prevEnvState = envState;
+
+  // Dispose previous page effects before re-render
+  disposeEffects();
 
   // Clean up mobile route-nav from previous render (lives outside main/aside, in .page directly)
   currentPageEl.querySelectorAll(':scope > .route-nav-wrap').forEach((el) => el.remove());
@@ -242,6 +247,14 @@ async function updateContent(state: PortalState, config: PortalConfig): Promise<
           const schemaSection = h('div', { className: 'block section' });
           schemaSection.append(renderSchemaViewer(schema, 'Properties'));
           render(currentMainEl, header, schemaSection);
+
+          // Reactive: breadcrumb base URL
+          const schBreadcrumbHome = schemaBreadcrumb.querySelector('.breadcrumb-item') as HTMLAnchorElement | null;
+          if (schBreadcrumbHome) {
+            useEffects().on('schema:breadcrumb', (st) => {
+              schBreadcrumbHome.textContent = formatBaseUrlForDisplay(getBaseUrl(st)) || st.spec?.info.title || 'Home';
+            });
+          }
         }
       } else {
         renderSchemaListPage(currentMainEl, state);
@@ -275,60 +288,6 @@ async function updateContent(state: PortalState, config: PortalConfig): Promise<
 
   if (mainScroll) {
     mainScroll.scrollTop = isSameRouteWithEnvOrAuthChange ? prevMainScrollTop : 0;
-  }
-}
-
-/** Targeted update when environment/auth changes without full re-render */
-function updateEnvironmentState(root: HTMLElement, state: PortalState, _config: PortalConfig): void {
-  const baseUrl = getBaseUrl(state);
-  const baseUrlDisplay = formatBaseUrlForDisplay(baseUrl);
-
-  // 1. Breadcrumb (endpoint/tag): baseUrl
-  const breadcrumbHome = root.querySelector('.breadcrumb-item') as HTMLAnchorElement | null;
-  if (breadcrumbHome) {
-    breadcrumbHome.textContent = baseUrlDisplay || state.spec?.info.title || 'Home';
-  }
-
-  // 2. Endpoint: auth headers in Try It + Code Examples
-  if (state.route.type !== 'endpoint' || !state.spec) return;
-
-  const tryItEl = root.querySelector('.aside.try-it .content') as HTMLElement | null;
-  const op = findOperation(state, state.route);
-
-  if (op && hasOperationAuth(op.resolvedSecurity) && tryItEl) {
-    const headersContainer = tryItEl.querySelector('.headers-list');
-    if (headersContainer) {
-      const authHeaderNames = ['Authorization', 'Cookie'];
-      const allRows = Array.from(headersContainer.querySelectorAll('.header-row'));
-      const authRows = allRows.filter((row) => {
-        const nameInput = row.querySelector('[data-header-name]') as HTMLInputElement;
-        return nameInput && authHeaderNames.includes(nameInput.value);
-      });
-      authRows.forEach((row) => row.remove());
-
-      const authHeaders = resolveAuthHeaders(op.resolvedSecurity, state.spec.securitySchemes);
-      const placeholders = getAuthHeaderPlaceholder(op.resolvedSecurity, state.spec.securitySchemes);
-      const merged = { ...placeholders, ...authHeaders };
-
-      const remainingRows = Array.from(headersContainer.querySelectorAll('.header-row'));
-      const insertBeforeRow = remainingRows.find((row) => {
-        const nameInput = row.querySelector('[data-header-name]') as HTMLInputElement;
-        return nameInput && nameInput.value === 'Content-Type';
-      }) || remainingRows[0];
-
-      for (const [headerName, headerValue] of Object.entries(merged).reverse()) {
-        const row = createHeaderRow(headerName, headerValue);
-        if (insertBeforeRow) {
-          insertBeforeRow.insertAdjacentElement('beforebegin', row);
-        } else {
-          headersContainer.prepend(row);
-        }
-      }
-    }
-  }
-
-  if (tryItEl && op) {
-    tryItEl.dispatchEvent(new Event('input', { bubbles: true }));
   }
 }
 
@@ -440,6 +399,14 @@ function renderWebhookListPage(slot: HTMLElement, state: PortalState): void {
   header.append(breadcrumbWrap);
   slot.append(header);
 
+  // Reactive: breadcrumb base URL
+  const whListBreadcrumbHome = breadcrumb.querySelector('.breadcrumb-item') as HTMLAnchorElement | null;
+  if (whListBreadcrumbHome) {
+    useEffects().on('webhookList:breadcrumb', (st) => {
+      whListBreadcrumbHome.textContent = formatBaseUrlForDisplay(getBaseUrl(st)) || st.spec?.info.title || 'Home';
+    });
+  }
+
   // Summary
   const methods: Record<string, number> = {};
   for (const wh of webhooks) {
@@ -514,6 +481,14 @@ function renderSchemaListPage(slot: HTMLElement, state: PortalState): void {
   breadcrumbWrap.append(breadcrumb);
   header.append(breadcrumbWrap);
   slot.append(header);
+
+  // Reactive: breadcrumb base URL
+  const schListBreadcrumbHome = breadcrumb.querySelector('.breadcrumb-item') as HTMLAnchorElement | null;
+  if (schListBreadcrumbHome) {
+    useEffects().on('schemaList:breadcrumb', (st) => {
+      schListBreadcrumbHome.textContent = formatBaseUrlForDisplay(getBaseUrl(st)) || st.spec?.info.title || 'Home';
+    });
+  }
 
   // Summary
   slot.append(createSection(
