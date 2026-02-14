@@ -1,0 +1,125 @@
+/* ─── Content: base ─── */
+
+.content .block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.content .block.header {
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--border-base-color);
+}
+
+.content .block.header > p,
+.content .block.section > p {
+  max-width: 720px;
+  font-size: var(--text-md);
+  line-height: var(--leading-relaxed);
+}
+
+.content .title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.content .version {
+  align-self: flex-end;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-subtle-color);
+}
+
+.content .summary {
+  gap: 0;
+}
+
+.content .summary-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 100%;
+  overflow: visible;
+}
+
+.content .endpoint-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 12px;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+}
+
+.content .endpoint-meta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.content .endpoint-auth-trigger {
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.content .endpoint-auth-trigger:hover {
+  border-color: color-mix(in srgb, currentColor 28%, transparent);
+}
+
+.content .endpoint-auth-trigger:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, currentColor 38%, transparent);
+}
+
+.content .endpoint-breadcrumb {
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-base-color);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface-hover-color) 55%, transparent);
+}
+
+.content .endpoint-meta-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.content .endpoint-meta-icon svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+/* ─── Content: interactive states ─── */
+
+.content .endpoint-meta.auth.is-active {
+  color: var(--color-green);
+  background: color-mix(in srgb, var(--color-green) 8%, transparent);
+}
+
+.content .endpoint-meta.auth.is-missing {
+  color: var(--color-red);
+  background: color-mix(in srgb, var(--color-red) 10%, transparent);
+}
+
+/* ─── Content: context variants ─── */
+
+.content .endpoint-meta.auth {
+  font-weight: 500;
+  color: var(--text-muted-color);
+}
+
+.content .endpoint-meta.deprecated {
+  font-weight: 600;
+  color: var(--color-orange);
+  background: color-mix(in srgb, var(--color-orange) 12%, transparent);
+}

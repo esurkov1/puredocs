@@ -1,0 +1,220 @@
+/* ─── Schema: base ─── */
+
+.schema .body {
+  --schema-indent-size: clamp(7px, 1.05%, 11px);
+  --schema-toggle-size: 14px;
+  --schema-left-gap: var(--space-sm);
+  padding: 0;
+  font-size: 13px;
+}
+
+.schema .body.schema-body-plain {
+  padding: var(--space-md);
+}
+
+.schema .body.schema-body-plain p {
+  margin: 0;
+  color: var(--text-secondary-color);
+}
+
+.schema-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--border-base-color);
+  transition: background-color 0.15s ease;
+  --schema-depth: 0;
+}
+
+.schema-row:last-child {
+  border-bottom: none;
+}
+
+.schema-main-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  min-height: 20px;
+}
+
+.schema-name-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--schema-left-gap);
+  min-width: 0;
+  flex: 1;
+  padding-left: calc(var(--schema-depth) * var(--schema-indent-size));
+}
+
+.schema-row.is-root.is-leaf .schema-spacer {
+  display: none;
+}
+
+.schema-row.is-root.is-leaf .schema-name-wrapper {
+  gap: 0;
+}
+
+.schema-toggle,
+.schema-spacer {
+  width: var(--schema-toggle-size);
+  height: var(--schema-toggle-size);
+  flex-shrink: 0;
+}
+
+.schema-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-subtle-color);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.schema-name-wrapper > span:last-child {
+  font-family: var(--font-family-mono);
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--text-primary-color);
+  word-break: break-word;
+}
+
+.schema-meta-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.schema-desc-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-width: 0;
+  padding-left: calc(
+    (var(--schema-depth) * var(--schema-indent-size)) +
+    var(--schema-toggle-size) +
+    var(--schema-left-gap)
+  );
+}
+
+.schema-desc-col.is-root {
+  padding-left: 0;
+}
+
+.schema-desc-col > p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted-color);
+  word-break: break-word;
+}
+
+.schema-constraints-row,
+.schema-enum-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  align-items: center;
+}
+
+.schema-row.role-flat .schema-main-row {
+  align-items: flex-start;
+}
+
+.schema-row.role-flat .schema-spacer {
+  display: none;
+}
+
+.schema-row.role-flat .schema-name-wrapper {
+  gap: 0;
+  padding-left: 0;
+}
+
+.schema-row.role-flat .schema-meta-wrapper {
+  align-items: flex-start;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.schema-row .badge {
+  text-transform: none;
+}
+
+/* ─── Schema: interactive states ─── */
+
+.schema-row:hover {
+  background: var(--surface-hover-color);
+}
+
+.schema-toggle.is-expanded {
+  transform: rotate(90deg);
+  color: var(--primary-color);
+}
+
+.schema-collapse-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--text-xs) * 1.2 + var(--space-xs) * 2 + 2px);
+  height: calc(var(--text-xs) * 1.2 + var(--space-xs) * 2 + 2px);
+  min-width: calc(var(--text-xs) * 1.2 + var(--space-xs) * 2 + 2px);
+  padding: 0;
+  background: color-mix(in srgb, var(--text-subtle-color) 8%, transparent);
+  border: 1px solid var(--border-base-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted-color);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.schema-collapse-btn:hover {
+  background: var(--surface-hover-color);
+  color: var(--text-primary-color);
+}
+
+.schema-collapse-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-light-color);
+}
+
+.schema-collapse-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.schema-collapse-btn.is-expanded {
+  transform: rotate(180deg);
+  background: var(--primary-light-color);
+  border-color: color-mix(in srgb, var(--border-base-color) 60%, var(--primary-color) 40%);
+  color: var(--primary-color);
+}
+
+.schema-collapse-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ─── Schema: context variants ─── */
+
+.schema-enum-value.is-default {
+  color: var(--primary-color);
+  background: var(--primary-light-color);
+}
+
+@media (max-width: 640px) {
+  .schema .body {
+    --schema-indent-size: clamp(3px, 0.75%, 6px);
+  }
+
+  .schema-main-row {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .schema-meta-wrapper {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

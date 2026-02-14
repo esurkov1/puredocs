@@ -1,0 +1,62 @@
+/* ─── Tabs Code: base ─── */
+
+.tabs-code {
+  min-width: 0;
+}
+
+.tabs-code > .body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.tabs-code.tabs {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-xs);
+  flex: 1;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tabs-code.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tabs-code.codes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.tabs-code .controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.tabs-code .panels {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabs-code .panel {
+  min-height: 120px;
+  padding: var(--space-md);
+}
+
+.tabs-code .panel.is-request {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.tabs-code .example-select {
+  width: 100%;
+  min-width: 200px;
+  color: var(--text-primary-color);
+}

@@ -1,0 +1,95 @@
+/**
+ * Breadcrumb
+ */
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: var(--text-md);
+  min-width: 0;
+  flex: 1;
+}
+
+.breadcrumb-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.page .main .breadcrumb-main {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.page .main .breadcrumb-main::-webkit-scrollbar { display: none; }
+
+.page .main .breadcrumb-main > * { flex-shrink: 0; }
+
+.endpoint-breadcrumb .breadcrumb-main {
+  flex-wrap: wrap;
+  overflow: visible;
+}
+
+.endpoint-breadcrumb .breadcrumb-main > * {
+  flex-shrink: 1;
+}
+
+.breadcrumb-trailing {
+  display: flex;
+  align-items: flex-start;
+  align-self: flex-start;
+  margin-inline-start: auto;
+  flex-shrink: 0;
+}
+
+.breadcrumb-wrap {
+  margin: 0;
+  min-height: 26px;
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb-item {
+  font-family: var(--font-family-mono);
+  color: var(--text-muted-color);
+  cursor: pointer;
+  transition: color 0.15s ease;
+  text-decoration: none;
+}
+
+.breadcrumb-item:hover { color: var(--primary-color); }
+
+.breadcrumb-sep { color: var(--text-subtle-color); font-size: 14px; }
+
+.breadcrumb-segment {
+  font-family: var(--font-family-mono);
+  color: var(--text-primary-color);
+}
+
+.breadcrumb-param {
+  font-family: var(--font-family-mono);
+  color: var(--primary-color);
+}
+
+.breadcrumb-copy {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  min-width: 26px;
+}
+
+.breadcrumb-copy svg { width: 14px; height: 14px; }
+
+.breadcrumb-current {
+  font-family: var(--font-family-mono);
+  color: var(--text-primary-color);
+  font-weight: 500;
+}

@@ -1,0 +1,82 @@
+/* Badge: base, sizes, tabs */
+
+:where(.badge) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family-mono);
+  line-height: 1.2;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  white-space: nowrap;
+  color: var(--text-muted-color);
+  background: var(--surface-hover-color);
+  text-transform: uppercase;
+}
+
+.badge.s {
+  font-size: var(--text-xs);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.badge.m {
+  font-size: var(--text-sm);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.badge.l {
+  font-size: var(--text-md);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.badge.placeholder {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.badge.interactive {
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+
+.badge.interactive:not([data-badge-group='response-code']):hover {
+  background: var(--surface-hover-color);
+  color: var(--text-primary-color);
+}
+
+.badge.interactive.is-active:not([data-badge-group='response-code']) {
+  background: var(--primary-light-color);
+  color: var(--primary-color);
+}
+
+.badge.interactive[data-badge-context='true'] { background: var(--surface-hover-color); }
+
+.badge.interactive[data-badge-context='true'].is-active {
+  background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+  color: var(--primary-color);
+}
+
+.badge.interactive[data-badge-group='response-code']:not(.is-active) {
+  background: transparent;
+  opacity: 0.95;
+}
+
+.badge.interactive[data-badge-group='response-code']:hover:not(.is-active) {
+  background: transparent;
+  opacity: 1;
+}
+
+.badge.interactive:focus-visible {
+  box-shadow: 0 0 0 3px var(--primary-light-color);
+  outline: none;
+}
+
+/* ─── context rules ─── */
+
+.nav-item > .badge:first-child {
+  min-width: var(--method-fixed-width);
+  width: var(--method-fixed-width);
+}

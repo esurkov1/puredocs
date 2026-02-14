@@ -1,0 +1,84 @@
+{
+  "name": "puredocs",
+  "version": "1.0.0",
+  "description": "Beautiful API documentation portal from any OpenAPI 3.1 spec. One-liner for Express & Fastify. Standard Web Component for everything else.",
+  "author": "esurkov1",
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://puredocs.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/esurkov1/puredocs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/esurkov1/puredocs/issues"
+  },
+  "keywords": [
+    "openapi",
+    "openapi-3.1",
+    "api-docs",
+    "api-documentation",
+    "documentation",
+    "swagger",
+    "web-components",
+    "api-portal",
+    "developer-portal",
+    "rest-api",
+    "express",
+    "fastify",
+    "api-reference"
+  ],
+  "type": "module",
+  "main": "dist/server.cjs",
+  "module": "dist/server.js",
+  "types": "dist/server.d.ts",
+  "unpkg": "dist/puredocs.umd.js",
+  "jsdelivr": "dist/puredocs.umd.js",
+  "exports": {
+    ".": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js",
+      "require": "./dist/server.cjs"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js",
+      "require": "./dist/server.cjs"
+    },
+    "./web": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/puredocs.js",
+      "require": "./dist/puredocs.cjs"
+    },
+    "./style.css": "./dist/puredocs.css"
+  },
+  "sideEffects": [
+    "./dist/puredocs.css",
+    "./dist/puredocs.js",
+    "./dist/puredocs.umd.js"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && vite build -c vite.server.config.ts && tsc --emitDeclarationOnly",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.13.10",
+    "typescript": "^5.7.0",
+    "vite": "^6.1.0",
+    "vite-plugin-dts": "^4.5.0"
+  },
+  "engines": {
+    "node": ">=18",
+    "bun": ">=1.0.0"
+  }
+}

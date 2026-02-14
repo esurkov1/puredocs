@@ -1,0 +1,132 @@
+/* ─── RouteNav: base ─── */
+.route-nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--border-base-color);
+}
+
+.route-card {
+  display: grid;
+  align-items: stretch;
+  column-gap: var(--space-sm);
+  padding: var(--space-md);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.route-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.route-category {
+  font-size: var(--text-xs);
+  line-height: 1.2;
+  color: var(--text-subtle-color);
+  text-transform: uppercase;
+  letter-spacing: 0.45px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.route-title {
+  color: var(--text-primary-color);
+  font-size: var(--text-md);
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.route-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.route-path {
+  font-family: var(--font-family-mono);
+  color: var(--text-muted-color);
+  font-size: 11px;
+  min-width: 0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.route-side {
+  color: var(--text-subtle-color);
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+}
+
+.route-side svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+/* ─── RouteNav: sizes ─── */
+.route-card.is-prev { grid-template-columns: 24px minmax(0, 1fr); }
+.route-card.is-next { grid-template-columns: minmax(0, 1fr) 24px; }
+
+@media (max-width: 860px) {
+  .route-nav { grid-template-columns: minmax(0, 1fr); }
+  .route-card { min-height: 78px; padding: var(--space-sm) var(--space-md); }
+  .route-title { font-size: 13px; }
+}
+
+/* ─── RouteNav: interactive states ─── */
+.route-card:hover {
+  background: var(--surface-hover-color);
+  border-color: var(--border-strong-base-color);
+  transform: translateY(-1px);
+}
+
+.route-card:active {
+  transform: translateY(0);
+}
+
+/* ─── RouteNav: context variants ─── */
+.route-nav.is-single { grid-template-columns: minmax(0, 1fr); }
+
+/* ─── RouteNav: responsive placement ─── */
+/* Desktop copy (inside .main scroll area): hidden on mobile */
+.route-nav-wrap.is-desktop {
+  display: block;
+}
+
+/* Mobile copy (direct child of .page, after .aside): hidden on desktop */
+.route-nav-wrap.is-mobile {
+  padding-bottom: var(--page-bottom, 40px);
+}
+
+.route-nav-wrap.is-mobile .route-nav {
+  margin-top: 0;
+}
+
+@media (max-width: 1199px) {
+  .route-nav-wrap.is-desktop {
+    display: none;
+  }
+}
+
+@media (min-width: 1200px) {
+  .route-nav-wrap.is-mobile {
+    display: none;
+  }
+}

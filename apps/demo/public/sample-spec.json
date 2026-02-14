@@ -1,0 +1,1510 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PureDocs Demo API",
+    "version": "1.0.0",
+    "description": "A comprehensive API specification used to demonstrate PureDocs capabilities. Includes all major HTTP methods, multiple authentication strategies, server environments, rich examples, callbacks, and webhooks.",
+    "contact": {
+      "name": "PureDocs API Team",
+      "email": "api@puredocs.dev",
+      "url": "https://github.com/esurkov1/puredocs"
+    },
+    "license": {
+      "name": "Non-commercial",
+      "url": "https://github.com/esurkov1/puredocs/blob/main/LICENSE"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.sandbox.puredocs.dev/v1",
+      "description": "Sandbox"
+    },
+    {
+      "url": "https://api.staging.puredocs.dev/v1",
+      "description": "Staging"
+    },
+    {
+      "url": "https://api.puredocs.dev/v1",
+      "description": "Production"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Authentication, session management, and token lifecycle."
+    },
+    {
+      "name": "Users",
+      "description": "User directory, profile management, and role updates."
+    },
+    {
+      "name": "Catalog",
+      "description": "Product catalog and inventory management endpoints."
+    },
+    {
+      "name": "Orders",
+      "description": "Order creation, tracking, status transitions, and fulfillment lifecycle."
+    },
+    {
+      "name": "Reports",
+      "description": "Read-only reporting endpoints secured by API key."
+    },
+    {
+      "name": "Diagnostics",
+      "description": "Operational and protocol-level endpoints."
+    }
+  ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login with email and password",
+        "description": "Creates a user session and returns a short-lived access token plus refresh token.",
+        "security": [
+          {
+            "BasicAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              },
+              "examples": {
+                "operator": {
+                  "summary": "Operator login",
+                  "value": {
+                    "email": "operator@puredocs.dev",
+                    "password": "S3curePass!"
+                  }
+                },
+                "viewer": {
+                  "summary": "Read-only user login",
+                  "value": {
+                    "email": "viewer@puredocs.dev",
+                    "password": "ViewerOnly123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authenticated",
+            "headers": {
+              "x-session-id": {
+                "description": "Current session identifier",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokens"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "accessToken": "eyJhbGciOi...",
+                      "refreshToken": "4f89bf8f-0da1-450f-b13a-f5026f7b4b2a",
+                      "expiresIn": 3600,
+                      "tokenType": "Bearer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "invalid": {
+                    "value": {
+                      "code": "AUTH_INVALID_CREDENTIALS",
+                      "message": "Email or password is incorrect"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Refresh access token",
+        "description": "Issues a new access token using a valid refresh token.",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenRequest"
+              },
+              "examples": {
+                "refresh": {
+                  "value": {
+                    "refreshToken": "4f89bf8f-0da1-450f-b13a-f5026f7b4b2a"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token refreshed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokens"
+                },
+                "examples": {
+                  "rotated": {
+                    "value": {
+                      "accessToken": "eyJhbGciOi...new",
+                      "refreshToken": "f29ced61-cce2-43f0-8ff9-dd9f137cb9cb",
+                      "expiresIn": 3600,
+                      "tokenType": "Bearer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "List users",
+        "description": "Returns paginated users with filtering by role and status.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number starting from 1.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Max results per page.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "description": "Filter by user role.",
+            "schema": {
+              "type": "string",
+              "enum": ["admin", "operator", "viewer"]
+            }
+          },
+          {
+            "name": "x-trace-id",
+            "in": "header",
+            "description": "Optional distributed tracing id.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserListResponse"
+                },
+                "examples": {
+                  "admins": {
+                    "summary": "Admin users",
+                    "value": {
+                      "items": [
+                        {
+                          "id": "usr_001",
+                          "email": "admin@puredocs.dev",
+                          "role": "admin",
+                          "status": "active",
+                          "displayName": "Platform Admin"
+                        }
+                      ],
+                      "page": 1,
+                      "limit": 20,
+                      "total": 1
+                    }
+                  },
+                  "mixed": {
+                    "summary": "Mixed roles",
+                    "value": {
+                      "items": [
+                        {
+                          "id": "usr_010",
+                          "email": "operator@puredocs.dev",
+                          "role": "operator",
+                          "status": "active",
+                          "displayName": "Ops North"
+                        },
+                        {
+                          "id": "usr_011",
+                          "email": "viewer@puredocs.dev",
+                          "role": "viewer",
+                          "status": "invited",
+                          "displayName": "Finance Viewer"
+                        }
+                      ],
+                      "page": 1,
+                      "limit": 20,
+                      "total": 2
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Users"],
+        "summary": "Create user",
+        "description": "Creates a new user. Requires OAuth2 scope `users:write`.",
+        "security": [
+          {
+            "OAuth2": ["users:write"]
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserRequest"
+              },
+              "examples": {
+                "operator": {
+                  "value": {
+                    "email": "new-operator@puredocs.dev",
+                    "displayName": "New Operator",
+                    "role": "operator"
+                  }
+                },
+                "viewer": {
+                  "value": {
+                    "email": "new-viewer@puredocs.dev",
+                    "displayName": "Analytics Viewer",
+                    "role": "viewer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                },
+                "examples": {
+                  "created": {
+                    "value": {
+                      "id": "usr_300",
+                      "email": "new-operator@puredocs.dev",
+                      "displayName": "New Operator",
+                      "role": "operator",
+                      "status": "invited"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{userId}": {
+      "parameters": [
+        {
+          "name": "userId",
+          "in": "path",
+          "required": true,
+          "description": "User identifier.",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get user",
+        "description": "Returns detailed profile and metadata.",
+        "responses": {
+          "200": {
+            "description": "User profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDetails"
+                },
+                "examples": {
+                  "active": {
+                    "value": {
+                      "id": "usr_001",
+                      "email": "admin@puredocs.dev",
+                      "displayName": "Platform Admin",
+                      "role": "admin",
+                      "status": "active",
+                      "preferences": {
+                        "locale": "en-US",
+                        "timezone": "UTC"
+                      }
+                    }
+                  },
+                  "invited": {
+                    "value": {
+                      "id": "usr_011",
+                      "email": "viewer@puredocs.dev",
+                      "displayName": "Finance Viewer",
+                      "role": "viewer",
+                      "status": "invited",
+                      "preferences": {
+                        "locale": "en-US",
+                        "timezone": "Europe/Berlin"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Users"],
+        "summary": "Replace user profile",
+        "description": "Fully replaces mutable user profile fields.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplaceUserRequest"
+              },
+              "examples": {
+                "replace": {
+                  "value": {
+                    "displayName": "Platform Administrator",
+                    "role": "admin",
+                    "status": "active"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Users"],
+        "summary": "Patch user",
+        "description": "Applies partial updates to user profile.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchUserRequest"
+              },
+              "examples": {
+                "rename": {
+                  "value": {
+                    "displayName": "Ops Team Lead"
+                  }
+                },
+                "deactivate": {
+                  "value": {
+                    "status": "suspended"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Patched user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Users"],
+        "summary": "Delete user",
+        "description": "Soft-deletes a user. Resource remains available for audit.",
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          }
+        }
+      },
+      "head": {
+        "tags": ["Users"],
+        "summary": "Check user existence",
+        "description": "Returns headers only to quickly validate user existence.",
+        "responses": {
+          "200": {
+            "description": "Exists"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "options": {
+        "tags": ["Users"],
+        "summary": "Discover supported operations",
+        "description": "Returns allowed methods for a user resource.",
+        "responses": {
+          "204": {
+            "description": "Allowed methods",
+            "headers": {
+              "allow": {
+                "description": "Allowed HTTP methods",
+                "schema": {
+                  "type": "string",
+                  "example": "GET,PUT,PATCH,DELETE,HEAD,OPTIONS"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/catalog/items": {
+      "get": {
+        "tags": ["Catalog"],
+        "summary": "List catalog items",
+        "description": "Returns item collection with flexible filtering and sorting.",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Search query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort key",
+            "schema": {
+              "type": "string",
+              "enum": ["name", "price", "updatedAt"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Catalog list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CatalogItem"
+                  }
+                },
+                "examples": {
+                  "sample": {
+                    "value": [
+                      {
+                        "id": "itm_001",
+                        "name": "Starter Plan",
+                        "price": 49,
+                        "currency": "USD",
+                        "status": "active"
+                      },
+                      {
+                        "id": "itm_002",
+                        "name": "Enterprise Plan",
+                        "price": 499,
+                        "currency": "USD",
+                        "status": "active"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Catalog"],
+        "summary": "Create catalog item",
+        "description": "Creates a product in the catalog.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCatalogItemRequest"
+              },
+              "examples": {
+                "service": {
+                  "value": {
+                    "name": "Pro Plan",
+                    "price": 99,
+                    "currency": "USD",
+                    "status": "active"
+                  }
+                },
+                "trial": {
+                  "value": {
+                    "name": "Trial Plan",
+                    "price": 0,
+                    "currency": "USD",
+                    "status": "draft"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogItem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/catalog/items/{itemId}": {
+      "parameters": [
+        {
+          "name": "itemId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "tags": ["Catalog"],
+        "summary": "Get catalog item",
+        "description": "Returns a single catalog item.",
+        "responses": {
+          "200": {
+            "description": "Item",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogItem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Catalog"],
+        "summary": "Patch catalog item",
+        "description": "Partially updates item fields.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchCatalogItemRequest"
+              },
+              "examples": {
+                "price-change": {
+                  "value": {
+                    "price": 109
+                  }
+                },
+                "pause": {
+                  "value": {
+                    "status": "paused"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogItem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Catalog"],
+        "summary": "Delete catalog item",
+        "description": "Removes item from catalog.",
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "tags": ["Orders"],
+        "summary": "List orders",
+        "description": "Returns orders with optional date range filtering.",
+        "parameters": [
+          {
+            "name": "createdFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "createdTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Order"
+                  }
+                },
+                "examples": {
+                  "recent": {
+                    "value": [
+                      {
+                        "id": "ord_9001",
+                        "status": "processing",
+                        "total": 199,
+                        "currency": "USD"
+                      },
+                      {
+                        "id": "ord_9002",
+                        "status": "paid",
+                        "total": 49,
+                        "currency": "USD"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Orders"],
+        "summary": "Create order",
+        "description": "Creates a new order and triggers async processing callback.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              },
+              "examples": {
+                "single-item": {
+                  "value": {
+                    "customerId": "usr_010",
+                    "items": [
+                      {
+                        "itemId": "itm_001",
+                        "quantity": 2
+                      }
+                    ],
+                    "notifyUrl": "https://consumer.example.com/hooks/order-status"
+                  }
+                },
+                "multi-item": {
+                  "value": {
+                    "customerId": "usr_011",
+                    "items": [
+                      {
+                        "itemId": "itm_001",
+                        "quantity": 1
+                      },
+                      {
+                        "itemId": "itm_002",
+                        "quantity": 1
+                      }
+                    ],
+                    "notifyUrl": "https://consumer.example.com/hooks/order-status"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "callbacks": {
+          "statusChanged": {
+            "{$request.body#/notifyUrl}": {
+              "post": {
+                "summary": "Order status callback",
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/OrderStatusEvent"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Callback accepted"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Order created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                },
+                "examples": {
+                  "created": {
+                    "value": {
+                      "id": "ord_9100",
+                      "status": "created",
+                      "total": 98,
+                      "currency": "USD"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{orderId}": {
+      "parameters": [
+        {
+          "name": "orderId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "tags": ["Orders"],
+        "summary": "Get order",
+        "description": "Returns full order payload with line items and timeline.",
+        "responses": {
+          "200": {
+            "description": "Order details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Orders"],
+        "summary": "Update order status",
+        "description": "Updates order status for manual operations.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchOrderRequest"
+              },
+              "examples": {
+                "mark-paid": {
+                  "value": {
+                    "status": "paid"
+                  }
+                },
+                "mark-cancelled": {
+                  "value": {
+                    "status": "cancelled"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Orders"],
+        "summary": "Cancel order",
+        "description": "Cancels an order that has not yet shipped.",
+        "responses": {
+          "202": {
+            "description": "Cancellation scheduled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationAccepted"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reports/daily": {
+      "get": {
+        "tags": ["Reports"],
+        "summary": "Get daily metrics",
+        "description": "Read-only report endpoint secured by API key.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daily report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyReport"
+                },
+                "examples": {
+                  "weekday": {
+                    "value": {
+                      "date": "2026-02-13",
+                      "newUsers": 37,
+                      "orders": 112,
+                      "grossRevenue": 9831.55
+                    }
+                  },
+                  "weekend": {
+                    "value": {
+                      "date": "2026-02-14",
+                      "newUsers": 21,
+                      "orders": 63,
+                      "grossRevenue": 5120.1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/diagnostics/echo": {
+      "trace": {
+        "tags": ["Diagnostics"],
+        "summary": "TRACE request echo",
+        "description": "Echo endpoint used for protocol diagnostics. Usually disabled in production.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Trace response",
+            "content": {
+              "message/http": {
+                "schema": {
+                  "type": "string"
+                },
+                "examples": {
+                  "trace": {
+                    "value": "TRACE /diagnostics/echo HTTP/1.1\\nHost: api.sandbox.puredocs.dev"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {
+    "order.status.changed": {
+      "post": {
+        "summary": "Order status changed webhook",
+        "description": "Sent when an order transitions to a new status.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderStatusEvent"
+              },
+              "examples": {
+                "paid": {
+                  "value": {
+                    "event": "order.status.changed",
+                    "occurredAt": "2026-02-14T09:30:00Z",
+                    "data": {
+                      "orderId": "ord_9100",
+                      "status": "paid"
+                    }
+                  }
+                },
+                "shipped": {
+                  "value": {
+                    "event": "order.status.changed",
+                    "occurredAt": "2026-02-14T12:10:00Z",
+                    "data": {
+                      "orderId": "ord_9100",
+                      "status": "shipped"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Accepted"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT access token from /auth/login"
+      },
+      "BasicAuth": {
+        "type": "http",
+        "scheme": "basic",
+        "description": "Basic auth for initial login"
+      },
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "Issued for reporting integrations"
+      },
+      "OAuth2": {
+        "type": "oauth2",
+        "description": "OAuth2 client credentials for machine access",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://auth.puredocs.dev/oauth/token",
+            "scopes": {
+              "users:write": "Create and modify users",
+              "orders:write": "Create and modify orders"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          }
+        }
+      },
+      "RefreshTokenRequest": {
+        "type": "object",
+        "required": ["refreshToken"],
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        }
+      },
+      "AuthTokens": {
+        "type": "object",
+        "required": ["accessToken", "refreshToken", "tokenType", "expiresIn"],
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "tokenType": {
+            "type": "string",
+            "example": "Bearer"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "example": 3600
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "required": ["id", "email", "displayName", "role", "status"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "operator", "viewer"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "invited", "suspended"]
+          }
+        }
+      },
+      "UserDetails": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/User"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "preferences": {
+                "type": "object",
+                "properties": {
+                  "locale": {
+                    "type": "string"
+                  },
+                  "timezone": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "CreateUserRequest": {
+        "type": "object",
+        "required": ["email", "displayName", "role"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "operator", "viewer"]
+          }
+        }
+      },
+      "ReplaceUserRequest": {
+        "type": "object",
+        "required": ["displayName", "role", "status"],
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "operator", "viewer"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "invited", "suspended"]
+          }
+        }
+      },
+      "PatchUserRequest": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "invited", "suspended"]
+          }
+        },
+        "additionalProperties": false
+      },
+      "UserListResponse": {
+        "type": "object",
+        "required": ["items", "page", "limit", "total"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
+          },
+          "page": {
+            "type": "integer"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        }
+      },
+      "CatalogItem": {
+        "type": "object",
+        "required": ["id", "name", "price", "currency", "status"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["draft", "active", "paused"]
+          }
+        }
+      },
+      "CreateCatalogItemRequest": {
+        "type": "object",
+        "required": ["name", "price", "currency", "status"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["draft", "active", "paused"]
+          }
+        }
+      },
+      "PatchCatalogItemRequest": {
+        "type": "object",
+        "properties": {
+          "price": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["draft", "active", "paused"]
+          }
+        },
+        "additionalProperties": false
+      },
+      "Order": {
+        "type": "object",
+        "required": ["id", "status", "total", "currency"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["created", "processing", "paid", "shipped", "cancelled"]
+          },
+          "total": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          }
+        }
+      },
+      "OrderDetails": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Order"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OrderLineItem"
+                }
+              },
+              "timeline": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OrderTimelineEvent"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "CreateOrderRequest": {
+        "type": "object",
+        "required": ["customerId", "items", "notifyUrl"],
+        "properties": {
+          "customerId": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/CreateOrderLineItem"
+            }
+          },
+          "notifyUrl": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "PatchOrderRequest": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["processing", "paid", "shipped", "cancelled"]
+          }
+        }
+      },
+      "CreateOrderLineItem": {
+        "type": "object",
+        "required": ["itemId", "quantity"],
+        "properties": {
+          "itemId": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "OrderLineItem": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CreateOrderLineItem"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "unitPrice": {
+                "type": "number"
+              },
+              "lineTotal": {
+                "type": "number"
+              }
+            }
+          }
+        ]
+      },
+      "OrderTimelineEvent": {
+        "type": "object",
+        "required": ["status", "at"],
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OrderStatusEvent": {
+        "type": "object",
+        "required": ["event", "occurredAt", "data"],
+        "properties": {
+          "event": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "data": {
+            "type": "object",
+            "required": ["orderId", "status"],
+            "properties": {
+              "orderId": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "DailyReport": {
+        "type": "object",
+        "required": ["date", "newUsers", "orders", "grossRevenue"],
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "newUsers": {
+            "type": "integer"
+          },
+          "orders": {
+            "type": "integer"
+          },
+          "grossRevenue": {
+            "type": "number"
+          }
+        }
+      },
+      "OperationAccepted": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "accepted"
+          },
+          "operationId": {
+            "type": "string",
+            "example": "op_3321"
+          }
+        }
+      }
+    }
+  }
+}

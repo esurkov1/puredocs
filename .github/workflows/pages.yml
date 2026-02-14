@@ -1,0 +1,67 @@
+name: Deploy Landing to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/landing/**'
+      - 'apps/demo/**'
+      - 'src/**'
+      - 'package.json'
+      - 'bun.lock'
+      - 'vite.config.ts'
+      - 'vite.server.config.ts'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build package assets
+        run: npm run build
+
+      - name: Prepare site
+        run: |
+          mkdir -p _site/assets/img _site/demo/assets
+          cp apps/landing/index.html _site/index.html
+          cp apps/landing/assets/img/image1.png apps/landing/assets/img/image2.png apps/landing/assets/img/image3.png apps/landing/assets/img/logo.svg _site/assets/img/
+          cp apps/demo/index.html _site/demo/index.html
+          cp apps/demo/public/sample-spec.json _site/demo/sample-spec.json
+          cp dist/puredocs.umd.js dist/puredocs.css _site/demo/assets/
+          echo "puredocs.dev" > _site/CNAME
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

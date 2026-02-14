@@ -1,0 +1,37 @@
+/**
+ * Animations / keyframes
+ */
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/**
+ * Theme transition
+ * Applied temporarily during theme switch for a uniform 0.5s crossfade.
+ * Uses !important to override element-level interactive transitions.
+ */
+.root.theme-transitioning,
+.root.theme-transitioning *,
+.root.theme-transitioning *::before,
+.root.theme-transitioning *::after {
+  transition:
+    background-color 0.5s ease,
+    background 0.5s ease,
+    color 0.5s ease,
+    border-color 0.5s ease,
+    box-shadow 0.5s ease,
+    fill 0.5s ease,
+    stroke 0.5s ease,
+    outline-color 0.5s ease !important;
+}

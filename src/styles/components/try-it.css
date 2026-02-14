@@ -1,0 +1,277 @@
+/* ─── Try It: base ─── */
+
+.aside.try-it {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.try-it > .body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+/* ─── Editor: CSS Grid overlay ─── */
+
+.try-it .body-editor {
+  display: grid;
+  min-height: 60px;
+}
+
+/* Both elements share identical grid cell + text styling so they overlay perfectly */
+.try-it .body-editor > .body-highlight,
+.try-it .body-editor > .textarea-json {
+  grid-area: 1 / 1 / 2 / 2;
+  margin: 0;
+  padding: var(--space-sm);
+  font-family: var(--font-family-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  tab-size: 2;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.try-it .body-highlight {
+  pointer-events: none;
+  text-indent: 0;
+  background: var(--surface-base-color);
+  border-color: var(--border-base-color);
+}
+
+.try-it .body-highlight .hl-property {
+  color: #059669;
+}
+
+.try-it .body-highlight .hl-string {
+  color: #0369a1;
+}
+
+.try-it .body-highlight .hl-number,
+.try-it .body-highlight .hl-literal {
+  color: #D97706;
+}
+
+.try-it .body-highlight .hl-keyword {
+  color: #cf222e;
+}
+
+.try-it .body-highlight .hl-comment {
+  color: #6e7781;
+  font-style: italic;
+}
+
+.try-it .body-highlight .hl-sign {
+  color: #8250df;
+}
+
+.try-it .body-highlight .hl-punctuation {
+  color: var(--text-primary-color);
+}
+
+.try-it .body-editor .textarea-json {
+  text-indent: 0; /* override base form style — must match <pre> */
+  color: transparent;
+  caret-color: var(--text-primary-color);
+  background: transparent !important;
+  resize: none;
+  outline: none;
+}
+
+.try-it .body-editor .textarea-json,
+.try-it .body-editor .textarea-json:hover,
+.try-it .body-editor .textarea-json:focus {
+  border-color: transparent;
+}
+
+.try-it .body-editor .textarea-json::selection {
+  background: rgba(59, 130, 246, 0.25);
+}
+
+.try-it .headers-list,
+.try-it .params-group,
+.try-it .route-preview,
+.try-it .body-section,
+.try-it .headers-section,
+.try-it .multipart {
+  display: flex;
+  flex-direction: column;
+}
+
+.try-it .headers-list,
+.try-it .params-group {
+  gap: var(--space-md);
+}
+
+.try-it .route-preview,
+.try-it .body-section,
+.try-it .headers-section {
+  gap: var(--space-xs);
+}
+
+.try-it .multipart {
+  gap: var(--space-sm);
+}
+
+.try-it .params.row .label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.try-it .required-star {
+  color: var(--color-red);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.try-it .field-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.try-it .field-copy-btn {
+  margin-inline-start: auto;
+}
+
+.try-it .route-input-row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-sm);
+}
+
+.try-it .route-input-row .route-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.try-it .header-row {
+  display: grid;
+  align-items: center;
+  grid-template-columns: minmax(140px, 0.9fr) 1fr auto;
+  gap: var(--space-sm);
+}
+
+.try-it .header-row input {
+  width: 100%;
+}
+
+.validation-error {
+  display: none;
+  width: 100%;
+  flex-basis: 100%;
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--color-red);
+}
+
+.validation-error.visible {
+  display: block;
+}
+
+.try-it .send-inline {
+  margin-top: 0;
+}
+
+.try-it .send-bottom {
+  padding: var(--space-md);
+  border-top: 1px solid var(--border-base-color);
+}
+
+.try-it .send-btn {
+  width: 100%;
+}
+
+.try-it .placeholder {
+  margin-top: 0;
+  padding: var(--space-lg) var(--space-md);
+  border: 1px dashed var(--border-base-color);
+  border-radius: var(--radius);
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-subtle-color);
+  background: var(--surface-base-color);
+}
+
+.try-it .meta {
+  display: flex;
+  gap: var(--space-sm);
+  font-size: 12px;
+  color: var(--text-subtle-color);
+}
+
+.try-it .response-pane {
+  overflow-x: auto;
+}
+
+.try-it .response-pane .pane-inner {
+  padding: var(--space-sm);
+  border-top: 1px solid var(--border-base-color);
+}
+
+.try-it .response-pane textarea,
+.try-it .response-pane pre {
+  margin: 0;
+  padding: var(--space-sm) var(--space-sm);
+  background: var(--surface-base-color);
+  border: 1px solid var(--border-base-color);
+  border-radius: var(--radius);
+  font-family: var(--font-family-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary-color);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.try-it .response-pane .hl-property {
+  color: #059669;
+}
+
+.try-it .response-pane .hl-string {
+  color: #0369a1;
+}
+
+.try-it .response-pane .hl-number,
+.try-it .response-pane .hl-literal {
+  color: #D97706;
+}
+
+.try-it .response-pane .hl-keyword {
+  color: #cf222e;
+}
+
+.try-it .response-pane .hl-comment {
+  color: #6e7781;
+  font-style: italic;
+}
+
+.try-it .response-pane .hl-sign {
+  color: #8250df;
+}
+
+/* ─── Try It: interactive states ─── */
+
+/* ─── Try It: context variants ─── */
+
+.try-it .response-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.try-it .response-header .tabs-code.tabs {
+  flex: 1;
+  min-width: 0;
+}
+
+.try-it .response-header .meta {
+  margin-left: 0;
+}
