@@ -6,32 +6,26 @@ import { store } from './state';
 const HTTP_METHODS = new Set([
   'get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace',
 ]);
-const ROUTE_MARKER = '~';
-const ROUTE_MARKER_PATH = `/${ROUTE_MARKER}`;
-
-let basePath = '';
 
 // ─── Lifecycle ───
 
-/** Initialize the History API router */
+/** Initialize the hash-based router */
 export function initRouter(base = ''): void {
-  basePath = normalizeBasePath(base || inferBasePath());
-  window.addEventListener('popstate', handleRouteChange);
+  window.addEventListener('hashchange', handleRouteChange);
   handleRouteChange();
 }
 
 /** Remove all router event listeners */
 export function destroyRouter(): void {
-  window.removeEventListener('popstate', handleRouteChange);
+  window.removeEventListener('hashchange', handleRouteChange);
 }
 
 // ─── Navigation ───
 
-/** Push a new path onto the history stack and trigger a route change */
+/** Push a new hash path and trigger a route change */
 export function navigate(path: string): void {
-  const externalPath = toExternalPath(path);
-  window.history.pushState(null, '', basePath + externalPath);
-  handleRouteChange();
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  window.location.hash = normalizedPath;
 }
 
 // ─── URL Building ───
@@ -40,25 +34,20 @@ export function navigate(path: string): void {
  * Build a human-readable URL from a RouteInfo object.
  *
  * URL patterns:
- *   /                              → Overview
- *   /~/{tag}                       → Tag page
- *   /~/{tag}/{method}/{apiPath}    → Endpoint
- *   /~/schemas/{name}              → Schema
- *   /~/webhooks/{name}             → Webhook
- *   /~/guides/{path}               → Guide
+ *   #/                             → Overview
+ *   #/{tag}                        → Tag page
+ *   #/{tag}/{method}/{apiPath}     → Endpoint
+ *   #/schemas/{name}               → Schema
+ *   #/webhooks/{name}              → Webhook
+ *   #/guides/{path}                → Guide
  *
  * Examples:
- *   /~/users                       → "Users" tag page
- *   /~/users/get/users/{id}        → GET /users/{id} in "Users" tag
- *   /~/pets/post/pets              → POST /pets in "Pets" tag
- *   /~/schemas/UserResponse        → Schema "UserResponse"
+ *   #/users                        → "Users" tag page
+ *   #/users/get/users/{id}         → GET /users/{id} in "Users" tag
+ *   #/pets/post/pets               → POST /pets in "Pets" tag
+ *   #/schemas/UserResponse         → Schema "UserResponse"
  */
 export function buildPath(route: RouteInfo): string {
-  const internal = buildInternalPath(route);
-  return toExternalPath(internal);
-}
-
-function buildInternalPath(route: RouteInfo): string {
   switch (route.type) {
     case 'overview':
       return '/';
@@ -91,15 +80,15 @@ function buildInternalPath(route: RouteInfo): string {
 // ─── URL Parsing ───
 
 /**
- * Parse a raw URL path into a RouteInfo object.
+ * Parse a raw hash path into a RouteInfo object.
  *
  * Handles URL-encoded segments, normalizes slashes,
- * and strips query strings / hash fragments.
+ * and strips query strings.
  */
 export function parsePath(rawPath: string): RouteInfo {
-  const normalized = toInternalPath(rawPath);
+  const normalized = normalizePath(rawPath);
 
-  if (normalized === '/') return { type: 'overview' };
+  if (normalized === '/' || normalized === '') return { type: 'overview' };
 
   // Split into segments (skip the leading empty segment from "/")
   const segments = normalized.slice(1).split('/');
@@ -182,102 +171,23 @@ function safeDecode(segment: string): string {
   }
 }
 
-/** Read the current pathname, stripping the configured base path */
+/** Read the current hash, stripping the leading # */
 function getCurrentPath(): string {
-  const path = window.location.pathname;
-  const pathInBase = stripBasePath(path || '/');
-  return toInternalPath(pathInBase, { requireMarker: true });
+  const hash = window.location.hash;
+  if (!hash || hash === '#' || hash === '#/') return '/';
+  // Remove the leading #
+  return hash.slice(1);
 }
 
-/** Called on popstate and after navigate() — parses the URL and updates the store */
+/** Called on hashchange — parses the hash and updates the store */
 function handleRouteChange(): void {
   const path = getCurrentPath();
   const route = parsePath(path);
   store.setRoute(route);
 }
 
-function normalizeBasePath(rawBase: string): string {
-  const normalized = normalizePath(rawBase);
-  if (normalized === '/') return '';
-  return normalized;
-}
-
-function inferBasePath(): string {
-  const path = normalizePath(window.location.pathname || '/');
-  if (path === '/') return '';
-
-  const markerIndex = getRouteMarkerIndex(path);
-  if (markerIndex >= 0) {
-    return path.slice(0, markerIndex) || '';
-  }
-
-  const segments = path.slice(1).split('/');
-  const lastSegment = segments[segments.length - 1] || '';
-  if (/\.[a-z0-9]+$/i.test(lastSegment)) {
-    const lastSlash = path.lastIndexOf('/');
-    if (lastSlash <= 0) return '';
-    return path.slice(0, lastSlash);
-  }
-
-  return path;
-}
-
-function stripBasePath(path: string): string {
-  if (!basePath) return path || '/';
-  if (path === basePath || path === `${basePath}/`) return '/';
-  if (path.startsWith(`${basePath}/`)) return path.slice(basePath.length) || '/';
-  return path || '/';
-}
-
 function normalizePath(rawPath: string): string {
-  const pathOnly = rawPath.split('?')[0]?.split('#')[0] || '/';
+  const pathOnly = rawPath.split('?')[0] || '/';
   const withLeadingSlash = pathOnly.startsWith('/') ? pathOnly : `/${pathOnly}`;
   return withLeadingSlash.replace(/\/+/g, '/').replace(/\/+$/, '') || '/';
-}
-
-function hasRouteMarker(path: string): boolean {
-  return getRouteMarkerIndex(path) >= 0;
-}
-
-function getRouteMarkerIndex(path: string): number {
-  if (path === ROUTE_MARKER_PATH || path.startsWith(`${ROUTE_MARKER_PATH}/`)) return 0;
-
-  const nested = path.indexOf(`${ROUTE_MARKER_PATH}/`);
-  if (nested >= 0) return nested;
-
-  if (path.endsWith(ROUTE_MARKER_PATH)) {
-    return path.length - ROUTE_MARKER_PATH.length;
-  }
-
-  return -1;
-}
-
-function stripRouteMarker(path: string): string {
-  if (!hasRouteMarker(path)) return path;
-  const markerIndex = getRouteMarkerIndex(path);
-  if (markerIndex < 0) return path;
-
-  const suffix = path.slice(markerIndex + ROUTE_MARKER_PATH.length);
-  return suffix || '/';
-}
-
-function toInternalPath(rawPath: string, options: { requireMarker?: boolean } = {}): string {
-  const normalized = normalizePath(rawPath);
-  if (normalized === '/') return '/';
-
-  if (hasRouteMarker(normalized)) {
-    return stripRouteMarker(normalized);
-  }
-
-  if (options.requireMarker) {
-    return '/';
-  }
-
-  return normalized;
-}
-
-function toExternalPath(rawPath: string): string {
-  const internal = toInternalPath(rawPath);
-  if (internal === '/') return '/';
-  return `${ROUTE_MARKER_PATH}${internal}`;
 }

@@ -111,6 +111,8 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
     warnIcon.innerHTML = icons.warning;
     metaRow.append(h('span', { className: 'endpoint-meta deprecated' }, warnIcon, 'Deprecated'));
   }
+  
+  let authEl: HTMLElement | null = null;
   if (hasOperationAuth(operation.resolvedSecurity)) {
     const hasConfiguredAuth = isOperationAuthConfigured(state, operation);
     const authBadge = formatOperationAuthBadge(operation.resolvedSecurity) || 'Auth required';
@@ -119,7 +121,7 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
       variant: 'endpoint',
       title: formatOperationAuthTitle(operation.resolvedSecurity),
     });
-    const authEl = h('span', {
+    authEl = h('span', {
       className: `endpoint-meta auth${hasConfiguredAuth ? ' is-active' : ' is-missing'}`,
       'aria-label': formatOperationAuthTitle(operation.resolvedSecurity),
       role: 'button',
@@ -136,7 +138,7 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
       const key = (event as KeyboardEvent).key;
       if (key !== 'Enter' && key !== ' ') return;
       event.preventDefault();
-      authEl.click();
+      if (authEl) authEl.click();
     });
     metaRow.append(authEl);
   }
@@ -208,6 +210,20 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
   if (breadcrumbHomeEl) {
     effects.on('endpoint:breadcrumb', (st) => {
       breadcrumbHomeEl.textContent = getDisplayBaseUrl(st) || st.spec?.info.title || 'Home';
+    });
+  }
+
+  // Auth badge: update lock icon and class when auth state changes
+  if (authEl && hasOperationAuth(operation.resolvedSecurity)) {
+    effects.on('endpoint:auth-badge', (st) => {
+      const configured = isOperationAuthConfigured(st, operation);
+      authEl!.className = `endpoint-meta auth endpoint-auth-trigger focus-ring${configured ? ' is-active' : ' is-missing'}`;
+      
+      // Update lock icon
+      const lockIcon = authEl!.querySelector('.lock-icon');
+      if (lockIcon) {
+        lockIcon.className = `lock-icon${configured ? ' is-unlocked' : ''}`;
+      }
     });
   }
 
