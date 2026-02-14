@@ -220,6 +220,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  align-self: center;
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -263,6 +264,13 @@
 .nav-group-link--static { cursor: default; }
 .nav-group-link--static:hover { color: inherit; }
 
+.nav-group-title,
+.nav-group-count {
+  display: flex;
+  align-items: center;
+  align-self: center;
+}
+
 .nav-group-title {
   min-width: 0;
   overflow: hidden;
@@ -279,20 +287,20 @@
 }
 
 .nav-group-items {
-  --nav-group-max-height: 0px;
   overflow: hidden;
-  max-height: var(--nav-group-max-height);
-  opacity: 1;
-  transition: max-height 0.26s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.18s ease;
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding-top: var(--space-xs);
+  max-height: 0;
+}
+
+.nav-group-items:not(.collapsed) {
+  max-height: 2000px;
 }
 
 .nav-group-items.collapsed {
-  max-height: 0 !important;
-  opacity: 0;
+  max-height: 0;
   pointer-events: none;
 }
 
@@ -313,12 +321,23 @@
   min-width: 0;
 }
 
+.nav-item > .badge,
+.nav-item > [data-lock-slot] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  align-self: center;
+}
+
 .nav-item-label {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
 }
 
 .nav-item:hover {

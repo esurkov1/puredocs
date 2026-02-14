@@ -40,7 +40,7 @@ export function updateSidebarActiveState(container: HTMLElement, currentRoute: R
     const activeHeader = activeGroup.querySelector('.nav-group-header');
     const activeItems = activeGroup.querySelector('.nav-group-items');
     if (activeHeader instanceof HTMLElement && activeItems instanceof HTMLElement) {
-      setNavGroupExpanded(activeHeader, activeItems, true, { animate: false });
+      setNavGroupExpanded(activeHeader, activeItems, true);
     }
   }
 
@@ -57,7 +57,7 @@ export function updateSidebarActiveState(container: HTMLElement, currentRoute: R
       const header = group.querySelector('.nav-group-header');
       const itemsWrap = group.querySelector('.nav-group-items');
       if (header instanceof HTMLElement && itemsWrap instanceof HTMLElement) {
-        setNavGroupExpanded(header, itemsWrap, true, { animate: false });
+        setNavGroupExpanded(header, itemsWrap, true);
       }
     }
   }
@@ -241,7 +241,7 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
     const whGroup = h('div', { className: 'nav-group', 'data-nav-tag': 'webhooks' });
     const whListRoute: RouteInfo = { type: 'webhook' };
     const whHeader = createLinkedGroupHeader('Webhooks', spec.webhooks.length, whListRoute, state.route);
-    const whItems = h('div', { className: 'nav-group-items' });
+    const whItems = h('div', { className: 'nav-group-items collapsed' });
 
     for (const wh of spec.webhooks) {
       const route: RouteInfo = { type: 'webhook', webhookName: wh.name };
@@ -256,8 +256,11 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
       setNavGroupExpanded(whHeader, whItems);
     });
 
+    const whLink = whHeader.querySelector('.nav-group-link');
+    if (whLink) whLink.addEventListener('click', () => setNavGroupExpanded(whHeader, whItems, true), { capture: true });
+
     const isActiveWebhook = state.route.type === 'webhook';
-    setNavGroupExpanded(whHeader, whItems, isActiveWebhook, { animate: false });
+    setNavGroupExpanded(whHeader, whItems, isActiveWebhook, { instant: true });
     whGroup.append(whHeader, whItems);
     nav.append(whGroup);
   }
@@ -268,7 +271,7 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
     const schemasGroup = h('div', { className: 'nav-group' });
     const schemasListRoute: RouteInfo = { type: 'schema' };
     const schemasHeader = createLinkedGroupHeader('Schemas', schemaNames.length, schemasListRoute, state.route);
-    const schemasItems = h('div', { className: 'nav-group-items' });
+    const schemasItems = h('div', { className: 'nav-group-items collapsed' });
 
     for (const name of schemaNames) {
       const route: RouteInfo = { type: 'schema', schemaName: name };
@@ -282,20 +285,17 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
       setNavGroupExpanded(schemasHeader, schemasItems);
     });
 
+    const schemasLink = schemasHeader.querySelector('.nav-group-link');
+    if (schemasLink) schemasLink.addEventListener('click', () => setNavGroupExpanded(schemasHeader, schemasItems, true), { capture: true });
+
     const isActiveSchema = state.route.type === 'schema';
-    setNavGroupExpanded(schemasHeader, schemasItems, isActiveSchema, { animate: false });
+    setNavGroupExpanded(schemasHeader, schemasItems, isActiveSchema, { instant: true });
     schemasGroup.setAttribute('data-nav-tag', 'schemas');
     schemasGroup.append(schemasHeader, schemasItems);
     nav.append(schemasGroup);
   }
 
   container.append(nav);
-
-  // Re-sync heights for expanded groups now that elements are in the DOM
-  // (scrollHeight is 0 when measured off-DOM during group creation)
-  for (const items of nav.querySelectorAll('.nav-group-items:not(.collapsed)')) {
-    syncNavGroupHeight(items as HTMLElement);
-  }
 
   // Footer: credit + theme button
   const footer = h('div', { className: 'footer' });
@@ -356,7 +356,7 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
 function createTagGroup(tag: SpecTag, currentRoute: RouteInfo, state: { route: RouteInfo }): HTMLElement {
   const group = h('div', { className: 'nav-group', 'data-nav-tag': slugifyTag(tag.name) });
   const header = createTagGroupHeader(tag, currentRoute);
-  const items = h('div', { className: 'nav-group-items' });
+  const items = h('div', { className: 'nav-group-items collapsed' });
 
   const tagSlug = slugifyTag(tag.name);
   const isActiveTag = (currentRoute.type === 'tag' && slugifyTag(currentRoute.tag || '') === tagSlug)
@@ -374,7 +374,14 @@ function createTagGroup(tag: SpecTag, currentRoute: RouteInfo, state: { route: R
     setNavGroupExpanded(header, items);
   });
 
-  setNavGroupExpanded(header, items, isActiveTag, { animate: false });
+  const link = header.querySelector('.nav-group-link');
+  if (link) {
+    link.addEventListener('click', (e: Event) => {
+      setNavGroupExpanded(header, items, true);
+    }, { capture: true });
+  }
+
+  setNavGroupExpanded(header, items, isActiveTag, { instant: true });
 
   group.append(header, items);
   return group;
@@ -498,40 +505,77 @@ function createGroupHeader(name: string, count: number): HTMLElement {
   return header;
 }
 
+const NAV_EXPAND_DURATION = 260;
+const NAV_EASING = 'cubic-bezier(0.25, 0.8, 0.25, 1)';
+const activeExpandAnims = new WeakMap<HTMLElement, Animation>();
+
 function setNavGroupExpanded(
   header: HTMLElement,
   items: HTMLElement,
   expanded: boolean = !header.classList.contains('expanded'),
-  options: { animate?: boolean } = {},
+  options: { instant?: boolean } = {},
 ): void {
-  const shouldAnimate = options.animate !== false;
+  const wasExpanded = header.classList.contains('expanded');
+  if (wasExpanded === expanded) return;
 
-  if (!shouldAnimate) {
-    header.classList.toggle('expanded', expanded);
-    header.setAttribute('aria-expanded', String(expanded));
-    updateGroupChevronAriaLabel(header, expanded);
-    items.classList.toggle('collapsed', !expanded);
-    syncNavGroupHeight(items);
-    return;
-  }
-
-  if (expanded) {
-    items.classList.remove('collapsed');
-    syncNavGroupHeight(items);
-  } else {
-    syncNavGroupHeight(items);
-    // Keep current height for one frame so collapse animates smoothly from content height.
-    void items.offsetHeight;
-    items.classList.add('collapsed');
+  const running = activeExpandAnims.get(items);
+  if (running) {
+    running.cancel();
+    activeExpandAnims.delete(items);
   }
 
   header.classList.toggle('expanded', expanded);
   header.setAttribute('aria-expanded', String(expanded));
   updateGroupChevronAriaLabel(header, expanded);
-}
 
-function syncNavGroupHeight(items: HTMLElement): void {
-  items.style.setProperty('--nav-group-max-height', `${items.scrollHeight}px`);
+  if (options.instant) {
+    items.classList.toggle('collapsed', !expanded);
+    items.style.maxHeight = '';
+    items.style.overflow = '';
+    return;
+  }
+
+  if (expanded) {
+    items.classList.remove('collapsed');
+    items.style.maxHeight = 'none';
+    items.style.overflow = 'hidden';
+    const endHeight = items.scrollHeight;
+    items.style.maxHeight = '0';
+    const anim = items.animate(
+      [{ maxHeight: '0px' }, { maxHeight: `${endHeight}px` }],
+      { duration: NAV_EXPAND_DURATION, easing: NAV_EASING, fill: 'forwards' },
+    );
+    activeExpandAnims.set(items, anim);
+    anim.finished
+      .then(() => {
+        activeExpandAnims.delete(items);
+        items.style.maxHeight = '';
+        items.style.overflow = '';
+      })
+      .catch(() => {
+        activeExpandAnims.delete(items);
+      });
+  } else {
+    items.classList.remove('collapsed');
+    const startHeight = items.scrollHeight;
+    items.style.maxHeight = `${startHeight}px`;
+    items.style.overflow = 'hidden';
+    const anim = items.animate(
+      [{ maxHeight: `${startHeight}px` }, { maxHeight: '0px' }],
+      { duration: NAV_EXPAND_DURATION, easing: NAV_EASING, fill: 'forwards' },
+    );
+    activeExpandAnims.set(items, anim);
+    anim.finished
+      .then(() => {
+        activeExpandAnims.delete(items);
+        items.style.maxHeight = '';
+        items.style.overflow = '';
+        items.classList.add('collapsed');
+      })
+      .catch(() => {
+        activeExpandAnims.delete(items);
+      });
+  }
 }
 
 function updateGroupChevronAriaLabel(header: HTMLElement, expanded: boolean): void {
