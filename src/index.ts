@@ -61,9 +61,11 @@ function ensureStylesheetOnce(href: string): void {
 
 function applyFullPageLayout(target: HTMLElement): void {
   document.documentElement.style.minHeight = '100%';
-  document.body.style.minHeight = '100vh';
+  document.body.style.width = '100vw';
+  document.body.style.height = '100vh';
   document.body.style.margin = '0';
-  target.style.minHeight = '100vh';
+  target.style.width = '100%';
+  target.style.height = '100%';
   target.style.display = 'block';
 }
 

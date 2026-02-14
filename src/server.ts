@@ -159,6 +159,7 @@ export function pureDocsHtml(options: PureDocsOptions, template?: PureDocsHtmlTe
     '  <meta name="viewport" content="width=device-width, initial-scale=1" />',
     `  <title>${escapeHtml(pageTitle)}</title>`,
     `  <style>${css}</style>`,
+    '  <style>html,body{margin:0}body{width:100vw;height:100vh}#puredocs{width:100%;height:100%;display:block}</style>',
     '</head>',
     '<body>',
     `  <script>${umd}</script>`,
