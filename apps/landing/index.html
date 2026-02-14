@@ -24,8 +24,27 @@
     body{font-family:var(--sans);background:var(--bg);color:var(--td);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
     a{color:inherit;text-decoration:none}img{display:block;max-width:100%}button{font-family:var(--sans)}
 
-    /* ── ASCII CANVAS ───────────────────────────── */
-    #ascii{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+    /* ── ANIMATED GRADIENT MESH BACKGROUND ───────────────────────────── */
+    #gradient-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden;background:linear-gradient(135deg,#080a10 0%,#0f1117 50%,#080a10 100%)}
+    
+    /* Base animated gradient layer */
+    .gradient-mesh{position:absolute;inset:0;background:linear-gradient(300deg,rgba(37,99,235,.12),rgba(139,92,246,.10),rgba(59,130,246,.08),rgba(99,102,241,.12));background-size:240% 240%;animation:gradient-shift 15s ease infinite;mix-blend-mode:screen;filter:blur(60px);opacity:.6}
+    @keyframes gradient-shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    
+    /* Floating orbs for depth */
+    .orb{position:absolute;border-radius:50%;filter:blur(90px);mix-blend-mode:screen;will-change:transform}
+    .orb-1{width:600px;height:600px;background:radial-gradient(circle at 50% 50%,rgba(37,99,235,.18) 0%,rgba(37,99,235,.08) 30%,transparent 70%);top:-10%;left:-5%;animation:float1 25s ease-in-out infinite;opacity:.5}
+    .orb-2{width:500px;height:500px;background:radial-gradient(circle at 50% 50%,rgba(139,92,246,.16) 0%,rgba(139,92,246,.06) 30%,transparent 70%);top:40%;right:-5%;animation:float2 20s ease-in-out infinite;opacity:.45}
+    .orb-3{width:550px;height:550px;background:radial-gradient(circle at 50% 50%,rgba(59,130,246,.14) 0%,rgba(59,130,246,.05) 30%,transparent 70%);bottom:-5%;left:40%;animation:float3 22s ease-in-out infinite;opacity:.4}
+    .orb-4{width:450px;height:450px;background:radial-gradient(circle at 50% 50%,rgba(99,102,241,.12) 0%,rgba(99,102,241,.04) 30%,transparent 70%);top:20%;left:30%;animation:float4 28s ease-in-out infinite;opacity:.35}
+    
+    @keyframes float1{0%,100%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(40px,-50px) scale(1.15) rotate(120deg)}66%{transform:translate(-30px,40px) scale(.95) rotate(240deg)}}
+    @keyframes float2{0%,100%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(-50px,30px) scale(1.1) rotate(-120deg)}66%{transform:translate(40px,-40px) scale(.9) rotate(-240deg)}}
+    @keyframes float3{0%,100%{transform:translate(0,0) scale(1) rotate(0deg)}25%{transform:translate(30px,40px) scale(1.05) rotate(90deg)}50%{transform:translate(-40px,-30px) scale(.92) rotate(180deg)}75%{transform:translate(35px,-35px) scale(1.08) rotate(270deg)}}
+    @keyframes float4{0%,100%{transform:translate(0,0) scale(1) rotate(0deg)}40%{transform:translate(-35px,45px) scale(1.12) rotate(144deg)}80%{transform:translate(45px,-25px) scale(.88) rotate(288deg)}}
+    
+    /* Subtle grain texture overlay */
+    .grain-overlay{position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");opacity:.4;mix-blend-mode:overlay;pointer-events:none}
 
     /* ── LAYOUT ─────────────────────────────────── */
     .w{max-width:1240px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
@@ -206,14 +225,21 @@
     @media(prefers-reduced-motion:reduce){
       *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
       .r{opacity:1;transform:none}
-      #ascii{display:none}
+      #gradient-bg{display:none}
     }
   </style>
 </head>
 <body>
 
-<!-- ASCII Background Canvas -->
-<canvas id="ascii" aria-hidden="true"></canvas>
+<!-- Animated Gradient Mesh Background -->
+<div id="gradient-bg" aria-hidden="true">
+  <div class="gradient-mesh"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+  <div class="grain-overlay"></div>
+</div>
 
 <!-- NAV -->
 <nav class="nav" role="navigation" aria-label="Main">
@@ -446,92 +472,6 @@ app.<span class="cf">listen</span>({ <span class="ca">port</span>: <span class="
 </footer>
 
 <script>
-/* ═══════════════════════════════════════════════
-   Procedural ASCII Background — fixed viewport
-   canvas with hash-based value noise (Perlin-like)
-   ═══════════════════════════════════════════════ */
-(function(){
-  const c = document.getElementById('ascii');
-  if(!c) return;
-  const ctx = c.getContext('2d');
-  if(!ctx) return;
-
-  const chars = '.·:+*=-~:·.';
-  const cell = 13;
-  let cols, rows, W, H;
-  const prm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /* --- Hash-based 2D value noise --- */
-  function hash(x, y){
-    let h = (x * 374761393 + y * 668265263) | 0;
-    h = Math.imul(h ^ (h >>> 13), 1274126177);
-    h = h ^ (h >>> 16);
-    return (h & 0x7fffffff) / 0x7fffffff; // 0..1
-  }
-
-  function smoothNoise(x, y){
-    const xi = Math.floor(x), yi = Math.floor(y);
-    const xf = x - xi, yf = y - yi;
-    const u = xf * xf * (3 - 2 * xf);
-    const v = yf * yf * (3 - 2 * yf);
-    const a = hash(xi, yi), b = hash(xi + 1, yi);
-    const cc = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
-    return a + (b - a) * u + (cc - a) * v + (a - b - cc + d) * u * v;
-  }
-
-  function fbm(x, y, octaves){
-    let val = 0, amp = 1, freq = 1, max = 0;
-    for(let i = 0; i < octaves; i++){
-      val += smoothNoise(x * freq, y * freq) * amp;
-      max += amp;
-      amp *= 0.5;
-      freq *= 2;
-    }
-    return val / max;
-  }
-
-  function resize(){
-    const dpr = Math.min(devicePixelRatio, 1); // keep 1x for perf
-    W = innerWidth; H = innerHeight;
-    c.width = W * dpr;
-    c.height = H * dpr;
-    c.style.width = W + 'px';
-    c.style.height = H + 'px';
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    cols = Math.ceil(W / cell);
-    rows = Math.ceil(H / cell);
-  }
-  resize();
-  addEventListener('resize', resize);
-
-  let last = 0;
-  function draw(now){
-    requestAnimationFrame(draw);
-    if(now - last < 55) return; // ~18fps cap
-    last = now;
-
-    const t = prm ? 0 : now * 0.00008;
-
-    ctx.clearRect(0, 0, W, H);
-    ctx.font = '500 ' + (cell - 2) + 'px JetBrains Mono,monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    for(let row = 0; row < rows; row++){
-      for(let col = 0; col < cols; col++){
-        const n = fbm(col * 0.06 + t * 3.5, row * 0.06 + t * 2.2, 3);
-        if(n < 0.25) continue;
-        const ci = Math.floor((n - 0.25) / 0.75 * chars.length) % chars.length;
-        const a = 0.03 + (n - 0.25) * 0.28;  // range 3%-24% alpha
-        ctx.fillStyle = 'rgba(155,165,190,' + a.toFixed(3) + ')';
-        ctx.fillText(chars[ci], col * cell + cell * 0.5, row * cell + cell * 0.5);
-      }
-    }
-  }
-
-  document.fonts.ready.then(() => requestAnimationFrame(draw));
-})();
-
 /* ── GitHub Stars ────────────────────────────── */
 (function(){
   fetch('https://api.github.com/repos/esurkov1/puredocs')
