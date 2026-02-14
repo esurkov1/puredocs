@@ -46,12 +46,6 @@ export async function renderOverview(pageSlot: HTMLElement, _asideSlot: HTMLElem
     ),
   ));
 
-  const portalRoot = (pageSlot.closest('.root') as HTMLElement | null) ?? undefined;
-  const connectionSections = createConnectionSettingsSections(spec.securitySchemes || {}, portalRoot);
-  for (const section of connectionSections) {
-    pageSlot.append(section);
-  }
-
   if (spec.servers.length > 0) {
     const serversSection = createSection({ title: 'Servers' });
 
@@ -84,6 +78,12 @@ export async function renderOverview(pageSlot: HTMLElement, _asideSlot: HTMLElem
     }
 
     pageSlot.append(serversSection);
+  }
+
+  const portalRoot = (pageSlot.closest('.root') as HTMLElement | null) ?? undefined;
+  const connectionSections = createConnectionSettingsSections(spec.securitySchemes || {}, portalRoot);
+  for (const section of connectionSections) {
+    pageSlot.append(section);
   }
 
   if (spec.tags.length > 0) {

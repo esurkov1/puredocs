@@ -8,6 +8,17 @@ import { isOperationAuthConfigured } from '../modals/auth-modal';
 import { formatOperationAuthTitle, hasOperationAuth } from '../../core/security';
 import type { SpecTag, RouteInfo } from '../../core/types';
 
+/**
+ * Convert tag name to slug for URL matching
+ */
+function tagToSlug(tag: string): string {
+  return tag
+    .toLowerCase()
+    .replace(/[^\w\-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 /** Render a tag page — list of group operations */
 export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, tagName: string): void {
   clear(pageSlot);
@@ -15,7 +26,8 @@ export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, ta
   const spec = store.get().spec;
   if (!spec) return;
 
-  const tag = spec.tags.find((t) => t.name === tagName);
+  // Find tag by exact match or by slug match
+  const tag = spec.tags.find((t) => t.name === tagName || tagToSlug(t.name) === tagName.toLowerCase());
   if (!tag || tag.operations.length === 0) {
     const header = h('div', { className: 'block header' });
     header.append(h('h1', { textContent: 'Tag not found' }));
@@ -74,8 +86,18 @@ export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, ta
   const currentRoute = store.get().route;
 
   for (const op of tag.operations) {
-    const route: RouteInfo = { type: 'endpoint', tag: tag.name, method: op.method, path: op.path };
-    const isActive = currentRoute.type === 'endpoint' && currentRoute.method === op.method && currentRoute.path === op.path;
+    const route: RouteInfo = {
+      type: 'endpoint',
+      tag: tag.name,
+      method: op.method,
+      path: op.path,
+      operationId: op.operationId,
+    };
+    const isActive = currentRoute.type === 'endpoint'
+      && (
+        (currentRoute.operationId && currentRoute.operationId === op.operationId)
+        || (currentRoute.method === op.method && currentRoute.path === op.path)
+      );
     const card = createCard({
       interactive: true,
       active: isActive,

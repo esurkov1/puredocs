@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PureDocs Demo</title>
+  <meta name="description" content="Interactive PureDocs demo with a full OpenAPI showcase spec." />
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: #f3f6fb;
+      color: #0f172a;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .demo-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #dbe3f1;
+      background: rgba(243, 246, 251, 0.92);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .demo-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1e293b;
+      margin: 0;
+    }
+
+    .demo-link {
+      font-size: 13px;
+      font-weight: 600;
+      color: #2563eb;
+      text-decoration: none;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+    }
+
+    .demo-link:hover {
+      background: #dbeafe;
+    }
+  </style>
+</head>
+<body>
+  <header class="demo-topbar">
+    <h1 class="demo-title">PureDocs Demo · Showcase API Spec</h1>
+    <a class="demo-link" href="/">Back to Landing</a>
+  </header>
+
+  <pure-docs spec-url="./sample-spec.json" theme="auto" title="PureDocs Showcase API"></pure-docs>
+
+  <script type="module">
+    const isLocalDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+    if (isLocalDev) {
+      await import('../../src/index.ts');
+    } else {
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = './assets/puredocs.css';
+      document.head.append(css);
+
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = './assets/puredocs.umd.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.body.append(script);
+      });
+    }
+  </script>
+</body>
+</html>

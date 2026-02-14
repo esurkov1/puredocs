@@ -113,12 +113,10 @@ export function renderTryIt(
     container.addEventListener('change', notify);
   }
 
-  // Deferred resize body textarea — after layout in DOM
+  // Final sync after insertion into DOM
   const bodyTextarea = container.querySelector('textarea[data-field="body"]') as HTMLTextAreaElement | null;
   if (bodyTextarea) {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => autoResizeTextarea(bodyTextarea));
-    });
+    autoResizeTextarea(bodyTextarea);
   }
 }
 
@@ -218,6 +216,7 @@ function renderRequestCodeBlock(
   const showResolvedRoute = true;
   let routePreviewInput: HTMLInputElement | null = null;
   let routePreviewEl: HTMLElement | null = null;
+  let syncRequestBodyEditor: (() => void) | null = null;
 
   // Panel for first tab (Body/Query/Path)
   let firstTabPanel: HTMLElement | null = null;
@@ -306,7 +305,7 @@ function renderRequestCodeBlock(
           const isRequired = requiredFields.includes(fieldName);
           const fieldRow = h('div', { className: `params row${isRequired ? ' is-required' : ''}` });
           const fieldLabel = h('span', { className: 'label', textContent: fieldName });
-          if (isRequired) fieldLabel.append(createBadge({ text: '*', kind: 'required', size: 's' }));
+          if (isRequired) fieldLabel.append(createRequiredStar());
           if (isBinary) {
             const fileInput = h('input', {
               type: 'file',
@@ -333,6 +332,7 @@ function renderRequestCodeBlock(
           dataField: 'body',
           onInput: () => onConfigChange?.(collectRequestConfigImpl(tryItBody, operation)),
         });
+        syncRequestBodyEditor = editor.syncLayout;
         bodySection.append(editor.wrap);
         if (examples.length > 1) {
           const exampleSelect = createSelect({
@@ -344,6 +344,7 @@ function renderRequestCodeBlock(
               const chosen = examples.find((e) => e.name === val);
               if (chosen) {
                 editor.setValue(formatExampleValue(chosen.value), 'json');
+                editor.syncLayout();
                 onConfigChange?.(collectRequestConfigImpl(tryItBody, operation));
               }
             },
@@ -437,6 +438,9 @@ function renderRequestCodeBlock(
       if (firstTabLabel) {
         if (firstTabPanel) setPanelVisible(firstTabPanel, idx === 0);
         setPanelVisible(langPanel, idx !== 0);
+        if (idx === 0) {
+          syncRequestBodyEditor?.();
+        }
         if (idx > 0) updateSnippetsCode(langEditor, idx - 1);
       } else {
         setPanelVisible(langPanel, true);
@@ -497,11 +501,7 @@ function renderRequestCodeBlock(
   tryItBody.addEventListener('input', notify);
   tryItBody.addEventListener('change', notify);
   notify();
-
-  requestAnimationFrame(() => {
-    const ta = tryItBody.querySelector('textarea[data-field="body"]') as HTMLTextAreaElement | null;
-    if (ta) autoResizeTextarea(ta);
-  });
+  syncRequestBodyEditor?.();
 
   return section;
 }
@@ -534,7 +534,7 @@ function createParamInput(param: SpecParameter, initialValue?: string): HTMLElem
   });
 
   if (param.required) {
-    label.append(createBadge({ text: '*', kind: 'required', size: 's' }));
+    label.append(createRequiredStar());
   }
 
   const schema = param.schema;
@@ -574,6 +574,14 @@ function createParamInput(param: SpecParameter, initialValue?: string): HTMLElem
 
   wrapper.append(label, inputEl, errorEl);
   return wrapper;
+}
+
+function createRequiredStar(): HTMLElement {
+  return h('span', {
+    className: 'required-star',
+    textContent: '*',
+    'aria-hidden': 'true',
+  });
 }
 
 export function createHeaderRow(name: string, value: string): HTMLElement {

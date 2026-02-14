@@ -57,13 +57,17 @@
 }
 
 .try-it .body-editor .textarea-json {
+  display: block;
+  width: 100%;
+  min-height: 60px;
   position: relative;
   z-index: 1;
   color: transparent;
   caret-color: var(--text-primary-color);
   background: transparent !important;
   border-color: transparent;
-  resize: none;
+  overflow: auto;
+  resize: vertical;
 }
 
 .try-it .body-editor .textarea-json:focus {
@@ -97,6 +101,18 @@
 
 .try-it .multipart {
   gap: var(--space-sm);
+}
+
+.try-it .params.row .label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.try-it .required-star {
+  color: var(--color-red);
+  font-weight: 700;
+  line-height: 1;
 }
 
 .try-it .field-header {

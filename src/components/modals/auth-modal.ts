@@ -12,8 +12,15 @@ import {
 } from '../../core/security';
 
 let modalBase: ModalBase | null = null;
+let cleanupAuthModalSync: (() => void) | null = null;
+
+function cleanupModalSync(): void {
+  cleanupAuthModalSync?.();
+  cleanupAuthModalSync = null;
+}
 
 function close() {
+  cleanupModalSync();
   if (modalBase) modalBase.close();
   modalBase = null;
 }
@@ -65,10 +72,36 @@ function createModalTextInput(options: {
   });
 }
 
+function encodeUtf8Base64(value: string): string {
+  try {
+    const bytes = new TextEncoder().encode(value);
+    let binary = '';
+    bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+    return btoa(binary);
+  } catch {
+    return btoa(unescape(encodeURIComponent(value)));
+  }
+}
+
+function decodeUtf8Base64(value: string): string {
+  try {
+    const binary = atob(value);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+  } catch {
+    try {
+      return decodeURIComponent(escape(atob(value)));
+    } catch {
+      return '';
+    }
+  }
+}
+
 function decodeBasicAuth(value: string): { username: string; password: string } {
   if (!value) return { username: '', password: '' };
   try {
-    const parts = atob(value).split(':');
+    const decoded = decodeUtf8Base64(value);
+    const parts = decoded.split(':');
     return {
       username: parts[0] || '',
       password: parts.slice(1).join(':') || '',
@@ -127,7 +160,8 @@ function renderSchemeFields(name: string, scheme: SecurityScheme, container: HTM
     container.append(createModalField('Password', passInput));
 
     const updateBasic = () => {
-      const encoded = btoa(`${userInput.value}:${passInput.value}`);
+      const raw = `${userInput.value}:${passInput.value}`;
+      const encoded = raw === ':' ? '' : encodeUtf8Base64(raw);
       store.setSchemeValue(name, encoded);
     };
     userInput.addEventListener('input', updateBasic);
@@ -196,7 +230,10 @@ export function openAuthModal(
     modalClass: 'modal container',
     ariaLabel: 'Authentication Settings',
     dataOverlayAttr: 'data-auth-overlay',
-    onClose: () => { modalBase = null; },
+    onClose: () => {
+      cleanupModalSync();
+      modalBase = null;
+    },
   });
   modalBase = shell;
   const modal = shell.modal;
@@ -220,24 +257,29 @@ export function openAuthModal(
 
   if (schemes.length > 1) {
     const tabs = h('div', { className: 'modal tabs' });
-
+    const tabByScheme = new Map<string, HTMLButtonElement>();
     const tabButtons: HTMLButtonElement[] = [];
+    const renderTabContent = (tab: HTMLButtonElement, name: string, scheme: SecurityScheme): void => {
+      const configured = isSchemeConfigured(name);
+      tab.setAttribute('data-configured', configured ? 'true' : 'false');
+      clear(tab);
+
+      if (configured) {
+        const check = h('span', { className: 'modal tab-check', 'aria-hidden': 'true' });
+        check.innerHTML = icons.check;
+        tab.append(check);
+      }
+
+      tab.append(h('span', { className: 'modal tab-label', textContent: schemeBadge(scheme) }));
+    };
 
     for (const [name, scheme] of schemes) {
-      const isConfigured = !!(store.get().auth.schemes[name]);
       const tab = h('button', {
         type: 'button',
         className: 'modal tab',
         'aria-pressed': name === selectedName ? 'true' : 'false',
       }) as HTMLButtonElement;
-
-      const tabLabel = h('span', { className: 'modal tab-label', textContent: schemeBadge(scheme) });
-      tab.append(tabLabel);
-
-      if (isConfigured) {
-        const dot = h('span', { className: 'modal tab-dot', 'data-configured': 'true' });
-        tab.append(dot);
-      }
+      renderTabContent(tab, name, scheme);
 
       tab.addEventListener('click', () => {
         if (selectedName === name) return;
@@ -248,9 +290,18 @@ export function openAuthModal(
         renderSchemeFields(name, scheme, fieldsContainer);
       });
 
+      tabByScheme.set(name, tab);
       tabButtons.push(tab);
       tabs.append(tab);
     }
+
+    cleanupAuthModalSync = store.subscribe(() => {
+      for (const [name, scheme] of schemes) {
+        const tab = tabByScheme.get(name);
+        if (!tab) continue;
+        renderTabContent(tab, name, scheme);
+      }
+    });
 
     body.append(tabs);
   }

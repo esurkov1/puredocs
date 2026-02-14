@@ -102,10 +102,41 @@
 }
 
 .modal.tab[aria-pressed='true'] {
-  color: var(--text-on-solid-color);
-  background: var(--primary-color);
-  border-color: var(--primary-color);
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary-color) 28%, transparent);
+  color: var(--text-primary-color);
+  background: var(--surface-active-color);
+  border-color: var(--border-strong-base-color);
+  box-shadow: none;
+}
+
+.modal.tab[data-configured='true'] {
+  color: var(--color-green);
+  border-color: color-mix(in srgb, var(--color-green) 42%, var(--border-base-color));
+  background: color-mix(in srgb, var(--color-green) 12%, transparent);
+}
+
+.modal.tab[data-configured='true']:hover:not(:disabled) {
+  color: var(--color-green);
+  border-color: color-mix(in srgb, var(--color-green) 58%, var(--border-base-color));
+  background: color-mix(in srgb, var(--color-green) 16%, transparent);
+}
+
+.modal.tab[data-configured='true'][aria-pressed='true'] {
+  color: var(--color-green);
+  border-color: color-mix(in srgb, var(--color-green) 62%, var(--border-base-color));
+  background: color-mix(in srgb, var(--color-green) 20%, transparent);
+}
+
+.modal.tab-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+}
+
+.modal.tab-check svg {
+  width: 14px;
+  height: 14px;
 }
 
 .modal.tab-dot {
@@ -122,7 +153,7 @@
 }
 
 .modal.tab[aria-pressed='true'] .modal.tab-dot {
-  color: color-mix(in srgb, var(--text-on-solid-color) 60%, transparent);
+  color: color-mix(in srgb, var(--text-primary-color) 60%, transparent);
 }
 
 .modal.tab[aria-pressed='true'] .modal.tab-dot[data-configured='true'] {

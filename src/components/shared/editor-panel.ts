@@ -2,10 +2,19 @@ import { h } from '../../lib/dom';
 import { highlightCode } from '../../lib/highlight';
 
 const MIN_TEXTAREA_HEIGHT = 60;
+const MAX_TEXTAREA_HEIGHT = 400;
 
 export function autoResizeTextarea(ta: HTMLTextAreaElement): void {
-  ta.style.height = '0';
-  ta.style.height = Math.max(MIN_TEXTAREA_HEIGHT, ta.scrollHeight) + 'px';
+  ta.style.height = 'auto';
+  const contentHeight = Math.max(MIN_TEXTAREA_HEIGHT, ta.scrollHeight);
+  
+  if (contentHeight > MAX_TEXTAREA_HEIGHT) {
+    ta.style.height = MAX_TEXTAREA_HEIGHT + 'px';
+    ta.style.overflowY = 'auto';
+  } else {
+    ta.style.height = contentHeight + 'px';
+    ta.style.overflowY = 'hidden';
+  }
 }
 
 export function syncScrollFromTextarea(ta: HTMLTextAreaElement, pre: HTMLElement): void {
@@ -17,7 +26,12 @@ export function createEditorPanel(
   initialValue: string,
   lang: string,
   options?: { dataField?: string; onInput?: () => void },
-): { wrap: HTMLElement; textarea: HTMLTextAreaElement; setValue: (v: string, highlightLang?: string) => void } {
+): {
+  wrap: HTMLElement;
+  textarea: HTMLTextAreaElement;
+  setValue: (v: string, highlightLang?: string) => void;
+  syncLayout: () => void;
+} {
   const editorWrap = h('div', { className: 'body-editor' });
   const highlightPre = h('pre', { className: 'body-highlight' });
   const highlightCodeEl = h('code', { className: 'hljs' });
@@ -30,7 +44,12 @@ export function createEditorPanel(
   }) as HTMLTextAreaElement;
   textarea.value = initialValue;
   highlightCodeEl.innerHTML = highlightCode(initialValue || ' ', lang);
-  autoResizeTextarea(textarea);
+  const syncEditorLayout = (): void => {
+    autoResizeTextarea(textarea);
+    highlightPre.style.height = `${textarea.offsetHeight}px`;
+    syncScrollFromTextarea(textarea, highlightPre);
+  };
+  syncEditorLayout();
 
   const updateHighlight = (val?: string, hlLang?: string) => {
     highlightCodeEl.innerHTML = highlightCode((val ?? textarea.value) || ' ', hlLang ?? lang);
@@ -38,8 +57,7 @@ export function createEditorPanel(
 
   textarea.addEventListener('input', () => {
     updateHighlight();
-    syncScrollFromTextarea(textarea, highlightPre);
-    autoResizeTextarea(textarea);
+    syncEditorLayout();
     options?.onInput?.();
   });
   textarea.addEventListener('scroll', () => syncScrollFromTextarea(textarea, highlightPre));
@@ -52,7 +70,8 @@ export function createEditorPanel(
     setValue: (v, hlLang) => {
       textarea.value = v;
       updateHighlight(v, hlLang ?? lang);
-      autoResizeTextarea(textarea);
+      syncEditorLayout();
     },
+    syncLayout: syncEditorLayout,
   };
 }

@@ -1,6 +1,5 @@
 import { h } from '../../lib/dom';
 import { icons } from '../../lib/icons';
-import { store } from '../../core/state';
 import { openAuthModal } from '../modals/auth-modal';
 import { isSchemeConfigured } from '../modals/auth-modal';
 import { createCard, createButton, createSection } from '../ui';
@@ -25,7 +24,6 @@ function createAuthenticationSection(
   if (Object.keys(securitySchemes).length === 0) return null;
 
   const authSection = createSection({ title: 'Authentication' });
-  const cardRefs: { name: string; btn: HTMLElement }[] = [];
 
   for (const [name, scheme] of Object.entries(securitySchemes)) {
     const configured = isSchemeConfigured(name);
@@ -58,18 +56,8 @@ function createAuthenticationSection(
     top.append(info);
     card.append(top, configureBtn);
 
-    cardRefs.push({ name, btn: configureBtn });
     authSection.append(card);
   }
-
-  // Keep cards in sync while staying on the same route.
-  store.subscribe(() => {
-    for (const ref of cardRefs) {
-      const configured = isSchemeConfigured(ref.name);
-      ref.btn.className = `btn secondary m card-auth-config${configured ? ' active is-configured' : ''}`;
-      ref.btn.innerHTML = `<span class="btn-icon-slot">${configured ? icons.check : icons.settings}</span><span>${configured ? 'Success' : 'Set'}</span>`;
-    }
-  });
 
   return authSection;
 }

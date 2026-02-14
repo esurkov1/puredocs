@@ -4,8 +4,13 @@ on:
   push:
     branches: [main]
     paths:
-      - 'index.html'
-      - 'demo/img/**'
+      - 'apps/landing/**'
+      - 'apps/demo/**'
+      - 'src/**'
+      - 'package.json'
+      - 'bun.lock'
+      - 'vite.config.ts'
+      - 'vite.server.config.ts'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -27,11 +32,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build package assets
+        run: npm run build
+
       - name: Prepare site
         run: |
-          mkdir -p _site/demo/img
-          cp index.html _site/
-          cp demo/img/screen1.png demo/img/screen2.png _site/demo/img/
+          mkdir -p _site/assets/img _site/demo/assets
+          cp apps/landing/index.html _site/index.html
+          cp apps/landing/assets/img/screen1.png apps/landing/assets/img/screen2.png _site/assets/img/
+          cp apps/demo/index.html _site/demo/index.html
+          cp apps/demo/public/sample-spec.json _site/demo/sample-spec.json
+          cp dist/puredocs.umd.js dist/puredocs.css _site/demo/assets/
           echo "puredocs.dev" > _site/CNAME
 
       - name: Setup Pages

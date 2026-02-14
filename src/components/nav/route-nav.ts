@@ -157,6 +157,13 @@ function buildLinearRoutes(): LinearRoute[] {
 
 function findCurrentIndex(list: LinearRoute[], currentRoute: RouteInfo): number {
   if (currentRoute.type === 'endpoint') {
+    if (currentRoute.operationId) {
+      const byOperationId = list.findIndex(
+        (entry) => entry.kind === 'endpoint' && entry.route.operationId === currentRoute.operationId,
+      );
+      if (byOperationId >= 0) return byOperationId;
+    }
+
     return list.findIndex(
       (entry) => entry.kind === 'endpoint'
         && entry.route.method === currentRoute.method

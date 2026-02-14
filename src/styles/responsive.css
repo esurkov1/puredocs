@@ -15,6 +15,18 @@
   --page-bottom: 40px;
 }
 
+.page {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.page > .main,
+.page > .aside {
+  flex: 0 0 auto;
+  min-height: auto;
+  overflow: visible;
+}
+
 .sidebar {
   position: fixed;
   top: 0;
@@ -94,9 +106,18 @@ h1 { font-size: 18px; }
 @media (min-width: 1200px) {
   .page {
     flex-direction: row;
+    overflow: visible;
+  }
+
+  .page > .main {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
   }
 
   .page > .aside {
+    min-height: 0;
+    overflow-y: auto;
     width: var(--aside-width);
     min-width: var(--aside-width);
     max-width: var(--aside-width);

@@ -1,5 +1,10 @@
 import './styles/index.css';
-import type { PortalConfig, PortalApi, PortalState, PortalEnvironment } from './core/types';
+import type {
+  PortalConfig,
+  PortalApi,
+  PortalState,
+  PortalBootstrapConfig,
+} from './core/types';
 import { store } from './core/state';
 import { initRouter, destroyRouter, navigate as routerNavigate } from './core/router';
 import { parseSpec, loadSpec } from './core/parser';
@@ -13,11 +18,54 @@ import {
   reconcileAuthWithSecuritySchemes,
 } from './core/auth-storage';
 import { debounce } from './helpers/debounce';
-import { formatBaseUrlForDisplay, normalizeBaseUrl } from './services/env';
 
 let mounted = false;
 let currentApi: PortalApi | null = null;
 let cleanupSearchShortcut: (() => void) | null = null;
+
+function resolveBootstrapMount(config: PortalBootstrapConfig): HTMLElement {
+  const providedMount = config.mount;
+
+  if (providedMount) {
+    const target = typeof providedMount === 'string'
+      ? document.querySelector<HTMLElement>(providedMount)
+      : providedMount;
+
+    if (!target) {
+      throw new Error(`[PureDocs] Mount target not found: ${String(providedMount)}`);
+    }
+
+    return target;
+  }
+
+  const mountId = config.mountId || 'puredocs';
+  const existing = document.getElementById(mountId);
+  if (existing) return existing;
+
+  const created = document.createElement('div');
+  created.id = mountId;
+  document.body.append(created);
+  return created;
+}
+
+function ensureStylesheetOnce(href: string): void {
+  const links = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
+  const alreadyIncluded = links.some((link) => link.getAttribute('href') === href);
+  if (alreadyIncluded) return;
+
+  const styleLink = document.createElement('link');
+  styleLink.rel = 'stylesheet';
+  styleLink.href = href;
+  document.head.append(styleLink);
+}
+
+function applyFullPageLayout(target: HTMLElement): void {
+  document.documentElement.style.minHeight = '100%';
+  document.body.style.minHeight = '100vh';
+  document.body.style.margin = '0';
+  target.style.minHeight = '100vh';
+  target.style.display = 'block';
+}
 
 /** Mount the portal into the DOM */
 async function mount(config: PortalConfig): Promise<PortalApi> {
@@ -39,23 +87,20 @@ async function mount(config: PortalConfig): Promise<PortalApi> {
 
   store.reset();
 
-  const configEnvs = config.environments || [{ name: 'default', baseUrl: '' }];
-  const configActiveEnv = config.defaultEnvironment || configEnvs[0]?.name || 'default';
+  const initialEnvs = [{ name: 'default', baseUrl: '' }];
 
   store.set({
     loading: true,
     theme: detectTheme(config.theme),
-    environments: [...configEnvs],
-    initialEnvironments: [...configEnvs],
-    activeEnvironment: configActiveEnv,
+    environments: [...initialEnvs],
+    initialEnvironments: [...initialEnvs],
+    activeEnvironment: 'default',
   });
 
   const persisted = loadPersisted();
   if (persisted) {
     store.set({
-      activeEnvironment: persisted.activeEnvironment && configEnvs.some((e) => e.name === persisted.activeEnvironment)
-        ? persisted.activeEnvironment
-        : configActiveEnv,
+      activeEnvironment: persisted.activeEnvironment || 'default',
       auth: persisted.auth,
     });
   } else if (preservedAuth) {
@@ -74,7 +119,7 @@ async function mount(config: PortalConfig): Promise<PortalApi> {
 
   store.subscribe(() => saveDebounce());
 
-  initRouter(config.basePath);
+  initRouter('');
   cleanupSearchShortcut = setupSearchShortcut();
 
   mountApp(target, config);
@@ -94,19 +139,17 @@ async function mount(config: PortalConfig): Promise<PortalApi> {
 
     const parsed = parseSpec(rawSpec);
 
-    if (parsed.servers.length > 0 && store.get().environments[0]?.baseUrl === '') {
-      const envs = [...store.get().environments];
-      envs[0] = { ...envs[0], baseUrl: parsed.servers[0].url };
-
-      for (let i = 1; i < parsed.servers.length; i++) {
-        const server = parsed.servers[i];
-        envs.push({
-          name: server.description || `Server ${i + 1}`,
-          baseUrl: server.url,
-        });
-      }
-
+    if (parsed.servers.length > 0) {
+      const envs = parsed.servers.map((server, i) => ({
+        name: server.description || (i === 0 ? 'default' : `Server ${i + 1}`),
+        baseUrl: server.url,
+      }));
       store.set({ environments: envs, initialEnvironments: envs.map((e) => ({ ...e })) });
+      const cur = store.get();
+      const validActive = envs.some((e) => e.name === cur.activeEnvironment);
+      if (!validActive) {
+        store.set({ activeEnvironment: envs[0]?.name || 'default' });
+      }
     }
 
     const auth = store.get().auth;
@@ -126,6 +169,29 @@ async function mount(config: PortalConfig): Promise<PortalApi> {
 
   currentApi = createApi();
   return currentApi;
+}
+
+/** Universal zero-boilerplate startup for JS consumers */
+async function bootstrap(config: PortalBootstrapConfig): Promise<PortalApi> {
+  if (typeof document === 'undefined') {
+    throw new Error('[PureDocs] bootstrap() requires a browser environment');
+  }
+
+  const target = resolveBootstrapMount(config);
+
+  if (config.cssHref) {
+    ensureStylesheetOnce(config.cssHref);
+  }
+
+  if (config.fullPage !== false) {
+    applyFullPageLayout(target);
+  }
+
+  const { mount: _mount, mountId: _mountId, cssHref: _cssHref, fullPage: _fullPage, ...portalConfig } = config;
+  return mount({
+    ...portalConfig,
+    mount: target,
+  });
 }
 
 /** Unmount portal and cleanup */
@@ -165,9 +231,6 @@ const OBSERVED_ATTRIBUTES = [
   'spec-json',
   'theme',
   'primary-color',
-  'base-path',
-  'default-environment',
-  'environments-array',
   'title',
 ] as const;
 
@@ -247,16 +310,12 @@ export class PureDocsElement extends HTMLElement {
 
   private parseConfig(): Omit<PortalConfig, 'mount'> {
     const rawSpec = this.getAttribute('spec-json');
-    const rawEnvs = this.getAttribute('environments-array');
 
     return {
       specUrl: this.getAttribute('spec-url') || undefined,
       spec: rawSpec ? parseJsonAttr<Record<string, unknown>>(rawSpec, 'spec-json') : undefined,
       theme: toTheme(this.getAttribute('theme')),
       primaryColor: this.getAttribute('primary-color') || undefined,
-      basePath: this.getAttribute('base-path') || undefined,
-      defaultEnvironment: this.getAttribute('default-environment') || undefined,
-      environments: rawEnvs ? parseEnvironmentArrayAttr(rawEnvs) : undefined,
       title: this.getAttribute('title') || undefined,
     };
   }
@@ -274,31 +333,6 @@ function parseJsonAttr<T>(value: string, attrName: string): T {
   }
 }
 
-function parseEnvironmentArrayAttr(value: string): PortalEnvironment[] {
-  const endpoints = parseJsonAttr<unknown>(value, 'environments-array');
-  if (!Array.isArray(endpoints)) {
-    throw new Error('Invalid JSON in environments-array');
-  }
-  const usedNames = new Set<string>();
-  return endpoints.map((endpoint, idx) => {
-    if (typeof endpoint !== 'string') {
-      throw new Error('Invalid JSON in environments-array');
-    }
-    const baseUrl = normalizeBaseUrl(endpoint.trim());
-    if (!baseUrl) {
-      throw new Error('Invalid JSON in environments-array');
-    }
-    const baseName = formatBaseUrlForDisplay(baseUrl) || `env-${idx + 1}`;
-    let name = baseName;
-    let n = 2;
-    while (usedNames.has(name)) {
-      name = `${baseName} #${n++}`;
-    }
-    usedNames.add(name);
-    return { name, baseUrl };
-  });
-}
-
 function toTheme(value: string | null): PortalConfig['theme'] | undefined {
   if (!value) return undefined;
   if (value === 'light' || value === 'dark' || value === 'auto') return value;
@@ -311,9 +345,10 @@ if (!customElements.get('pure-docs')) {
 
 export const PureDocs = {
   mount,
+  bootstrap,
   unmount,
   version: '0.0.1',
 };
 
-export type { PortalConfig, PortalApi, PortalState } from './core/types';
+export type { PortalConfig, PortalBootstrapConfig, PortalApi, PortalState } from './core/types';
 export default PureDocs;

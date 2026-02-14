@@ -19,16 +19,22 @@ export interface PortalConfig {
   hideDeprecated?: boolean;
   /** Hide schema viewer */
   hideSchemas?: boolean;
-  /** Default environment */
-  defaultEnvironment?: string;
-  /** Predefined environments */
-  environments?: PortalEnvironment[];
-  /** Base path for history router */
-  basePath?: string;
   /** Language */
   locale?: 'en' | 'ru';
   /** Plugin hooks */
   plugins?: PortalPlugin[];
+}
+
+/** Zero-boilerplate startup config: auto-create mount and optional CSS link injection */
+export interface PortalBootstrapConfig extends Omit<PortalConfig, 'mount'> {
+  /** Existing mount selector/element. If omitted, container is auto-created in body. */
+  mount?: string | HTMLElement;
+  /** Auto-created mount id when mount is omitted. Default: "puredocs". */
+  mountId?: string;
+  /** Apply minimal full-page layout styles. Default: true. */
+  fullPage?: boolean;
+  /** Optional stylesheet URL to inject once (useful for plain JS/UMD). */
+  cssHref?: string;
 }
 
 export interface PortalEnvironment {
@@ -101,6 +107,7 @@ export interface RouteInfo {
   tag?: string;
   method?: string;
   path?: string;
+  pathSlug?: string; // URL slug for the API path (e.g., "users-id" for /users/{id})
   operationId?: string;
   schemaName?: string;
   guidePath?: string;

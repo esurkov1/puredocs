@@ -2,10 +2,6 @@
  * Animations / keyframes
  */
 
- *{
-  transition: all .3s ease!important;
- }
-
 @keyframes spin {
   to { transform: rotate(360deg); }
 }

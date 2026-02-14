@@ -1,28 +1,10 @@
 # PureDocs
 
-`PureDocs` is a UI portal for OpenAPI that makes API documentation visually clean, fast, and convenient for developers' daily work.
+`PureDocs` transforms OpenAPI specs into an interactive docs portal with search, auth handling, and live requests.
 
-PureDocs transforms an OpenAPI specification into a full-featured interactive portal:
+**Full OpenAPI 3.1 support** — paths, callbacks (runtime expressions), webhooks, all HTTP methods (GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS, TRACE), security schemes (Bearer, Basic, API Key, OAuth2), JSON Schema references, and JSON/YAML input.
 
-- API overview with groups, schemas, and webhooks
-- Convenient navigation through routes
-- Built-in `Try It` console for sending requests directly from documentation
-- Automatic code snippet generation (`cURL`, `JavaScript`, `Python`, `Go`)
-- Search across endpoints/tags/schemas/webhooks (`Cmd/Ctrl + K`)
-- Support for auth schemes (Bearer, Basic, API Key, OAuth2/OpenID Connect)
-- Support for JSON and YAML specifications
-
-## Key Advantages
-
-- Minimal integration: one `<pure-docs>` tag and the documentation is ready
-- Framework-agnostic: works as a Web Component, suitable for React/Vue/vanilla
-- Designed for real development: environments, authorization, live requests, copying ready-to-use URLs/examples
-- Support for complex API structures: callbacks, webhooks, schemas, security requirements
-- Quick customization of appearance: theme, accent color, and portal title
-
-## Quick Start
-
-### 1. Installation
+## Installation
 
 ```bash
 npm install puredocs
@@ -30,124 +12,190 @@ npm install puredocs
 bun add puredocs
 ```
 
-### 2. Integration (ESM)
-
-```html
-<pure-docs spec-url="/openapi.json" theme="auto"></pure-docs>
-
-<script type="module">
-  import 'puredocs';
-  import 'puredocs/style.css';
-</script>
-```
-
-### 3. Done
-
-If `spec-url` points to a valid OpenAPI (JSON/YAML), the portal will render automatically.
-
-## Integration into Project
-
-### HTML + script (UMD)
-
-```html
-<link rel="stylesheet" href="/assets/puredocs.css" />
-<pure-docs spec-url="/openapi.yaml"></pure-docs>
-<script src="/assets/puredocs.umd.cjs"></script>
-```
-
-### React
-
-```tsx
-import 'puredocs';
-import 'puredocs/style.css';
-
-export function ApiDocsPage() {
-  return <pure-docs spec-url="/openapi.json" theme="auto" />;
-}
-```
-
-### Vue
-
-```vue
-<template>
-  <pure-docs spec-url="/openapi.json" theme="auto" />
-</template>
-
-<script setup lang="ts">
-import 'puredocs';
-import 'puredocs/style.css';
-</script>
-```
-
-### Programmatic Integration (JS API)
+## One Import API
 
 ```ts
-import PureDocs from 'puredocs';
-import 'puredocs/style.css';
+import { pureDocs } from 'puredocs';
+```
 
-PureDocs.mount({
-  mount: '#docs',
-  specUrl: '/openapi.yaml',
+## API Methods (3)
+
+1. `pureDocs.html()` - universal inline HTML (JS/CSS embedded)
+2. `pureDocs.express()` - one-line Express route
+3. `pureDocs.fastify()` - one-line Fastify route
+
+## 1) `pureDocs.html()`
+
+Generates full ready-to-send HTML with inline JS/CSS.
+
+```ts
+import { pureDocs } from 'puredocs';
+
+const html = pureDocs.html({
+  specUrl: '/openapi.json',
+  title: 'My API',
   theme: 'auto',
 });
 ```
 
-## Configuration via Attributes
+## 2) `pureDocs.express()`
 
-Element: `pure-docs`
-
-- `spec-url`: OpenAPI file URL
-- `spec-json`: embedded JSON spec (JSON string)
-- `default-environment`: default environment
-- `environments-array`: JSON array of URLs for environments
-- `base-path`: router base path
-- `theme`: `light` | `dark` | `auto`
-- `primary-color`: accent color
-- `title`: navigation title
-
-Example:
-
-```html
-<pure-docs
-  spec-url="/openapi.json"
-  environments-array='["https://api.dev.example.com","https://api.example.com"]'
-  default-environment="api.dev.example.com"
-  theme="auto"
-  primary-color="#0ea5e9"
-  title="Example API"
-></pure-docs>
-```
-
-## Element Runtime API
+Registers route in one line and returns generated HTML.
 
 ```ts
-const docs = document.querySelector('pure-docs');
+import express from 'express';
+import { pureDocs } from 'puredocs';
 
-docs.reload();
-docs.getState();
-docs.subscribe((state) => console.log(state));
-docs.navigate('/operations/auth/post/auth%2Flogin');
-docs.setToken('token');
-docs.setEnvironment('api.example.com');
+const app = express();
+
+pureDocs.express(app, {
+  route: '/docs',
+  specUrl: '/openapi.json',
+  title: 'My API',
+  theme: 'auto',
+});
+
+app.listen(3000);
 ```
+
+## 3) `pureDocs.fastify()`
+
+Registers route in one line and returns generated HTML.
+
+```ts
+import Fastify from 'fastify';
+import { pureDocs } from 'puredocs';
+
+const app = Fastify();
+
+pureDocs.fastify(app, {
+  route: '/docs',
+  specUrl: '/openapi.json',
+  title: 'My API',
+  theme: 'auto',
+});
+
+await app.listen({ port: 3000 });
+```
+
+## UMD Manual Setup (without `pureDocs` API)
+
+This is a direct browser integration via stylesheet + script + web component. Pass parameters as attributes:
+
+```html
+<link rel="stylesheet" href="/assets/puredocs.css" />
+
+<pure-docs
+  spec-url="/openapi.json"
+  theme="auto"
+  title="My API"
+  primary-color="#0ea5e9"
+></pure-docs>
+
+<script src="/assets/puredocs.umd.js"></script>
+```
+
+### UMD Attributes
+
+| Attribute | Description |
+|-----------|-------------|
+| `spec-url` | OpenAPI URL (JSON/YAML) |
+| `spec-json` | Inline OpenAPI object (JSON string) |
+| `theme` | `light` \| `dark` \| `auto` |
+| `title` | Docs title inside portal |
+| `primary-color` | Accent color (hex) |
+
+Servers/environments are taken from the OpenAPI `servers` array.
+
+## CommonJS
+
+```js
+const { pureDocs } = require('puredocs');
+```
+
+## Options
+
+Common options (for `html()`, `express()`, `fastify()`, and `PureDocs.bootstrap()`):
+
+- `specUrl`: OpenAPI URL (JSON/YAML)
+- `spec`: inline OpenAPI object
+- `title`: docs title inside portal (HTML `<title>` auto-generated as `{title} — pureDocs`)
+- `theme`: `light` | `dark` | `auto`
+- `primaryColor`: accent color
+
+Servers/environments come from the OpenAPI spec `servers` array.
+
+Wrapper-only option:
+
+- `route`: route path for `express()` and `fastify()` (default: `/docs`)
+
+## URL Structure
+
+PureDocs uses clean, human-readable URLs for navigation:
+
+### Endpoint Routes
+
+Format: `/{category}/{method}-{path-slug}`
+
+Examples:
+- `/users/get-users` — GET /users
+- `/users/get-users-id` — GET /users/{id}
+- `/auth/post-login` — POST /auth/login
+- `/products/put-products-id` — PUT /products/{id}
+
+The path slug is automatically generated from the API path:
+- Path parameters like `{id}` are converted to readable segments
+- Slashes are replaced with dashes
+- Special characters are normalized
+
+### Category Pages
+
+Format: `/{category}`
+
+Examples:
+- `/users` — All endpoints in the "users" category
+- `/auth` — All endpoints in the "auth" category
+
+### Other Routes
+
+- `/` — Overview/home page
+- `/schemas/{name}` — Schema details
+- `/webhooks/{name}` — Webhook details
+
+This structure ensures:
+- ✅ URLs work correctly when refreshing the page
+- ✅ Deep linking to specific endpoints
+- ✅ Readable and shareable links
+- ✅ SEO-friendly structure
+
+## Browser Web Component Entry
+
+If you need direct browser import instead of server API:
+
+```ts
+import 'puredocs/web';
+import 'puredocs/style.css';
+```
+
+## Demo and Landing
+
+- Landing: `apps/landing/index.html`
+- Interactive demo: `apps/demo/index.html`
+- Demo OpenAPI spec: `apps/demo/public/sample-spec.json`
+
+On GitHub Pages:
+
+- `/` -> landing
+- `/demo/` -> live demo with the showcase spec
 
 ## Development
 
 ```bash
-bun run dev
-bun run typecheck
-bun run build
+npm run dev
+npm run typecheck
+npm run build
 ```
-
-## Important to Know
-
-- Only one `<pure-docs>` can be mounted at a time
-- Environment and authorization state is saved in `localStorage`
-- Routing is based on the `history` API
 
 ## License
 
-See the [`LICENSE`](./LICENSE) file.  
-PureDocs is free for non-commercial use.
-
-Developed by [esurkov1](https://github.com/esurkov1).  
+See [`LICENSE`](./LICENSE).

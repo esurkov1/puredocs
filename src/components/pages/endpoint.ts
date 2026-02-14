@@ -154,6 +154,7 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
     type: 'endpoint',
     method: operation.method,
     path: operation.path,
+    operationId: operation.operationId,
   });
   const appendRouteNav = () => {
     if (routeNav) pageSlot.append(h('div', { className: 'block section' }, routeNav));

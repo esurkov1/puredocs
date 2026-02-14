@@ -19,10 +19,11 @@ export function updateSidebarActiveState(container: HTMLElement, currentRoute: R
 
   items.forEach((el) => {
     const a = el as HTMLAnchorElement;
+    const routeFromDataset = parseRouteFromDataset(a);
     const href = a.getAttribute('href');
-    if (!href) return;
-    const path = href.startsWith('#') ? href.slice(1) : href;
-    const route = parsePath(path);
+    if (!href && !routeFromDataset) return;
+    const path = href?.startsWith('#') ? href.slice(1) : href || '';
+    const route = routeFromDataset || parsePath(path);
     const isActive = isRouteMatch(route, currentRoute);
     el.classList.toggle('active', isActive);
     if (isActive) {
@@ -96,9 +97,8 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
 
   // Auth button moved to top bar
   if (spec.securitySchemes && Object.keys(spec.securitySchemes).length > 0) {
-    const authState = state.auth;
     const schemeNames = Object.keys(spec.securitySchemes);
-    const activeScheme = authState.activeScheme || schemeNames[0] || '';
+    const activeScheme = state.auth.activeScheme || schemeNames[0] || '';
     const hasToken = isSchemeConfigured(activeScheme);
 
     const authBtn = h('button', {
@@ -110,19 +110,13 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
     authBtn.innerHTML = hasToken ? icons.unlock : icons.lock;
     authBtn.classList.toggle('active', hasToken);
     authBtn.addEventListener('click', () => {
+      const currentState = store.get();
+      const currentScheme = currentState.auth.activeScheme || schemeNames[0] || '';
       openAuthModal(
         spec!.securitySchemes, 
         (container.closest('.root') as HTMLElement | null) ?? undefined, 
-        activeScheme,
+        currentScheme,
       );
-    });
-    store.subscribe(() => {
-      const s = store.get();
-      const scheme = s.auth.activeScheme || schemeNames[0] || '';
-      const configured = isSchemeConfigured(scheme);
-      authBtn.innerHTML = configured ? icons.unlock : icons.lock;
-      authBtn.title = configured ? `Auth: ${scheme}` : 'Configure authentication';
-      authBtn.classList.toggle('active', configured);
     });
 
     topSection.append(authBtn);
@@ -145,12 +139,6 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
   if (state.environments.length > 1) {
     const envSelect = renderEnvironmentSelector(state);
     container.append(envSelect);
-    store.subscribe(() => {
-      const s = store.get();
-      if (envSelect.value !== s.activeEnvironment) {
-        envSelect.value = s.activeEnvironment;
-      }
-    });
   }
 
   // Search
@@ -441,6 +429,11 @@ function createEndpointNavItem(op: SpecOperation, route: RouteInfo, currentRoute
     title: `${op.method.toUpperCase()} ${op.path}`,
     'aria-current': isActive ? 'page' : undefined,
   });
+  item.dataset.routeType = 'endpoint';
+  if (route.operationId) item.dataset.routeOperationId = route.operationId;
+  if (route.method) item.dataset.routeMethod = route.method;
+  if (route.path) item.dataset.routePath = route.path;
+  if (route.tag) item.dataset.routeTag = route.tag;
 
   const spec = store.get().spec;
   const lockEl = hasOperationAuth(op.resolvedSecurity)
@@ -484,10 +477,30 @@ function isRouteMatch(a: RouteInfo, b: RouteInfo): boolean {
   if (a.type !== b.type) return false;
   if (a.type === 'overview') return true;
   if (a.type === 'tag') return a.tag === b.tag;
-  if (a.type === 'endpoint') return a.method === b.method && a.path === b.path;
+  if (a.type === 'endpoint') {
+    if (a.operationId && b.operationId) return a.operationId === b.operationId;
+    return a.method === b.method && a.path === b.path;
+  }
   if (a.type === 'schema') return a.schemaName === b.schemaName;
   if (a.type === 'webhook') return a.webhookName === b.webhookName;
   return false;
+}
+
+function parseRouteFromDataset(link: HTMLAnchorElement): RouteInfo | null {
+  const { routeType } = link.dataset;
+  if (!routeType) return null;
+
+  if (routeType === 'endpoint') {
+    return {
+      type: 'endpoint',
+      operationId: link.dataset.routeOperationId || undefined,
+      method: link.dataset.routeMethod || undefined,
+      path: link.dataset.routePath || undefined,
+      tag: link.dataset.routeTag || undefined,
+    };
+  }
+
+  return null;
 }
 
 /* ─── Environment Selector ─── */

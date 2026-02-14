@@ -25,6 +25,8 @@ let prevRoute: RouteInfo | null = null;
 let prevSpecLoaded = false;
 let prevEnvState = '';
 let currentConfig: PortalConfig | null = null;
+let cleanupViewportSync: (() => void) | null = null;
+const MOBILE_SIDEBAR_MAX_WIDTH = 991;
 
 /** Get current portal config */
 export function getCurrentConfig(): PortalConfig | null {
@@ -61,6 +63,7 @@ export function mountApp(container: HTMLElement, config: PortalConfig): void {
 
   rootEl.append(expandTrigger, sidebarEl, page);
   container.append(rootEl);
+  setupViewportSidebarSync();
 
   store.subscribe((state) => {
     if (!rootEl) return;
@@ -77,6 +80,9 @@ export function mountApp(container: HTMLElement, config: PortalConfig): void {
 
 /** Unmount the portal */
 export function unmountApp(): void {
+  cleanupViewportSync?.();
+  cleanupViewportSync = null;
+
   if (rootEl) {
     rootEl.remove();
     rootEl = null;
@@ -136,12 +142,16 @@ async function updateContent(state: PortalState, config: PortalConfig): Promise<
   // Route-based rendering
   const route = state.route;
   const envState = `${state.activeEnvironment}|${state.auth.token}`;
+  const isSameCurrentRoute = !!(prevRoute && isSameRoute(prevRoute, route));
+  const isSameRouteWithEnvOrAuthChange = isSameCurrentRoute && prevEnvState !== envState;
+  const mainScroll = currentMainEl.parentElement as HTMLElement | null;
+  const prevMainScrollTop = mainScroll ? mainScroll.scrollTop : 0;
 
   // Skip re-render if same route AND env/auth unchanged
-  if (prevRoute && isSameRoute(prevRoute, route) && prevEnvState === envState) return;
+  if (isSameCurrentRoute && prevEnvState === envState) return;
   
   // Route unchanged but env/auth changed — re-render sidebar and page to update lock icons
-  if (prevRoute && isSameRoute(prevRoute, route) && prevEnvState !== envState) {
+  if (isSameRouteWithEnvOrAuthChange) {
     prevEnvState = envState;
     updateEnvironmentState(currentPageEl, state, config);
     if (sidebarEl && state.spec) renderSidebar(sidebarEl, config);
@@ -172,9 +182,12 @@ async function updateContent(state: PortalState, config: PortalConfig): Promise<
         await renderEndpoint(currentMainEl, currentAsideEl, op);
       } else {
         setContentAreaAside(currentPageEl, false);
+        const endpointLabel = route.operationId
+          ? route.operationId
+          : `${route.method?.toUpperCase() || ''} ${route.path || ''}`.trim();
         render(currentMainEl, createEmptyStatePage({
           title: 'Endpoint not found',
-          message: `${route.method?.toUpperCase()} ${route.path}`,
+          message: endpointLabel || 'Unknown endpoint',
           variant: 'empty',
         }));
       }
@@ -218,8 +231,9 @@ async function updateContent(state: PortalState, config: PortalConfig): Promise<
       renderOverview(currentMainEl, currentAsideEl);
   }
 
-  const mainScroll = currentMainEl.parentElement as HTMLElement | null;
-  if (mainScroll) mainScroll.scrollTop = 0;
+  if (mainScroll) {
+    mainScroll.scrollTop = isSameRouteWithEnvOrAuthChange ? prevMainScrollTop : 0;
+  }
 }
 
 /** Targeted update when environment/auth changes without full re-render */
@@ -277,16 +291,160 @@ function updateEnvironmentState(root: HTMLElement, state: PortalState, _config: 
 }
 
 function findOperation(state: PortalState, route: RouteInfo) {
-  if (!state.spec) return null;
-  return state.spec.operations.find(
-    (op) => op.method === route.method && op.path === route.path,
-  ) || null;
+  if (!state.spec || route.type !== 'endpoint') return null;
+
+  if (route.operationId) {
+    const byOperationId = state.spec.operations.find((op) => op.operationId === route.operationId);
+    if (byOperationId) return byOperationId;
+  }
+
+  const routeMethod = (route.method || '').toLowerCase();
+  if (!routeMethod) return null;
+
+  /**
+   * Convert tag name to slug for matching
+   */
+  const tagToSlug = (tag: string): string => {
+    return tag
+      .toLowerCase()
+      .replace(/[^\w\-]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
+  /**
+   * Convert API path to slug for matching
+   */
+  const pathToSlug = (apiPath: string): string => {
+    return apiPath
+      .replace(/^\/+/, '')
+      .replace(/\/+$/, '')
+      .replace(/\{([^}]+)\}/g, '$1')
+      .replace(/[^\w\-/]/g, '-')
+      .replace(/\/+/g, '-')
+      .replace(/-+/g, '-')
+      .toLowerCase();
+  };
+
+  // If we have both method and path, try exact match first
+  if (route.path) {
+    const routePath = normalizePathForMatch(route.path);
+    
+    const exactMatches = state.spec.operations.filter(
+      (op) => op.method === routeMethod && op.path === routePath,
+    );
+    if (exactMatches.length > 0) {
+      if (route.tag) {
+        const routeTagSlug = tagToSlug(route.tag);
+        const tagged = exactMatches.find((op) => 
+          op.tags.some(t => tagToSlug(t) === routeTagSlug)
+        );
+        if (tagged) return tagged;
+      }
+      return exactMatches[0];
+    }
+
+    const normalizedMatches = state.spec.operations.filter(
+      (op) => op.method.toLowerCase() === routeMethod && normalizePathForMatch(op.path) === routePath,
+    );
+    if (normalizedMatches.length > 0) {
+      if (route.tag) {
+        const routeTagSlug = tagToSlug(route.tag);
+        const tagged = normalizedMatches.find((op) => 
+          op.tags.some(t => tagToSlug(t) === routeTagSlug)
+        );
+        if (tagged) return tagged;
+      }
+      return normalizedMatches[0];
+    }
+  }
+
+  // If we have tag + method + pathSlug (from new URL format), find by matching all three
+  if (route.tag && route.pathSlug) {
+    const routeTagSlug = tagToSlug(route.tag);
+    const routePathSlug = route.pathSlug.toLowerCase();
+    
+    const candidates = state.spec.operations.filter(
+      (op) => {
+        const opMethodMatch = op.method.toLowerCase() === routeMethod;
+        const opTagMatch = op.tags.some(t => tagToSlug(t) === routeTagSlug);
+        const opPathSlug = pathToSlug(op.path);
+        const opPathMatch = opPathSlug === routePathSlug;
+        
+        return opMethodMatch && opTagMatch && opPathMatch;
+      }
+    );
+    
+    if (candidates.length > 0) return candidates[0];
+  }
+
+  // Fallback: If we only have tag + method (without pathSlug), find first match
+  if (route.tag && !route.path && !route.pathSlug) {
+    const routeTagSlug = tagToSlug(route.tag);
+    const candidates = state.spec.operations.filter(
+      (op) => op.method.toLowerCase() === routeMethod && 
+              op.tags.some(t => tagToSlug(t) === routeTagSlug)
+    );
+    
+    return candidates[0] || null;
+  }
+
+  return null;
+}
+
+function normalizePathForMatch(path?: string): string {
+  if (!path) return '';
+
+  const noQuery = path.split('?')[0]?.split('#')[0] || '';
+  let normalized = noQuery.trim().replace(/\/{2,}/g, '/');
+  try {
+    normalized = decodeURIComponent(normalized).replace(/\/{2,}/g, '/');
+  } catch {
+    // Keep raw value if decodeURIComponent fails for malformed input
+  }
+
+  if (!normalized.startsWith('/')) normalized = `/${normalized}`;
+  if (normalized.length > 1) normalized = normalized.replace(/\/+$/, '');
+  return normalized;
+}
+
+function setupViewportSidebarSync(): void {
+  cleanupViewportSync?.();
+  cleanupViewportSync = null;
+
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+
+  const media = window.matchMedia(`(max-width: ${MOBILE_SIDEBAR_MAX_WIDTH}px)`);
+  const syncState = (isMobile: boolean): void => {
+    const shouldBeOpen = !isMobile;
+    if (store.get().sidebarOpen !== shouldBeOpen) {
+      store.set({ sidebarOpen: shouldBeOpen });
+    }
+  };
+
+  syncState(media.matches);
+
+  const onChange = (event: MediaQueryListEvent): void => {
+    syncState(event.matches);
+  };
+
+  if (typeof media.addEventListener === 'function') {
+    media.addEventListener('change', onChange);
+    cleanupViewportSync = () => media.removeEventListener('change', onChange);
+    return;
+  }
+
+  const legacyOnChange = onChange as unknown as (event: MediaQueryListEvent) => void;
+  media.addListener(legacyOnChange);
+  cleanupViewportSync = () => media.removeListener(legacyOnChange);
 }
 
 function isSameRoute(a: RouteInfo, b: RouteInfo): boolean {
   return a.type === b.type
+    && a.operationId === b.operationId
     && a.method === b.method
     && a.path === b.path
+    && a.pathSlug === b.pathSlug
     && a.schemaName === b.schemaName
     && a.tag === b.tag
     && a.webhookName === b.webhookName;
