@@ -138,7 +138,7 @@ export function pureDocsHtml(options: PureDocsOptions, template?: PureDocsHtmlTe
   const { css, umd } = getInlineAssets();
   const clientConfig = buildClientConfig(options);
   const pageTitle = options.title ? `${options.title} — pureDocs` : 'pureDocs';
-  const bootstrapScript = `PureDocs.bootstrap(${toSafeJson(clientConfig)});`;
+  const bootstrapScript = `(PureDocs.default||PureDocs.PureDocs||PureDocs).bootstrap(${toSafeJson(clientConfig)});`;
 
   const payload: PureDocsHtmlPayload = {
     css,
