@@ -508,8 +508,12 @@ function renderRequestCodeBlock(
   };
   tryItBody.addEventListener('input', notify);
   tryItBody.addEventListener('change', notify);
-  notify();
-  syncRequestBodyEditor?.();
+  
+  // Defer initial notify until the next microtask to ensure all DOM elements are ready
+  queueMicrotask(() => {
+    notify();
+    syncRequestBodyEditor?.();
+  });
 
   return section;
 }

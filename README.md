@@ -10,6 +10,10 @@
 </p>
 
 <p align="center">
+  <a href="https://esurkov1.github.io/puredocs/">puredocs.dev</a>
+</p>
+
+<p align="center">
   <a href="https://www.npmjs.com/package/puredocs"><img src="https://img.shields.io/npm/v/puredocs?color=2563EB&label=npm" alt="npm"></a>
   <a href="https://github.com/esurkov1/puredocs"><img src="https://img.shields.io/github/stars/esurkov1/puredocs?style=flat&logo=github" alt="GitHub stars"></a>
   <a href="https://github.com/esurkov1/puredocs/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-see%20LICENSE-blue" alt="License"></a>
@@ -27,7 +31,7 @@
 - **Smart Search** — Cmd+K to find endpoints, schemas, webhooks instantly
 - **Light & Dark Theme** — auto-detects system preference or set manually
 - **Full Auth Support** — Bearer, Basic, API Key, OAuth2, OpenID Connect
-- **Multi-Language Snippets** — auto-generated cURL, JavaScript, Python, Go
+- **Multi-Language Snippets** — auto-generated cURL, JavaScript, Python, Go, Rust
 - **JSON & YAML** — load specs in either format
 - **Zero Config** — works out of the box with sensible defaults
 

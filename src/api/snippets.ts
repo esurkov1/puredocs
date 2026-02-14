@@ -5,7 +5,7 @@ interface SnippetParams {
   body?: string;
 }
 
-type Language = 'curl' | 'javascript' | 'python' | 'go';
+type Language = 'curl' | 'javascript' | 'python' | 'go' | 'rust';
 
 export interface Snippet {
   language: Language;
@@ -20,6 +20,7 @@ export function generateSnippets(params: SnippetParams): Snippet[] {
     { language: 'javascript', label: 'JavaScript', code: generateJS(params) },
     { language: 'python', label: 'Python', code: generatePython(params) },
     { language: 'go', label: 'Go', code: generateGo(params) },
+    { language: 'rust', label: 'Rust', code: generateRust(params) },
   ];
 }
 
@@ -118,6 +119,51 @@ function generateGo({ method, url, headers, body }: SnippetParams): string {
   lines.push('');
   lines.push('    data, _ := io.ReadAll(resp.Body)');
   lines.push('    fmt.Println(string(data))');
+  lines.push('}');
+
+  return lines.join('\n');
+}
+
+function generateRust({ method, url, headers, body }: SnippetParams): string {
+  const lines = [
+    'use reqwest::header::{HeaderMap, HeaderValue};',
+    '',
+    '#[tokio::main]',
+    'async fn main() -> Result<(), reqwest::Error> {',
+    '    let client = reqwest::Client::new();',
+  ];
+
+  const headerEntries = Object.entries(headers);
+  if (headerEntries.length > 0) {
+    lines.push('');
+    lines.push('    let mut headers = HeaderMap::new();');
+    for (const [key, value] of headerEntries) {
+      lines.push(`    headers.insert("${key}", HeaderValue::from_static("${value}"));`);
+    }
+  }
+
+  lines.push('');
+
+  const m = method.toLowerCase();
+  const builderParts = [`    let response = client.${m}("${url}")`];
+
+  if (headerEntries.length > 0) {
+    builderParts.push('        .headers(headers)');
+  }
+
+  if (body) {
+    builderParts.push(`        .body(r#"${body}"#.to_string())`);
+  }
+
+  builderParts.push('        .send()');
+  builderParts.push('        .await?;');
+
+  lines.push(builderParts.join('\n'));
+  lines.push('');
+  lines.push('    let body = response.text().await?;');
+  lines.push('    println!("{}", body);');
+  lines.push('');
+  lines.push('    Ok(())');
   lines.push('}');
 
   return lines.join('\n');

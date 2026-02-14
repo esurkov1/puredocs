@@ -1,7 +1,7 @@
 /**
  * Custom regex-based syntax highlighter — zero dependencies.
- * Supports: JSON, JavaScript, Bash/curl, Go, Python.
- * ~80 lines TS → ~1.2 KB min → ~0.5 KB gzip (vs ~18 KB for highlight.js).
+ * Supports: JSON, JavaScript, Bash/curl, Go, Python, Rust.
+ * ~90 lines TS → ~1.4 KB min → ~0.6 KB gzip (vs ~18 KB for highlight.js).
  */
 import { escapeHtml, looksLikeJson } from '../helpers/text';
 
@@ -59,6 +59,18 @@ const PYTHON_RULES: Rule[] = [
   [/[{}[\]():.,;]/g, 'punctuation'],
 ];
 
+const RUST_RULES: Rule[] = [
+  [/\/\/.*/g, 'comment'],
+  [/\/\*[\s\S]*?\*\//g, 'comment'],
+  [/"(?:[^"\\]|\\.)*"/g, 'string'],
+  [/\b(?:as|async|await|break|const|continue|crate|dyn|else|enum|extern|fn|for|if|impl|in|let|loop|match|mod|move|mut|pub|ref|return|self|Self|static|struct|super|trait|type|unsafe|use|where|while|yield)\b/g, 'keyword'],
+  [/\b(?:true|false|None|Some|Ok|Err)\b/g, 'literal'],
+  [/\b(?:i8|i16|i32|i64|i128|isize|u8|u16|u32|u64|u128|usize|f32|f64|bool|char|str|String|Vec|Box|Option|Result|HashMap|HashSet|Rc|Arc|Mutex|Cell|RefCell)\b/g, 'sign'],
+  [/\b(?:println!|print!|format!|vec!|panic!|assert!|assert_eq!|assert_ne!|todo!|unimplemented!|unreachable!|eprintln!|eprint!|write!|writeln!)/g, 'sign'],
+  [/-?\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b/g, 'number'],
+  [/[{}[\]();:.,]/g, 'punctuation'],
+];
+
 const LANG_MAP: Record<string, Rule[]> = {
   json: JSON_RULES,
   javascript: JS_RULES,
@@ -70,6 +82,8 @@ const LANG_MAP: Record<string, Rule[]> = {
   go: GO_RULES,
   python: PYTHON_RULES,
   py: PYTHON_RULES,
+  rust: RUST_RULES,
+  rs: RUST_RULES,
 };
 
 /* ─── Engine ─── */
