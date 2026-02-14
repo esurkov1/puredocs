@@ -1,6 +1,7 @@
 import { h, clear, formatDuration, formatBytes } from '../../lib/dom';
 import { icons } from '../../lib/icons';
 import { store } from '../../core/state';
+import { useEffects } from '../../core/effects';
 import { executeRequest, buildRequestUrl } from '../../api/http-client';
 import { generateSnippets } from '../../api/snippets';
 import { extractExamples, extractParamExampleSets, formatExampleValue, getExampleLabel } from './example-picker';
@@ -513,6 +514,12 @@ function renderRequestCodeBlock(
   queueMicrotask(() => {
     notify();
     syncRequestBodyEditor?.();
+  });
+
+  // Subscribe to environment changes to update URL and code snippets
+  const effects = useEffects();
+  effects.on('try-it:env-change', () => {
+    notify();
   });
 
   return section;
