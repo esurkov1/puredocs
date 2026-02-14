@@ -6,12 +6,12 @@ export interface ThemeConfig {
 
 const THEME_KEY = 'puredocs-theme';
 
-/** Только переключение класса темы и опциональные config overrides */
+/** Theme class switching only and optional config overrides */
 export function applyTheme(root: HTMLElement, themeMode: 'light' | 'dark', config?: ThemeConfig): void {
   root.classList.remove('light', 'dark');
   root.classList.add(`${themeMode}`);
 
-  /* Config overrides (primary) — из PortalConfig */
+  /* Config overrides (primary) — from PortalConfig */
   if (config?.primaryColor) {
     root.style.setProperty('--primary-color', config.primaryColor);
   } else {

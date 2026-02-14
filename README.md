@@ -1,41 +1,36 @@
 # PureDocs
 
-`PureDocs` это UI-портал для OpenAPI, который делает документацию API визуально чистой, быстрой и удобной для ежедневной работы разработчиков.
+`PureDocs` is a UI portal for OpenAPI that makes API documentation visually clean, fast, and convenient for developers' daily work.
 
-Проект разработан [esurkov1](https://github.com/esurkov1).  
-Исходный код открыт, и проект полностью бесплатен для некоммерческого использования.
+PureDocs transforms an OpenAPI specification into a full-featured interactive portal:
 
-## Что делает PureDocs
+- API overview with groups, schemas, and webhooks
+- Convenient navigation through routes
+- Built-in `Try It` console for sending requests directly from documentation
+- Automatic code snippet generation (`cURL`, `JavaScript`, `Python`, `Go`)
+- Search across endpoints/tags/schemas/webhooks (`Cmd/Ctrl + K`)
+- Support for auth schemes (Bearer, Basic, API Key, OAuth2/OpenID Connect)
+- Support for JSON and YAML specifications
 
-PureDocs превращает OpenAPI-спецификацию в полноценный интерактивный портал:
+## Key Advantages
 
-- обзор API с группами, схемами и webhooks;
-- удобная навигация по роутам;
-- встроенный `Try It` для отправки запросов прямо из документации;
-- автоматическая генерация сниппетов (`cURL`, `JavaScript`, `Python`, `Go`);
-- поиск по endpoint/тегам/схемам/Webhooks (`Cmd/Ctrl + K`);
-- работа с auth-схемами (Bearer, Basic, API Key, OAuth2/OpenID Connect);
-- поддержка JSON и YAML спецификаций.
+- Minimal integration: one `<pure-docs>` tag and the documentation is ready
+- Framework-agnostic: works as a Web Component, suitable for React/Vue/vanilla
+- Designed for real development: environments, authorization, live requests, copying ready-to-use URLs/examples
+- Support for complex API structures: callbacks, webhooks, schemas, security requirements
+- Quick customization of appearance: theme, accent color, and portal title
 
-## Ключевые преимущества
+## Quick Start
 
-- Минимальная интеграция: один тег `<pure-docs>` и документация готова.
-- Framework-agnostic: работает как Web Component, подходит для React/Vue/vanilla.
-- Продуман для реальной разработки: окружения, авторизация, живые запросы, копирование готовых URL/примеров.
-- Поддержка сложных API-структур: callbacks, webhooks, схемы, security requirements.
-- Быстрая кастомизация внешнего вида: тема, цвет акцента и заголовок портала.
-
-## Быстрый старт
-
-### 1. Установка
+### 1. Installation
 
 ```bash
 npm install puredocs
-# или
+# or
 bun add puredocs
 ```
 
-### 2. Подключение (ESM)
+### 2. Integration (ESM)
 
 ```html
 <pure-docs spec-url="/openapi.json" theme="auto"></pure-docs>
@@ -46,11 +41,11 @@ bun add puredocs
 </script>
 ```
 
-### 3. Готово
+### 3. Done
 
-Если `spec-url` указывает на валидный OpenAPI (JSON/YAML), портал отрисуется автоматически.
+If `spec-url` points to a valid OpenAPI (JSON/YAML), the portal will render automatically.
 
-## Подключение в проект
+## Integration into Project
 
 ### HTML + script (UMD)
 
@@ -84,7 +79,7 @@ import 'puredocs/style.css';
 </script>
 ```
 
-### Программное подключение (JS API)
+### Programmatic Integration (JS API)
 
 ```ts
 import PureDocs from 'puredocs';
@@ -97,20 +92,20 @@ PureDocs.mount({
 });
 ```
 
-## Конфигурация через атрибуты
+## Configuration via Attributes
 
-Элемент: `pure-docs`
+Element: `pure-docs`
 
-- `spec-url`: URL OpenAPI файла
-- `spec-json`: встроенная JSON-спека (строка JSON)
+- `spec-url`: OpenAPI file URL
+- `spec-json`: embedded JSON spec (JSON string)
+- `default-environment`: default environment
+- `environments-array`: JSON array of URLs for environments
+- `base-path`: router base path
 - `theme`: `light` | `dark` | `auto`
-- `primary-color`: цвет акцента
-- `base-path`: базовый путь роутера
-- `default-environment`: окружение по умолчанию
-- `environments-array`: JSON-массив URL для окружений
-- `title`: заголовок в навигации
+- `primary-color`: accent color
+- `title`: navigation title
 
-Пример:
+Example:
 
 ```html
 <pure-docs
@@ -123,7 +118,7 @@ PureDocs.mount({
 ></pure-docs>
 ```
 
-## Runtime API элемента
+## Element Runtime API
 
 ```ts
 const docs = document.querySelector('pure-docs');
@@ -136,7 +131,7 @@ docs.setToken('token');
 docs.setEnvironment('api.example.com');
 ```
 
-## Разработка
+## Development
 
 ```bash
 bun run dev
@@ -144,26 +139,15 @@ bun run typecheck
 bun run build
 ```
 
-## Важно знать
+## Important to Know
 
-- Одновременно может быть смонтирован только один `<pure-docs>`.
-- Состояние окружения и авторизации сохраняется в `localStorage`.
-- Роутинг основан на `history` API.
+- Only one `<pure-docs>` can be mounted at a time
+- Environment and authorization state is saved in `localStorage`
+- Routing is based on the `history` API
 
-## AI-скиллы для разработки
+## License
 
-В проекте установлен **UI/UX Pro Max** скилл для улучшения дизайна и пользовательского опыта:
+See the [`LICENSE`](./LICENSE) file.  
+PureDocs is free for non-commercial use.
 
-```bash
-# Генерация дизайн-системы для компонентов
-python3 .claude/skills/ui-ux-pro-max/scripts/search.py "query" --design-system
-
-# Подробнее см. .claude/UI-UX-PRO-MAX-INFO.md
-```
-
-Скилл предоставляет 67 UI-стилей, 96 цветовых палитр, 57 шрифтовых пар и автоматическую генерацию дизайн-систем.
-
-## Лицензия
-
-См. файл [`LICENSE`](./LICENSE).  
-PureDocs бесплатен для некоммерческого использования.
+Developed by [esurkov1](https://github.com/esurkov1).  

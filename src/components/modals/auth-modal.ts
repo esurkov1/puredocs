@@ -99,7 +99,7 @@ function renderSchemeFields(name: string, scheme: SecurityScheme, container: HTM
     const toggleVis = createButton({
       variant: 'icon',
       icon: icons.key,
-      ariaLabel: 'Показать/скрыть',
+      ariaLabel: 'Show/Hide',
       className: 'l secondary u-text-muted',
       onClick: () => { input.type = input.type === 'password' ? 'text' : 'password'; },
     });
@@ -148,7 +148,7 @@ function renderSchemeFields(name: string, scheme: SecurityScheme, container: HTM
     const toggleVis = createButton({
       variant: 'icon',
       icon: icons.key,
-      ariaLabel: 'Показать/скрыть',
+      ariaLabel: 'Show/Hide',
       className: 'l secondary u-text-muted',
       onClick: () => { input.type = input.type === 'password' ? 'text' : 'password'; },
     });
@@ -180,7 +180,7 @@ function renderSchemeFields(name: string, scheme: SecurityScheme, container: HTM
   }
 }
 
-/** Открыть модальное окно настройки аутентификации */
+/** Open authentication settings modal */
 export function openAuthModal(
   securitySchemes: Record<string, SecurityScheme>,
   portalRoot?: HTMLElement,
@@ -194,7 +194,7 @@ export function openAuthModal(
   const shell = createModalBase({
     overlayClass: 'modal overlay',
     modalClass: 'modal container',
-    ariaLabel: 'Настройка аутентификации',
+    ariaLabel: 'Authentication Settings',
     dataOverlayAttr: 'data-auth-overlay',
     onClose: () => { modalBase = null; },
   });
@@ -204,7 +204,7 @@ export function openAuthModal(
   // Header
   const header = h('div', { className: 'modal header' });
   header.append(h('h2', { className: 'modal title', textContent: 'Authentication' }));
-  const closeBtn = createButton({ variant: 'icon', icon: icons.close, ariaLabel: 'Закрыть', onClick: close });
+  const closeBtn = createButton({ variant: 'icon', icon: icons.close, ariaLabel: 'Close', onClick: close });
   header.append(closeBtn);
   modal.append(header);
 
@@ -284,7 +284,7 @@ export function openAuthModal(
 
   const clearBtn = createButton({
     variant: 'ghost',
-    label: 'Сбросить',
+    label: 'Reset',
     onClick: () => {
       store.setSchemeValue(selectedName, '');
       const scheme = securitySchemes[selectedName];
@@ -292,7 +292,7 @@ export function openAuthModal(
     },
   });
 
-  const doneBtn = createButton({ variant: 'primary', label: 'Готово', onClick: close });
+  const doneBtn = createButton({ variant: 'primary', label: 'Done', onClick: close });
 
   footer.append(clearBtn, h('div', { className: 'grow' }), doneBtn);
   modal.append(footer);
@@ -303,8 +303,8 @@ export function openAuthModal(
 /** Get human-readable configured scheme label for display */
 export function getSchemeStatusLabel(name: string, scheme: SecurityScheme): string {
   const value = store.get().auth.schemes[name];
-  if (!value) return 'Не настроено';
-  return `Настроено ${schemeBadge(scheme)}`;
+  if (!value) return 'Not configured';
+  return `Configured ${schemeBadge(scheme)}`;
 }
 
 /** Check if a specific scheme is configured */

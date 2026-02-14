@@ -8,8 +8,8 @@ export interface EmptyStateOptions {
 }
 
 /**
- * Хелпер для страниц loading/error/empty.
- * Возвращает готовую страницу для render(pageSlotEl, createEmptyStatePage(...)).
+ * Helper for loading/error/empty pages.
+ * Returns ready page for render(pageSlotEl, createEmptyStatePage(...)).
  */
 export function createEmptyStatePage(opts: EmptyStateOptions): HTMLElement {
   const { title, message, icon, variant = 'empty' } = opts;

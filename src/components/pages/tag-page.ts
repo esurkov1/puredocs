@@ -8,7 +8,7 @@ import { isOperationAuthConfigured } from '../modals/auth-modal';
 import { formatOperationAuthTitle, hasOperationAuth } from '../../core/security';
 import type { SpecTag, RouteInfo } from '../../core/types';
 
-/** Render a tag page — список операций группы */
+/** Render a tag page — list of group operations */
 export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, tagName: string): void {
   clear(pageSlot);
 
@@ -34,7 +34,7 @@ export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, ta
   const baseUrlDisplay = getDisplayBaseUrl(state);
   const breadcrumb = createBreadcrumb([
     {
-      label: baseUrlDisplay || spec.info.title || 'Главная',
+      label: baseUrlDisplay || spec.info.title || 'Home',
       href: '/',
       className: 'breadcrumb-item',
       onClick: (e: Event) => { e.preventDefault(); navigate('/'); },

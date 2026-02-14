@@ -110,7 +110,7 @@ export function extractExamples(mediaType: SpecMediaType): ExampleOption[] {
   return options;
 }
 
-/** Get display label for example, без дублирования summary/description */
+/** Get display label for example, without duplicating summary/description */
 export function getExampleLabel(ex: ExampleOption): string {
   const parts = [ex.summary, ex.description].filter(Boolean);
   return [...new Set(parts)].join(' — ') || ex.name;

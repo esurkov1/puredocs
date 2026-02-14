@@ -44,7 +44,7 @@ export function renderTryIt(
   container.classList.add('try-it');
   const tryItLayout = h('div', { className: 'body' });
 
-  // Request + Code Examples (объединённый блок с табами + кнопка Send)
+  // Request + Code Examples (combined block with tabs + Send button)
   const responseSection = h('div', { className: 'block section' });
   responseSection.append(h('h2', { textContent: 'Response' }));
   const responseContainer = h('div', { 'data-response': 'true' });
@@ -59,7 +59,7 @@ export function renderTryIt(
     });
   } else {
     const placeholder = h('div', { className: 'placeholder' });
-    placeholder.append(h('span', { textContent: 'Выполните запрос, чтобы увидеть ответ' }));
+    placeholder.append(h('span', { textContent: 'Execute request to see response' }));
     responseContainer.append(placeholder);
   }
   responseSection.append(responseContainer);
@@ -113,7 +113,7 @@ export function renderTryIt(
     container.addEventListener('change', notify);
   }
 
-  // Отложенный resize body textarea — после layout в DOM
+  // Deferred resize body textarea — after layout in DOM
   const bodyTextarea = container.querySelector('textarea[data-field="body"]') as HTMLTextAreaElement | null;
   if (bodyTextarea) {
     requestAnimationFrame(() => {
@@ -122,7 +122,7 @@ export function renderTryIt(
   }
 }
 
-/** Объединённый блок Request Body / Query / Path + Code Examples с табами */
+/** Combined Request Body / Query / Path + Code Examples block with tabs */
 function renderRequestCodeBlock(
   operation: SpecOperation,
   tryItBody: HTMLElement,
@@ -133,12 +133,12 @@ function renderRequestCodeBlock(
   const queryParams = operation.parameters.filter((p) => p.in === 'query');
   const paramExampleSets = extractParamExampleSets([...pathParams, ...queryParams]);
 
-  // Первый таб единый для всех операций
+  // First tab unified for all operations
   const firstTabLabel = 'Request';
 
   const snippets = generateSnippets({
     method: operation.method,
-    url: '', // будет обновляться
+    url: '', // will be updated
     headers: {},
     body: operation.requestBody ? '{ ... }' : undefined,
   });
@@ -219,7 +219,7 @@ function renderRequestCodeBlock(
   let routePreviewInput: HTMLInputElement | null = null;
   let routePreviewEl: HTMLElement | null = null;
 
-  // Панель для первого таба (Body/Query/Path)
+  // Panel for first tab (Body/Query/Path)
   let firstTabPanel: HTMLElement | null = null;
   if (firstTabLabel) {
     const tabBtn = createTab(firstTabLabel, { active: true, context: true });
@@ -356,7 +356,7 @@ function renderRequestCodeBlock(
       firstTabPanel.append(bodySection);
     }
 
-    // Headers — заголовок + кнопки + список (header-row), перед URL
+    // Headers — title + buttons + list (header-row), before URL
     const headersSection = h('div', { className: 'headers-section' });
     const headersHeader = h('div', { className: 'field-header' });
     headersHeader.append(h('h3', { textContent: 'Headers' }));
@@ -389,7 +389,7 @@ function renderRequestCodeBlock(
     firstTabPanel.append(headersSection);
   }
 
-  // Панели для языков (cURL, JavaScript, ...) — унифицированный редактор
+  // Panels for languages (cURL, JavaScript, ...) — unified editor
   const initialParams = getCodeParams();
   const initialSnippets = generateSnippets(initialParams);
   const langEditor = createEditorPanel(
@@ -682,7 +682,7 @@ function renderResponse(container: HTMLElement, response: TryItResponse): void {
 
   const el = h('div', { className: 'card' });
 
-  // Одна строка в шапке: Body|Headers | meta | код ответа | Copy
+  // One row in header: Body|Headers | meta | response code | Copy
   const header = h('div', { className: 'card-head response-header' });
   const bodyTab = createTab('Body', { active: true });
   const headersTab = createTab(`Headers (${Object.keys(response.headers).length})`);
@@ -709,7 +709,7 @@ function renderResponse(container: HTMLElement, response: TryItResponse): void {
   header.append(tabs, metaEl, codeBadge, copyBtn);
   el.append(header);
 
-  // Body content — один режим, без Pretty/Raw
+  // Body content — single mode, no Pretty/Raw
   const bodyWrapper = h('div', { className: 'card-content flush' });
   const bodyContent = h('div', { className: 'response-pane' });
   const bodyInner = h('div', { className: 'pane-inner' });

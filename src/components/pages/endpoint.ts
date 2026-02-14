@@ -14,7 +14,7 @@ import { renderRouteNavigation } from '../nav/route-nav';
 import { getSchemaTypeLabel } from '../../helpers/schema-utils';
 import type { SpecOperation, SpecResponse, SpecResponseHeader, SpecMediaType, SchemaObject, PortalState } from '../../core/types';
 
-/** Render an endpoint detail page. Main блок разделён на 2 части: doc | Try It + Code Examples */
+/** Render an endpoint detail page. Main block divided into 2 parts: doc | Try It + Code Examples */
 export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLElement, operation: SpecOperation): Promise<void> {
   clear(pageSlot);
   clear(asideSlot);
@@ -29,7 +29,7 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
   const baseUrlNorm = getNormalizedBaseUrl(state);
   const baseUrlDisplay = getDisplayBaseUrl(state);
 
-  // Breadcrumb — Base URL / путь с подсветкой {переменных}, метод, копирование
+  // Breadcrumb — Base URL / path with {variable} highlighting, method, copy
   const fullUrl = baseUrlNorm + (operation.path.startsWith('/') ? '' : '/') + operation.path;
 
   const breadcrumbItems: { label: string; href?: string; className?: string; onClick?: (e: Event) => void }[] = [];
@@ -41,7 +41,7 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
     size: 'm',
   });
   breadcrumbItems.push({
-    label: baseUrlDisplay || state.spec?.info.title || 'Главная',
+    label: baseUrlDisplay || state.spec?.info.title || 'Home',
     href: '/',
     className: 'breadcrumb-item',
     onClick: (e: Event) => { e.preventDefault(); navigate('/'); },
@@ -81,7 +81,7 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
     trailing: [copyBtn],
   });
 
-  // Header — заголовок
+  // Header — title
   const header = h('div', { className: 'block header' });
   header.append(h('h1', {
     textContent: operation.summary || `${operation.method.toUpperCase()} ${operation.path}`,
@@ -108,7 +108,7 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
     }, lock, authBadge));
   }
 
-  // Breadcrumb — под заголовком, до описания
+  // Breadcrumb — below title, before description
   const breadcrumbWrap = h('div', { className: 'breadcrumb-wrap' });
   breadcrumbWrap.append(breadcrumb);
   header.append(breadcrumbWrap);
@@ -120,7 +120,7 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
 
   pageSlot.append(header);
 
-  // Headers — перед Request
+  // Headers — before Request
   const headersSection = renderHeadersSection(operation);
   if (headersSection) pageSlot.append(headersSection);
 
@@ -137,7 +137,7 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
   }
 
   if (visibleParams.length === 0 && !operation.requestBody) {
-    const emptyHint = h('div', { className: 'params empty', textContent: 'Параметры и тело запроса не требуются' });
+    const emptyHint = h('div', { className: 'params empty', textContent: 'No parameters or request body required' });
     requestSection.append(emptyHint);
   }
 
@@ -358,11 +358,11 @@ function renderResponsesSection(operation: SpecOperation): HTMLElement {
   const responses = Object.entries(operation.responses);
   if (responses.length === 0) return section;
 
-  // Одна карточка как Request: шапка (коды + application/json + collapse) + контент
+  // Single card like Request: header (codes + application/json + collapse) + content
   const card = createCard();
   const headerRow = h('div', { className: 'card-row responses-header-row' });
 
-  // Слева: селектор кодов ответа
+  // Left: response code selector
   const codesWrap = h('div', { className: 'tabs-code codes' });
   let activeCode = responses[0][0];
   let activeContentType = 'application/json';
@@ -443,7 +443,7 @@ function renderResponsesSection(operation: SpecOperation): HTMLElement {
 
   headerRow.append(codesWrap);
 
-  // Справа: application/json + collapse
+  // Right: application/json + collapse
   const contentTypeSpan = createBadge({
     text: activeContentType,
     kind: 'chip',

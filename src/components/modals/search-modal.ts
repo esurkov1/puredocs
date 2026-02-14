@@ -53,7 +53,7 @@ export function showSearchModal(): void {
   footer.innerHTML = '<span><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> Navigate</span><span><kbd class="kbd">↵</kbd> Select</span><span><kbd class="kbd">ESC</kbd> Close</span>';
   modal.append(footer);
 
-  // Mount внутри root для наследования CSS-переменных темы
+  // Mount inside root to inherit theme CSS variables
   shell.mount(document.querySelector('.root') ?? document.body);
 
   // Focus input

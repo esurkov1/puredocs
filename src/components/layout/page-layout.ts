@@ -28,7 +28,7 @@ export function createContentArea(): ContentAreaLayout {
   return { page, main, aside };
 }
 
-/** Включить/выключить aside в page layout. */
+/** Enable/disable aside in page layout. */
 export function setContentAreaAside(page: HTMLElement, hasAside: boolean): void {
   const aside = page.querySelector('.aside') as HTMLElement | null;
   if (aside) aside.hidden = !hasAside;

@@ -7,7 +7,7 @@ export interface CreateLockIconOptions {
   title?: string;
 }
 
-/** Общая фабрика для lock/unlock иконок в навигации, карточках и endpoint */
+/** Common factory for lock/unlock icons in navigation, cards, and endpoint */
 export function createLockIcon(options: CreateLockIconOptions): HTMLElement {
   const { configured, variant = 'tag', title } = options;
   const iconHtml = configured ? icons.unlock : icons.lock;

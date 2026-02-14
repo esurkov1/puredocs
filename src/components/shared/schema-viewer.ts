@@ -91,7 +91,7 @@ export interface ParametersCardOptions {
   withEnumAndDefault?: boolean;
 }
 
-/** Parameters в том же стиле, что schema (flat list). */
+/** Parameters in the same style as schema (flat list). */
 export function renderParametersCard(params: SpecParameter[], options: ParametersCardOptions): HTMLElement {
   const { headerTitle, withEnumAndDefault = true } = options;
 
@@ -138,7 +138,7 @@ export function renderParametersCard(params: SpecParameter[], options: Parameter
       if (enumValues) {
         for (const val of enumValues) {
           const str = String(val);
-          if (str === p.in) continue; /* не дублировать path/query — уже в заголовке */
+          if (str === p.in) continue; /* don't duplicate path/query — already in header */
           enumWrap.append(createBadge({ text: str, kind: 'chip', size: 's', mono: true }));
         }
       }

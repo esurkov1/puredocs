@@ -4,7 +4,7 @@ import { resolve } from 'path';
 const pkgRoot = resolve(__dirname);
 const demoRoot = resolve(__dirname, 'demo');
 
-/** Плагин: полная перезагрузка при изменении любого файла в пакете */
+/** Plugin: full reload when any package file changes */
 function watchAllReload() {
   return {
     name: 'puredocs-watch-all',

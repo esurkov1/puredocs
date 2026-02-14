@@ -12,7 +12,7 @@ import { createBadge, createSelect, createInput, createLockIcon } from '../ui';
 import type { PortalConfig } from '../../core/types';
 import type { SpecTag, SpecOperation, RouteInfo } from '../../core/types';
 
-/** Обновить активное состояние пунктов и развернуть группу с активным маршрутом */
+/** Update active state of items and expand group with active route */
 export function updateSidebarActiveState(container: HTMLElement, currentRoute: RouteInfo): void {
   const items = container.querySelectorAll('.nav-item');
   let activeEl: HTMLElement | null = null;
@@ -33,7 +33,7 @@ export function updateSidebarActiveState(container: HTMLElement, currentRoute: R
     }
   });
 
-  // Развернуть группу, содержащую активный endpoint или tag
+  // Expand group containing active endpoint or tag
   const tagToExpand = currentRoute.type === 'endpoint' ? currentRoute.tag
     : currentRoute.type === 'tag' ? currentRoute.tag
     : currentRoute.type === 'schema' ? 'schemas'
@@ -175,7 +175,7 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
   // Navigation
   const nav = h('nav', { className: 'nav', 'aria-label': 'API navigation' });
 
-  // Overview link — выделенный первый пункт (иконка в слоте 60px как у method badge для выравнивания)
+  // Overview link — highlighted first item (icon in 60px slot like method badge for alignment)
   const overviewItem = createOverviewNavItem({ type: 'overview' }, state.route);
   nav.append(overviewItem);
 

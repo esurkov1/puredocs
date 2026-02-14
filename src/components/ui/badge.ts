@@ -71,7 +71,7 @@ export function createBadge(props: BadgeProps): HTMLElement {
   return el;
 }
 
-/** Tab-кнопка на базе badge. Используется для Body/Headers, Code Example и т.д. */
+/** Tab button based on badge. Used for Body/Headers, Code Example, etc. */
 export function createTab(text: string, options?: { active?: boolean; context?: boolean }): HTMLButtonElement {
   const active = options?.active ?? false;
   const context = options?.context ?? false;
@@ -83,7 +83,7 @@ export function createTab(text: string, options?: { active?: boolean; context?: 
   return btn;
 }
 
-/** Tab-кнопка с кодом ответа (200, 404 и т.д.). Наследует badge + status-стили. */
+/** Tab button with response code (200, 404, etc.). Inherits badge + status styles. */
 export function createResponseCodeTab(code: string, active = false): HTMLButtonElement {
   const btn = document.createElement('button');
   btn.type = 'button';

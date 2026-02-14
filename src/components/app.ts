@@ -222,7 +222,7 @@ async function updateContent(state: PortalState, config: PortalConfig): Promise<
   if (mainScroll) mainScroll.scrollTop = 0;
 }
 
-/** Точечное обновление при смене окружения/auth без полной перерисовки */
+/** Targeted update when environment/auth changes without full re-render */
 function updateEnvironmentState(root: HTMLElement, state: PortalState, _config: PortalConfig): void {
   const baseUrl = getBaseUrl(state);
   const baseUrlDisplay = formatBaseUrlForDisplay(baseUrl);
@@ -230,10 +230,10 @@ function updateEnvironmentState(root: HTMLElement, state: PortalState, _config: 
   // 1. Breadcrumb (endpoint/tag): baseUrl
   const breadcrumbHome = root.querySelector('.breadcrumb-item') as HTMLAnchorElement | null;
   if (breadcrumbHome) {
-    breadcrumbHome.textContent = baseUrlDisplay || state.spec?.info.title || 'Главная';
+    breadcrumbHome.textContent = baseUrlDisplay || state.spec?.info.title || 'Home';
   }
 
-  // 2. Endpoint: auth headers в Try It + Code Examples
+  // 2. Endpoint: auth headers in Try It + Code Examples
   if (state.route.type !== 'endpoint' || !state.spec) return;
 
   const tryItEl = root.querySelector('.aside.try-it .content') as HTMLElement | null;

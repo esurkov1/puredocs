@@ -1,6 +1,6 @@
 /**
  * Unified Input primitive.
- * Базовые стили — по тегу input (forms.css).
+ * Base styles — by input tag (forms.css).
  */
 
 export type InputModifier = 'filled' | 'invalid';

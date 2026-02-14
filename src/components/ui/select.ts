@@ -1,6 +1,6 @@
 /**
  * Unified Select primitive.
- * Базовые стили — по тегу select (forms.css).
+ * Base styles — by select tag (forms.css).
  * variant: inline → data-variant="inline"
  */
 

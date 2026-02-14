@@ -1,25 +1,25 @@
 /**
  * Unified Card primitive.
  *
- * Структурная карточка: `.card` с `.card-head` и `.card-content`
- * Простая карточка: `.card.simple` для overview, servers, и т.д.
+ * Structural card: `.card` with `.card-head` and `.card-content`
+ * Simple card: `.card.simple` for overview, servers, etc.
  */
 import { createBadge } from './badge';
 
 export interface CardProps {
-  /** Если true — создаёт простую карточку (`.card.simple`), иначе структурную (`.card`) */
+  /** If true — creates a simple card (`.card.simple`), otherwise structural (`.card`) */
   simple?: boolean;
-  /** Флаг интерактивности (добавляет interactive) */
+  /** Interactive flag (adds interactive) */
   interactive?: boolean;
-  /** Флаг активности (добавляет active) */
+  /** Active flag (adds active) */
   active?: boolean;
-  /** Дополнительные классы */
+  /** Additional classes */
   className?: string;
-  /** Обработчик клика */
+  /** Click handler */
   onClick?: (e: Event) => void;
 }
 
-/** Создаёт простую или структурную карточку */
+/** Creates a simple or structural card */
 export function createCard(props?: CardProps): HTMLElement {
   const { simple, interactive, active, className, onClick } = props || {};
 
@@ -41,7 +41,7 @@ export function createCard(props?: CardProps): HTMLElement {
   return el;
 }
 
-/** Создаёт header для структурной карточки */
+/** Creates header for structural card */
 export function createCardHeader(...children: (HTMLElement | string)[]): HTMLElement {
   const header = document.createElement('div');
   header.className = 'card-head';
@@ -57,7 +57,7 @@ export function createCardHeader(...children: (HTMLElement | string)[]): HTMLEle
   return header;
 }
 
-/** Создаёт body для структурной карточки */
+/** Creates body for structural card */
 export function createCardBody(variant?: 'default' | 'code' | 'no-padding'): HTMLElement {
   const body = document.createElement('div');
   const classes = ['card-content'];
