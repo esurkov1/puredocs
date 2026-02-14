@@ -15,13 +15,13 @@ import type { SpecTag, SpecOperation, RouteInfo } from '../../core/types';
 /** Update active state of items and expand group with active route */
 export function updateSidebarActiveState(container: HTMLElement, currentRoute: RouteInfo): void {
   const items = container.querySelectorAll('.nav-item');
-  let activeEl: HTMLElement | null = null;
+  let activeEl: HTMLAnchorElement | null = null;
 
-  items.forEach((el) => {
+  for (const el of items) {
     const a = el as HTMLAnchorElement;
     const routeFromDataset = parseRouteFromDataset(a);
     const href = a.getAttribute('href');
-    if (!href && !routeFromDataset) return;
+    if (!href && !routeFromDataset) continue;
     const path = href?.startsWith('#') ? href.slice(1) : href || '';
     const route = routeFromDataset || parsePath(path);
     const isActive = isRouteMatch(route, currentRoute);
@@ -32,13 +32,23 @@ export function updateSidebarActiveState(container: HTMLElement, currentRoute: R
     } else {
       a.removeAttribute('aria-current');
     }
-  });
+  }
 
   // Expand group containing active endpoint or tag
+  const activeGroup = activeEl ? (activeEl.closest('.nav-group') as HTMLElement | null) : null;
+  if (activeGroup) {
+    const activeHeader = activeGroup.querySelector('.nav-group-header');
+    const activeItems = activeGroup.querySelector('.nav-group-items');
+    if (activeHeader instanceof HTMLElement && activeItems instanceof HTMLElement) {
+      setNavGroupExpanded(activeHeader, activeItems, true, { animate: false });
+    }
+  }
+
   const tagToExpand = currentRoute.type === 'endpoint' ? currentRoute.tag
     : currentRoute.type === 'tag' ? currentRoute.tag
     : null;
   const expandSlug = currentRoute.type === 'schema' ? 'schemas'
+    : currentRoute.type === 'webhook' ? 'webhooks'
     : tagToExpand ? slugifyTag(tagToExpand) : null;
 
   if (expandSlug) {
@@ -47,7 +57,7 @@ export function updateSidebarActiveState(container: HTMLElement, currentRoute: R
       const header = group.querySelector('.nav-group-header');
       const itemsWrap = group.querySelector('.nav-group-items');
       if (header instanceof HTMLElement && itemsWrap instanceof HTMLElement) {
-        setNavGroupExpanded(header, itemsWrap, true);
+        setNavGroupExpanded(header, itemsWrap, true, { animate: false });
       }
     }
   }
@@ -63,6 +73,58 @@ export function updateSidebarActiveState(container: HTMLElement, currentRoute: R
         (activeEl as HTMLElement).scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }
     });
+  }
+}
+
+/**
+ * Lightweight update: patch only auth-related elements in the sidebar
+ * (lock icons on endpoints + top auth button) without full re-render.
+ */
+export function updateSidebarAuthState(container: HTMLElement): void {
+  const state = store.get();
+  const spec = state.spec;
+  if (!spec) return;
+
+  const schemes = spec.securitySchemes || {};
+
+  // 1. Update the auth button icon (lock / unlock)
+  const authBtn = container.querySelector('[data-sidebar-auth-btn]') as HTMLElement | null;
+  if (authBtn) {
+    const schemeNames = Object.keys(schemes);
+    const activeScheme = state.auth.activeScheme || schemeNames[0] || '';
+    const hasToken = isSchemeConfigured(activeScheme);
+    authBtn.innerHTML = hasToken ? icons.unlock : icons.lock;
+    authBtn.classList.toggle('active', hasToken);
+  }
+
+  // 2. Update lock icons inside nav items
+  const lockSlots = container.querySelectorAll('[data-lock-slot]');
+  // Build a quick lookup: operationId -> SpecOperation
+  const opById = new Map<string, SpecOperation>();
+  const opByKey = new Map<string, SpecOperation>();
+  for (const op of spec.operations) {
+    if (op.operationId) opById.set(op.operationId, op);
+    opByKey.set(`${op.method.toLowerCase()} ${op.path}`, op);
+  }
+
+  for (const slot of lockSlots) {
+    const navItem = slot.closest('.nav-item') as HTMLElement | null;
+    if (!navItem) continue;
+
+    const opId = navItem.dataset.routeOperationId;
+    const method = navItem.dataset.routeMethod;
+    const path = navItem.dataset.routePath;
+    const op = (opId && opById.get(opId)) || (method && path ? opByKey.get(`${method.toLowerCase()} ${path}`) : null);
+    if (!op) continue;
+
+    const configured = isOperationAuthConfigured(op.resolvedSecurity, schemes);
+    const newLock = createLockIcon({
+      configured,
+      variant: 'nav',
+      title: formatOperationAuthTitle(op.resolvedSecurity),
+    });
+    slot.innerHTML = '';
+    slot.append(newLock);
   }
 }
 
@@ -105,7 +167,7 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
       type: 'button',
       className: 'btn icon s soft u-text-muted theme',
       'aria-label': 'Configure authentication',
-      title: hasToken ? `Auth: ${activeScheme}` : 'Configure authentication',
+      'data-sidebar-auth-btn': '',
     });
     authBtn.innerHTML = hasToken ? icons.unlock : icons.lock;
     authBtn.classList.toggle('active', hasToken);
@@ -177,7 +239,8 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
   // Webhooks section
   if (spec.webhooks && spec.webhooks.length > 0) {
     const whGroup = h('div', { className: 'nav-group', 'data-nav-tag': 'webhooks' });
-    const whHeader = createGroupHeader('Webhooks', spec.webhooks.length);
+    const whListRoute: RouteInfo = { type: 'webhook' };
+    const whHeader = createLinkedGroupHeader('Webhooks', spec.webhooks.length, whListRoute, state.route);
     const whItems = h('div', { className: 'nav-group-items' });
 
     for (const wh of spec.webhooks) {
@@ -187,7 +250,9 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
       whItems.append(item);
     }
 
-    whHeader.addEventListener('click', () => {
+    whHeader.addEventListener('click', (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('.nav-group-link')) return;
       setNavGroupExpanded(whHeader, whItems);
     });
 
@@ -201,7 +266,8 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
   const schemaNames = Object.keys(spec.schemas);
   if (schemaNames.length > 0) {
     const schemasGroup = h('div', { className: 'nav-group' });
-    const schemasHeader = createGroupHeader('Schemas', schemaNames.length);
+    const schemasListRoute: RouteInfo = { type: 'schema' };
+    const schemasHeader = createLinkedGroupHeader('Schemas', schemaNames.length, schemasListRoute, state.route);
     const schemasItems = h('div', { className: 'nav-group-items' });
 
     for (const name of schemaNames) {
@@ -210,7 +276,9 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
       schemasItems.append(item);
     }
 
-    schemasHeader.addEventListener('click', () => {
+    schemasHeader.addEventListener('click', (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('.nav-group-link')) return;
       setNavGroupExpanded(schemasHeader, schemasItems);
     });
 
@@ -222,6 +290,12 @@ export function renderSidebar(container: HTMLElement, config: PortalConfig): voi
   }
 
   container.append(nav);
+
+  // Re-sync heights for expanded groups now that elements are in the DOM
+  // (scrollHeight is 0 when measured off-DOM during group creation)
+  for (const items of nav.querySelectorAll('.nav-group-items:not(.collapsed)')) {
+    syncNavGroupHeight(items as HTMLElement);
+  }
 
   // Footer: credit + theme button
   const footer = h('div', { className: 'footer' });
@@ -336,6 +410,48 @@ function createTagGroupHeader(tag: SpecTag, currentRoute: RouteInfo): HTMLElemen
   link.addEventListener('click', (e: Event) => {
     e.preventDefault();
     navigate(buildPath({ type: 'tag', tag: tag.name }));
+  });
+
+  header.append(chevronBtn, link);
+
+  header.addEventListener('keydown', (e: Event) => {
+    if ((e as KeyboardEvent).key === 'Enter' || (e as KeyboardEvent).key === ' ') {
+      e.preventDefault();
+      chevronBtn.click();
+    }
+  });
+
+  return header;
+}
+
+function createLinkedGroupHeader(name: string, count: number, listRoute: RouteInfo, currentRoute: RouteInfo): HTMLElement {
+  const isActive = currentRoute.type === listRoute.type;
+
+  const header = h('div', { className: 'nav-group-header focus-ring', 'aria-expanded': String(isActive), tabIndex: 0 });
+
+  const chevronBtn = h('button', {
+    type: 'button',
+    className: 'nav-group-chevron',
+    'aria-label': isActive ? 'Collapse' : 'Expand',
+  });
+  chevronBtn.innerHTML = icons.chevronRight;
+  chevronBtn.addEventListener('click', (e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
+    header.click();
+  });
+
+  const link = h('a', {
+    className: 'nav-group-link',
+    href: buildPath(listRoute),
+  });
+  link.append(
+    h('span', { className: 'nav-group-title', textContent: name }),
+    h('span', { className: 'nav-group-count', textContent: String(count) }),
+  );
+  link.addEventListener('click', (e: Event) => {
+    e.preventDefault();
+    navigate(buildPath(listRoute));
   });
 
   header.append(chevronBtn, link);
@@ -488,7 +604,6 @@ function createEndpointNavItem(op: SpecOperation, route: RouteInfo, currentRoute
   const item = h('a', {
     className: `nav-item${isActive ? ' active' : ''}${op.deprecated ? ' deprecated' : ''}`,
     href: buildPath(route),
-    title: `${op.method.toUpperCase()} ${op.path}`,
     'aria-current': isActive ? 'page' : undefined,
   });
   item.dataset.routeType = 'endpoint';
@@ -498,13 +613,18 @@ function createEndpointNavItem(op: SpecOperation, route: RouteInfo, currentRoute
   if (route.tag) item.dataset.routeTag = route.tag;
 
   const spec = store.get().spec;
-  const lockEl = hasOperationAuth(op.resolvedSecurity)
+  const needsAuth = hasOperationAuth(op.resolvedSecurity);
+  const lockEl = needsAuth
     ? createLockIcon({
       configured: isOperationAuthConfigured(op.resolvedSecurity, spec?.securitySchemes || {}),
       variant: 'nav',
       title: formatOperationAuthTitle(op.resolvedSecurity),
     })
     : null;
+
+  // Wrap lock in a slot so updateSidebarAuthState can patch it in-place
+  const lockSlot = needsAuth ? h('span', { 'data-lock-slot': '' }) : null;
+  if (lockSlot && lockEl) lockSlot.append(lockEl);
 
   item.append(
     createBadge({
@@ -514,7 +634,7 @@ function createEndpointNavItem(op: SpecOperation, route: RouteInfo, currentRoute
       mono: true,
     }),
     h('span', { className: 'nav-item-label', textContent: op.summary || op.path }),
-    ...(lockEl ? [lockEl] : []),
+    ...(lockSlot ? [lockSlot] : []),
   );
 
   item.addEventListener('click', (e: Event) => {
@@ -541,11 +661,19 @@ function isRouteMatch(a: RouteInfo, b: RouteInfo): boolean {
   if (a.type === 'tag') return slugifyTag(a.tag || '') === slugifyTag(b.tag || '');
   if (a.type === 'endpoint') {
     if (a.operationId && b.operationId) return a.operationId === b.operationId;
-    return (a.method || '').toLowerCase() === (b.method || '').toLowerCase() && a.path === b.path;
+    const methodA = (a.method || '').toLowerCase();
+    const methodB = (b.method || '').toLowerCase();
+    return methodA === methodB && normalizeEndpointPath(a.path) === normalizeEndpointPath(b.path);
   }
   if (a.type === 'schema') return a.schemaName === b.schemaName;
   if (a.type === 'webhook') return a.webhookName === b.webhookName;
   return false;
+}
+
+function normalizeEndpointPath(path: string | undefined): string {
+  if (!path) return '/';
+  const normalized = path.replace(/\/+/g, '/').replace(/\/+$/, '');
+  return normalized || '/';
 }
 
 function parseRouteFromDataset(link: HTMLAnchorElement): RouteInfo | null {

@@ -4,12 +4,14 @@ import { icons } from '../../lib/icons';
 export interface CreateLockIconOptions {
   configured: boolean;
   variant?: 'tag' | 'nav' | 'endpoint';
+  label?: string;
   title?: string;
 }
 
 /** Common factory for lock/unlock icons in navigation, cards, and endpoint */
 export function createLockIcon(options: CreateLockIconOptions): HTMLElement {
-  const { configured, variant = 'tag', title } = options;
+  const { configured, variant = 'tag', label, title } = options;
+  const ariaLabel = label || title;
   const iconHtml = configured ? icons.unlock : icons.lock;
 
   const baseClass = variant === 'tag' ? 'tag-op-lock'
@@ -21,6 +23,6 @@ export function createLockIcon(options: CreateLockIconOptions): HTMLElement {
   return h('span', {
     className: `${baseClass}${mod}`.trim(),
     innerHTML: iconHtml,
-    ...(title ? { title, 'aria-label': title } : {}),
+    ...(ariaLabel ? { 'aria-label': ariaLabel } : {}),
   });
 }

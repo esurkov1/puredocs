@@ -301,6 +301,7 @@ export class PureDocsElement extends HTMLElement {
     try {
       this.innerHTML = '';
       const config = this.parseConfig();
+      this.removeAttribute('title'); // prevent native browser tooltip on hover
       this.api = await mount({ ...config, mount: this });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

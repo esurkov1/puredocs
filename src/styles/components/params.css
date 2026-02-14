@@ -40,6 +40,122 @@
   display: none;
 }
 
+.collapsible-categories {
+  display: flex;
+  flex-direction: column;
+}
+
+.collapsible-category + .collapsible-category {
+  border-top: 1px solid var(--border-base-color);
+}
+
+.collapsible-category-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 44px;
+  padding: var(--space-sm) var(--space-md);
+  border: 0;
+  background: color-mix(in srgb, var(--text-subtle-color) 6%, transparent);
+  color: var(--text-primary-color);
+  cursor: pointer;
+}
+
+.collapsible-category-toggle:hover {
+  background: var(--surface-hover-color);
+}
+
+.collapsible-category-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.collapsible-category-meta {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.collapsible-category-trailing {
+  display: inline-flex;
+  align-items: center;
+}
+
+.collapsible-category-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.collapsible-category-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: var(--text-subtle-color);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.collapsible-category-chevron svg {
+  width: 14px;
+  height: 14px;
+}
+
+.collapsible-category.is-expanded .collapsible-category-chevron {
+  transform: rotate(180deg);
+  color: var(--primary-color);
+}
+
+.collapsible-category-content[hidden] {
+  display: none;
+}
+
+.request-body-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.schema-content-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.collapsible-category-content > .schema,
+.request-body-wrap > .schema,
+.schema-media-item > .schema {
+  border-top: 1px solid var(--border-base-color);
+}
+
+.collapsible-category-content > .schema .body,
+.request-body-wrap > .schema .body,
+.schema-media-item > .schema .body {
+  background: transparent;
+}
+
+.schema-media-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.schema-media-item + .schema-media-item {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-base-color);
+}
+
+.schema-media-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  padding: 0 var(--space-md) var(--space-sm);
+}
+
 .params.block .title {
   padding: var(--space-sm) var(--space-md);
   border-bottom: 1px solid var(--border-base-color);

@@ -115,20 +115,22 @@ h1 { font-size: 18px; }
   .page {
     flex-direction: row;
     overflow: visible;
+    align-items: stretch;
   }
 
   .page > .main {
-    flex: 1 1 auto;
+    flex: 1.25 1 0;
     min-height: 0;
     overflow-y: auto;
   }
 
   .page > .aside {
+    flex: 0.84 1 0;
     min-height: 0;
     overflow-y: auto;
-    width: var(--aside-width);
-    min-width: var(--aside-width);
-    max-width: var(--aside-width);
+    width: auto;
+    min-width: 282px;
+    max-width: 493px;
   }
 
   .page > .main > .content,

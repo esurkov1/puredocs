@@ -32,6 +32,15 @@
 
 .page .main .breadcrumb-main > * { flex-shrink: 0; }
 
+.endpoint-breadcrumb .breadcrumb-main {
+  flex-wrap: wrap;
+  overflow: visible;
+}
+
+.endpoint-breadcrumb .breadcrumb-main > * {
+  flex-shrink: 1;
+}
+
 .breadcrumb-trailing {
   display: flex;
   align-items: flex-start;

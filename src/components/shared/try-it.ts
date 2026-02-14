@@ -253,6 +253,38 @@ function renderRequestCodeBlock(
       firstTabPanel.append(examplesGroup);
     }
 
+    // Headers — first (swapped with body/params)
+    const headersSection = h('div', { className: 'headers-section' });
+    const headersHeader = h('div', { className: 'field-header' });
+    headersHeader.append(h('h3', { textContent: 'Headers' }));
+    const headersContainer = h('div', { className: 'headers-list' });
+    if (operation.requestBody) {
+      const contentTypes = Object.keys(operation.requestBody.content || {});
+      const defaultCT = contentTypes[0] || 'application/json';
+      headersContainer.append(createHeaderRow('Content-Type', defaultCT));
+    }
+    if (hasOperationAuth(operation.resolvedSecurity) && state.spec) {
+      const authHeaders = resolveAuthHeaders(operation.resolvedSecurity, state.spec.securitySchemes);
+      const placeholders = getAuthHeaderPlaceholder(operation.resolvedSecurity, state.spec.securitySchemes);
+      const merged = { ...placeholders, ...authHeaders };
+      for (const [headerName, headerValue] of Object.entries(merged)) {
+        headersContainer.append(createHeaderRow(headerName, headerValue));
+      }
+    }
+    for (const param of operation.parameters.filter((p) => p.in === 'header')) {
+      headersContainer.append(createHeaderRow(param.name, String(param.example || '')));
+    }
+    const addHeaderBtn = createButton({
+      variant: 'icon',
+      icon: icons.plus,
+      ariaLabel: 'Add header',
+      className: 'field-copy-btn',
+      onClick: () => headersContainer.append(createHeaderRow('', '')),
+    });
+    headersHeader.append(addHeaderBtn);
+    headersSection.append(headersHeader, headersContainer);
+    firstTabPanel.append(headersSection);
+
     if (pathParams.length > 0 || queryParams.length > 0) {
       const paramsSection = h('div', { className: 'params-group' });
       paramsSection.append(h('h3', { textContent: 'Parameters' }));
@@ -335,6 +367,7 @@ function renderRequestCodeBlock(
           if (isBinary) {
             const fileInput = h('input', {
               type: 'file',
+              autocomplete: 'off',
               'data-multipart-field': fieldName,
               'data-multipart-type': 'file',
             }) as HTMLInputElement;
@@ -364,38 +397,6 @@ function renderRequestCodeBlock(
       bodySection.append(createErrorPlaceholder('body'));
       firstTabPanel.append(bodySection);
     }
-
-    // Headers — title + buttons + list (header-row), before URL
-    const headersSection = h('div', { className: 'headers-section' });
-    const headersHeader = h('div', { className: 'field-header' });
-    headersHeader.append(h('h3', { textContent: 'Headers' }));
-    const headersContainer = h('div', { className: 'headers-list' });
-    if (operation.requestBody) {
-      const contentTypes = Object.keys(operation.requestBody.content || {});
-      const defaultCT = contentTypes[0] || 'application/json';
-      headersContainer.append(createHeaderRow('Content-Type', defaultCT));
-    }
-    if (hasOperationAuth(operation.resolvedSecurity) && state.spec) {
-      const authHeaders = resolveAuthHeaders(operation.resolvedSecurity, state.spec.securitySchemes);
-      const placeholders = getAuthHeaderPlaceholder(operation.resolvedSecurity, state.spec.securitySchemes);
-      const merged = { ...placeholders, ...authHeaders };
-      for (const [headerName, headerValue] of Object.entries(merged)) {
-        headersContainer.append(createHeaderRow(headerName, headerValue));
-      }
-    }
-    for (const param of operation.parameters.filter((p) => p.in === 'header')) {
-      headersContainer.append(createHeaderRow(param.name, String(param.example || '')));
-    }
-    const addHeaderBtn = createButton({
-      variant: 'icon',
-      icon: icons.plus,
-      ariaLabel: 'Add header',
-      className: 'field-copy-btn',
-      onClick: () => headersContainer.append(createHeaderRow('', '')),
-    });
-    headersHeader.append(addHeaderBtn);
-    headersSection.append(headersHeader, headersContainer);
-    firstTabPanel.append(headersSection);
   }
 
   // Panels for languages (cURL, JavaScript, ...) — unified editor
@@ -741,6 +742,7 @@ function renderResponse(container: HTMLElement, response: TryItResponse): void {
     readonly: true,
     wrap: 'off',
     spellcheck: 'false',
+    autocomplete: 'off',
   }) as HTMLTextAreaElement;
   headersTextarea.value = Object.entries(response.headers).map(([k, v]) => `${k}: ${v}`).join('\n');
   autoResizeTextarea(headersTextarea);

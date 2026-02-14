@@ -3,6 +3,7 @@ import { store } from '../../core/state';
 import { navigate, buildPath, slugifyTag } from '../../core/router';
 import { createSummaryLine } from '../shared/summary';
 import { createBadge, createBreadcrumb, createCard, createSection, createLockIcon } from '../ui';
+import { createCopyButton } from '../shared/copy-button';
 import { getDisplayBaseUrl } from '../../services/env';
 import { isOperationAuthConfigured } from '../modals/auth-modal';
 import { formatOperationAuthTitle, hasOperationAuth } from '../../core/security';
@@ -35,6 +36,12 @@ export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, ta
 
   const state = store.get();
   const baseUrlDisplay = getDisplayBaseUrl(state);
+  const copyBtn = createCopyButton({
+    ariaLabel: 'Copy category',
+    copiedAriaLabel: 'Copied',
+    className: 'breadcrumb-copy',
+    getText: () => tag.name,
+  });
   const breadcrumb = createBreadcrumb([
     {
       label: baseUrlDisplay || spec.info.title || 'Home',
@@ -45,9 +52,10 @@ export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, ta
     { label: tag.name, className: 'breadcrumb-current' },
   ], {
     className: 'breadcrumb-tag-page',
-    leading: [createBadge({ text: 'Category', kind: 'chip', size: 'm', mono: true })],
+    leading: [createBadge({ text: 'Tag', kind: 'chip', size: 'm', mono: true })],
+    trailing: [copyBtn],
   });
-  const breadcrumbWrap = h('div', { className: 'breadcrumb-wrap' });
+  const breadcrumbWrap = h('div', { className: 'breadcrumb-wrap endpoint-breadcrumb' });
   breadcrumbWrap.append(breadcrumb);
   header.append(breadcrumbWrap);
 
@@ -96,12 +104,6 @@ export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, ta
       onClick: () => navigate(buildPath(route)),
     });
 
-    const info = h('div', { className: 'card-info' });
-    info.append(h('h3', {}, h('code', { textContent: op.path })));
-    if (op.summary || op.operationId) {
-      info.append(h('p', { textContent: op.summary || op.operationId }));
-    }
-
     const badges = h('div', { className: 'card-badges' });
     badges.append(createBadge({ text: op.method.toUpperCase(), kind: 'method', method: op.method, size: 'm', mono: true }));
     if (hasOperationAuth(op.resolvedSecurity)) {
@@ -112,7 +114,15 @@ export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, ta
       }));
     }
 
-    card.append(info, badges);
+    const top = h('div', { className: 'card-group-top' });
+    top.append(h('h3', { className: 'card-group-title' }, h('code', { textContent: op.path })), badges);
+
+    const desc = op.summary || op.operationId
+      ? h('p', { className: 'card-group-description', textContent: op.summary || op.operationId })
+      : null;
+
+    card.append(top);
+    if (desc) card.append(desc);
     opsSection.append(card);
   }
 

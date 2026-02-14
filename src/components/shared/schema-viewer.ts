@@ -52,7 +52,7 @@ export function renderSchemaViewer(schema: SchemaObject, title?: string | HTMLEl
       ? h('button', {
           className: anyExpanded ? 'schema-collapse-btn is-expanded' : 'schema-collapse-btn',
           type: 'button',
-          title: anyExpanded ? 'Collapse all fields' : 'Expand all fields',
+          'aria-label': anyExpanded ? 'Collapse all fields' : 'Expand all fields',
         })
       : null;
 
@@ -63,7 +63,7 @@ export function renderSchemaViewer(schema: SchemaObject, title?: string | HTMLEl
         const nextExpanded = !collapseBtn.classList.contains('is-expanded');
         setRowsExpanded(rowData, nextExpanded);
         collapseBtn.classList.toggle('is-expanded', nextExpanded);
-        collapseBtn.title = nextExpanded ? 'Collapse all fields' : 'Expand all fields';
+        collapseBtn.setAttribute('aria-label', nextExpanded ? 'Collapse all fields' : 'Expand all fields');
       });
     }
 

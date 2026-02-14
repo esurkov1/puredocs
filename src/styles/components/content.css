@@ -38,12 +38,11 @@
 
 .content .summary-line {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-xs);
   width: 100%;
-  overflow-x: auto;
-  padding-bottom: 2px;
+  overflow: visible;
 }
 
 .content .endpoint-meta {
@@ -53,6 +52,37 @@
   font-size: 12px;
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-sm);
+}
+
+.content .endpoint-meta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.content .endpoint-auth-trigger {
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.content .endpoint-auth-trigger:hover {
+  border-color: color-mix(in srgb, currentColor 28%, transparent);
+}
+
+.content .endpoint-auth-trigger:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, currentColor 38%, transparent);
+}
+
+.content .endpoint-breadcrumb {
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-base-color);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface-hover-color) 55%, transparent);
 }
 
 .content .endpoint-meta-icon {
@@ -74,6 +104,11 @@
 .content .endpoint-meta.auth.is-active {
   color: var(--color-green);
   background: color-mix(in srgb, var(--color-green) 8%, transparent);
+}
+
+.content .endpoint-meta.auth.is-missing {
+  color: var(--color-red);
+  background: color-mix(in srgb, var(--color-red) 10%, transparent);
 }
 
 /* ─── Content: context variants ─── */

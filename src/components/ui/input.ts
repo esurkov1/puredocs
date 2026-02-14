@@ -38,6 +38,7 @@ export function createInput(props: InputProps): HTMLInputElement {
 
   const el = document.createElement('input');
   el.type = type;
+  el.setAttribute('autocomplete', 'off');
   const classes: string[] = [];
   if (modifiers?.includes('filled')) classes.push('filled');
   if (invalid) classes.push('invalid');

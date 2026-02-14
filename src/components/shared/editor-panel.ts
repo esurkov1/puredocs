@@ -30,6 +30,7 @@ export function createEditorPanel(
     className: 'textarea-json',
     spellcheck: 'false',
     rows: '1',
+    autocomplete: 'off',
     ...(options?.dataField ? { 'data-field': options.dataField } : {}),
   }) as HTMLTextAreaElement;
   textarea.value = initialValue;

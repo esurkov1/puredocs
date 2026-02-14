@@ -1,15 +1,18 @@
 import { h, clear, render } from '../lib/dom';
 import { icons } from '../lib/icons';
 import { store } from '../core/state';
-import { slugifyTag } from '../core/router';
+import { slugifyTag, navigate, buildPath } from '../core/router';
 import { applyTheme, type ThemeConfig } from '../core/theme';
-import { renderSidebar, updateSidebarActiveState } from './nav/sidebar';
+import { renderSidebar, updateSidebarActiveState, updateSidebarAuthState } from './nav/sidebar';
 import { renderOverview } from './pages/overview';
 import { renderEndpoint } from './pages/endpoint';
 import { renderTagPage } from './pages/tag-page';
 import { renderSchemaViewer } from './shared/schema-viewer';
 import { renderWebhookPage } from './pages/webhook';
 import { resolveAuthHeaders, getAuthHeaderPlaceholder } from './modals/auth-modal';
+import { createBreadcrumb, createBadge, createCard, createSection } from './ui';
+import { createCopyButton } from './shared/copy-button';
+import { createSummaryLine } from './shared/summary';
 import { createContentArea, setContentAreaAside } from './layout/page-layout';
 import { createEmptyStatePage } from './layout/empty-state-page';
 import { createHeaderRow } from './shared/try-it';
@@ -151,11 +154,12 @@ async function updateContent(state: PortalState, config: PortalConfig): Promise<
   // Skip re-render if same route AND env/auth unchanged
   if (isSameCurrentRoute && prevEnvState === envState) return;
   
-  // Route unchanged but env/auth changed — re-render sidebar and page to update lock icons
+  // Route unchanged but env/auth changed — patch sidebar in-place and update page content
   if (isSameRouteWithEnvOrAuthChange) {
     prevEnvState = envState;
     updateEnvironmentState(currentPageEl, state, config);
-    if (sidebarEl && state.spec) renderSidebar(sidebarEl, config);
+    if (sidebarEl && state.spec) updateSidebarAuthState(sidebarEl);
+    return;
   }
   
   prevRoute = { ...route };
@@ -182,7 +186,8 @@ async function updateContent(state: PortalState, config: PortalConfig): Promise<
     case 'endpoint': {
       const op = findOperation(state, route);
       if (op) {
-        setContentAreaAside(currentPageEl, true);
+        const showTryIt = op.method.toLowerCase() !== 'trace';
+        setContentAreaAside(currentPageEl, showTryIt);
         await renderEndpoint(currentMainEl, currentAsideEl, op);
       } else {
         setContentAreaAside(currentPageEl, false);
@@ -199,33 +204,66 @@ async function updateContent(state: PortalState, config: PortalConfig): Promise<
     }
 
     case 'schema': {
-      const schema = state.spec.schemas[route.schemaName || ''];
-      if (schema) {
-        setContentAreaAside(currentPageEl, false);
-        const header = h('div', { className: 'block header' });
-        header.append(h('h1', { textContent: route.schemaName || '' }));
-        if (schema.description) {
-          header.append(h('p', { textContent: String(schema.description) }));
+      setContentAreaAside(currentPageEl, false);
+      if (route.schemaName) {
+        const schema = state.spec.schemas[route.schemaName];
+        if (schema) {
+          const baseUrl = getBaseUrl(state);
+          const baseUrlDisplay = formatBaseUrlForDisplay(baseUrl);
+          const schemaCopyBtn = createCopyButton({
+            ariaLabel: 'Copy schema name',
+            copiedAriaLabel: 'Copied',
+            className: 'breadcrumb-copy',
+            getText: () => route.schemaName || '',
+          });
+          const schemaBreadcrumb = createBreadcrumb(
+            [
+              {
+                label: baseUrlDisplay || state.spec.info.title || 'Home',
+                href: '/',
+                className: 'breadcrumb-item',
+                onClick: (e: Event) => { e.preventDefault(); navigate('/'); },
+              },
+              { label: route.schemaName, className: 'breadcrumb-current' },
+            ],
+            {
+              leading: [createBadge({ text: 'Schema', kind: 'chip', size: 'm', mono: true })],
+              trailing: [schemaCopyBtn],
+            },
+          );
+          const header = h('div', { className: 'block header' });
+          header.append(h('h1', { textContent: route.schemaName }));
+          const breadcrumbWrap = h('div', { className: 'breadcrumb-wrap endpoint-breadcrumb' });
+          breadcrumbWrap.append(schemaBreadcrumb);
+          header.append(breadcrumbWrap);
+          if (schema.description) {
+            header.append(h('p', { textContent: String(schema.description) }));
+          }
+          const schemaSection = h('div', { className: 'block section' });
+          schemaSection.append(renderSchemaViewer(schema, 'Properties'));
+          render(currentMainEl, header, schemaSection);
         }
-        const schemaSection = h('div', { className: 'block section' });
-        schemaSection.append(renderSchemaViewer(schema, 'Properties'));
-        render(currentMainEl, header, schemaSection);
+      } else {
+        renderSchemaListPage(currentMainEl, state);
       }
       break;
     }
 
     case 'webhook': {
-      const wh = state.spec.webhooks?.find((w) => w.name === route.webhookName);
-      if (wh) {
-        setContentAreaAside(currentPageEl, false);
-        renderWebhookPage(currentMainEl, wh);
+      setContentAreaAside(currentPageEl, false);
+      if (route.webhookName) {
+        const wh = state.spec.webhooks?.find((w) => w.name === route.webhookName);
+        if (wh) {
+          renderWebhookPage(currentMainEl, wh);
+        } else {
+          render(currentMainEl, createEmptyStatePage({
+            title: 'Webhook not found',
+            message: route.webhookName,
+            variant: 'empty',
+          }));
+        }
       } else {
-        setContentAreaAside(currentPageEl, false);
-        render(currentMainEl, createEmptyStatePage({
-          title: 'Webhook not found',
-          message: route.webhookName || '',
-          variant: 'empty',
-        }));
+        renderWebhookListPage(currentMainEl, state);
       }
       break;
     }
@@ -366,4 +404,151 @@ function isSameRoute(a: RouteInfo, b: RouteInfo): boolean {
     && a.schemaName === b.schemaName
     && a.tag === b.tag
     && a.webhookName === b.webhookName;
+}
+
+/** Render a list page for all webhooks — similar to tag-page */
+function renderWebhookListPage(slot: HTMLElement, state: PortalState): void {
+  const spec = state.spec;
+  if (!spec) return;
+  const webhooks = spec.webhooks || [];
+
+  const baseUrl = getBaseUrl(state);
+  const baseUrlDisplay = formatBaseUrlForDisplay(baseUrl);
+
+  const header = h('div', { className: 'block header' });
+  header.append(h('h1', { textContent: 'Webhooks' }));
+
+  const breadcrumb = createBreadcrumb([
+    {
+      label: baseUrlDisplay || spec.info.title || 'Home',
+      href: '/',
+      className: 'breadcrumb-item',
+      onClick: (e: Event) => { e.preventDefault(); navigate('/'); },
+    },
+    { label: 'Webhooks', className: 'breadcrumb-current' },
+  ], {
+    leading: [createBadge({ text: 'Tag', kind: 'chip', size: 'm', mono: true })],
+    trailing: [createCopyButton({
+      ariaLabel: 'Copy',
+      copiedAriaLabel: 'Copied',
+      className: 'breadcrumb-copy',
+      getText: () => 'Webhooks',
+    })],
+  });
+  const breadcrumbWrap = h('div', { className: 'breadcrumb-wrap endpoint-breadcrumb' });
+  breadcrumbWrap.append(breadcrumb);
+  header.append(breadcrumbWrap);
+  slot.append(header);
+
+  // Summary
+  const methods: Record<string, number> = {};
+  for (const wh of webhooks) {
+    methods[wh.method] = (methods[wh.method] || 0) + 1;
+  }
+  slot.append(createSection(
+    { className: 'summary' },
+    createSummaryLine(
+      [{ label: 'Webhooks', value: webhooks.length }],
+      methods,
+    ),
+  ));
+
+  // Cards
+  const opsSection = createSection({ title: 'Webhooks' });
+  for (const wh of webhooks) {
+    const whRoute: RouteInfo = { type: 'webhook', webhookName: wh.name };
+    const isActive = state.route.type === 'webhook' && state.route.webhookName === wh.name;
+    const card = createCard({
+      interactive: true,
+      active: isActive,
+      className: 'card-group',
+      onClick: () => navigate(buildPath(whRoute)),
+    });
+    const badges = h('div', { className: 'card-badges' });
+    badges.append(
+      createBadge({ text: 'WH', kind: 'webhook', size: 'm', mono: true }),
+      createBadge({ text: wh.method.toUpperCase(), kind: 'method', method: wh.method, size: 'm', mono: true }),
+    );
+    const top = h('div', { className: 'card-group-top' });
+    top.append(h('h3', { className: 'card-group-title', textContent: wh.name }), badges);
+    const desc = h('p', {
+      className: 'card-group-description',
+      textContent: wh.summary || wh.description || `${wh.method.toUpperCase()} webhook`,
+    });
+    card.append(top, desc);
+    opsSection.append(card);
+  }
+  slot.append(opsSection);
+}
+
+/** Render a list page for all schemas — similar to tag-page */
+function renderSchemaListPage(slot: HTMLElement, state: PortalState): void {
+  const spec = state.spec;
+  if (!spec) return;
+  const schemaNames = Object.keys(spec.schemas);
+
+  const baseUrl = getBaseUrl(state);
+  const baseUrlDisplay = formatBaseUrlForDisplay(baseUrl);
+
+  const header = h('div', { className: 'block header' });
+  header.append(h('h1', { textContent: 'Schemas' }));
+
+  const breadcrumb = createBreadcrumb([
+    {
+      label: baseUrlDisplay || spec.info.title || 'Home',
+      href: '/',
+      className: 'breadcrumb-item',
+      onClick: (e: Event) => { e.preventDefault(); navigate('/'); },
+    },
+    { label: 'Schemas', className: 'breadcrumb-current' },
+  ], {
+    leading: [createBadge({ text: 'Tag', kind: 'chip', size: 'm', mono: true })],
+    trailing: [createCopyButton({
+      ariaLabel: 'Copy',
+      copiedAriaLabel: 'Copied',
+      className: 'breadcrumb-copy',
+      getText: () => 'Schemas',
+    })],
+  });
+  const breadcrumbWrap = h('div', { className: 'breadcrumb-wrap endpoint-breadcrumb' });
+  breadcrumbWrap.append(breadcrumb);
+  header.append(breadcrumbWrap);
+  slot.append(header);
+
+  // Summary
+  slot.append(createSection(
+    { className: 'summary' },
+    createSummaryLine(
+      [{ label: 'Schemas', value: schemaNames.length }],
+      {},
+    ),
+  ));
+
+  // Cards
+  const schemasSection = createSection({ title: 'Schemas' });
+  for (const name of schemaNames) {
+    const schema = spec.schemas[name];
+    const schemaRoute: RouteInfo = { type: 'schema', schemaName: name };
+    const isActive = state.route.type === 'schema' && state.route.schemaName === name;
+    const card = createCard({
+      interactive: true,
+      active: isActive,
+      className: 'card-group',
+      onClick: () => navigate(buildPath(schemaRoute)),
+    });
+    const badges = h('div', { className: 'card-badges' });
+    const schemaType = schema.type || (schema.allOf ? 'allOf' : schema.oneOf ? 'oneOf' : schema.anyOf ? 'anyOf' : 'object');
+    badges.append(createBadge({ text: schemaType, kind: 'chip', size: 'm', mono: true }));
+    if (schema.properties) {
+      badges.append(createBadge({ text: `${Object.keys(schema.properties).length} props`, kind: 'chip', size: 'm', mono: true }));
+    }
+    const top = h('div', { className: 'card-group-top' });
+    top.append(h('h3', { className: 'card-group-title', textContent: name }), badges);
+    const desc = schema.description
+      ? h('p', { className: 'card-group-description', textContent: String(schema.description) })
+      : h('p', { className: 'card-group-description', textContent: `${schemaType} schema` });
+    card.append(top, desc);
+    schemasSection.append(card);
+  }
+  slot.append(schemasSection);
 }

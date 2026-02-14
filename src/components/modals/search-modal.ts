@@ -147,7 +147,6 @@ function renderResults(container: HTMLElement, results: SearchEntry[]): void {
       item.append(h('span', {
         className: `search-result-lock search-result-lock--${configured ? 'configured' : 'required'}`,
         innerHTML: configured ? icons.unlock : icons.lock,
-        title: entry.authTitle || 'Requires authentication',
         'aria-label': entry.authTitle || 'Requires authentication',
       }));
     }

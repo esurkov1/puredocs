@@ -67,10 +67,10 @@ export function buildPath(route: RouteInfo): string {
     }
 
     case 'schema':
-      return `/schemas/${encodeURIComponent(route.schemaName || '')}`;
+      return route.schemaName ? `/schemas/${encodeURIComponent(route.schemaName)}` : '/schemas';
 
     case 'webhook':
-      return `/webhooks/${encodeURIComponent(route.webhookName || '')}`;
+      return route.webhookName ? `/webhooks/${encodeURIComponent(route.webhookName)}` : '/webhooks';
 
     case 'guide':
       return `/guides/${encodeURIComponent(route.guidePath || '')}`;
@@ -100,20 +100,20 @@ export function parsePath(rawPath: string): RouteInfo {
 
   const first = safeDecode(segments[0]).toLowerCase();
 
-  // Reserved prefix: /schemas/{name...}
-  if (first === 'schemas' && segments.length >= 2) {
-    return {
-      type: 'schema',
-      schemaName: safeDecode(segments.slice(1).join('/')),
-    };
+  // Reserved prefix: /schemas or /schemas/{name...}
+  if (first === 'schemas') {
+    if (segments.length >= 2) {
+      return { type: 'schema', schemaName: safeDecode(segments.slice(1).join('/')) };
+    }
+    return { type: 'schema' };
   }
 
-  // Reserved prefix: /webhooks/{name...}
-  if (first === 'webhooks' && segments.length >= 2) {
-    return {
-      type: 'webhook',
-      webhookName: safeDecode(segments.slice(1).join('/')),
-    };
+  // Reserved prefix: /webhooks or /webhooks/{name...}
+  if (first === 'webhooks') {
+    if (segments.length >= 2) {
+      return { type: 'webhook', webhookName: safeDecode(segments.slice(1).join('/')) };
+    }
+    return { type: 'webhook' };
   }
 
   // Reserved prefix: /guides/{path...}
