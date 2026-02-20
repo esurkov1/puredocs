@@ -12,10 +12,34 @@
 }
 
 .content .block.header > p,
-.content .block.section > p {
+.content .block.section > p,
+.content .block.header > .md-content,
+.content .block.section > .md-content {
   max-width: 720px;
   font-size: var(--text-md);
   line-height: var(--leading-relaxed);
+}
+
+/* Markdown-rendered descriptions */
+.md-content .md-p {
+  margin: 0 0 0.5em;
+}
+.md-content .md-p:last-child {
+  margin-bottom: 0;
+}
+.md-content code {
+  font-size: 0.9em;
+  padding: 0.15em 0.4em;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+.md-content a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.md-content a:hover {
+  text-decoration-thickness: 2px;
 }
 
 .content .title {

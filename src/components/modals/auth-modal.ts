@@ -1,4 +1,4 @@
-import { h, clear } from '../../lib/dom';
+import { h, clear, markdownBlock } from '../../lib/dom';
 import { icons } from '../../lib/icons';
 import { store } from '../../core/state';
 import { createButton, createInput } from '../ui';
@@ -315,7 +315,7 @@ export function openAuthModal(
     const title = h('div', { className: 'modal scheme-title', textContent: schemeLabel(scheme) });
     descEl.append(title);
     if (scheme.description) {
-      descEl.append(h('div', { className: 'modal scheme-text', textContent: scheme.description }));
+      descEl.append(markdownBlock(scheme.description, 'modal scheme-text md-content'));
     }
   }
   updateDescription();

@@ -1,4 +1,4 @@
-import { h, clear, render } from '../lib/dom';
+import { h, clear, render, markdownBlock } from '../lib/dom';
 import { icons } from '../lib/icons';
 import { store } from '../core/state';
 import { useEffects, notifyEffects, disposeEffects } from '../core/effects';
@@ -242,7 +242,7 @@ async function updateContent(state: PortalState, config: PortalConfig): Promise<
           breadcrumbWrap.append(schemaBreadcrumb);
           header.append(breadcrumbWrap);
           if (schema.description) {
-            header.append(h('p', { textContent: String(schema.description) }));
+            header.append(markdownBlock(String(schema.description)));
           }
           const schemaSection = h('div', { className: 'block section' });
           schemaSection.append(renderSchemaViewer(schema, 'Properties'));
@@ -438,10 +438,7 @@ function renderWebhookListPage(slot: HTMLElement, state: PortalState): void {
     );
     const top = h('div', { className: 'card-group-top' });
     top.append(h('h3', { className: 'card-group-title', textContent: wh.name }), badges);
-    const desc = h('p', {
-      className: 'card-group-description',
-      textContent: wh.summary || wh.description || `${wh.method.toUpperCase()} webhook`,
-    });
+    const desc = markdownBlock(wh.summary || wh.description || `${wh.method.toUpperCase()} webhook`, 'card-group-description md-content');
     card.append(top, desc);
     opsSection.append(card);
   }
@@ -519,9 +516,7 @@ function renderSchemaListPage(slot: HTMLElement, state: PortalState): void {
     }
     const top = h('div', { className: 'card-group-top' });
     top.append(h('h3', { className: 'card-group-title', textContent: name }), badges);
-    const desc = schema.description
-      ? h('p', { className: 'card-group-description', textContent: String(schema.description) })
-      : h('p', { className: 'card-group-description', textContent: `${schemaType} schema` });
+    const desc = markdownBlock(schema.description ? String(schema.description) : `${schemaType} schema`, 'card-group-description md-content');
     card.append(top, desc);
     schemasSection.append(card);
   }

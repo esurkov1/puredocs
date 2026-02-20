@@ -1,6 +1,6 @@
 {
   "name": "puredocs",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Beautiful API documentation portal from any OpenAPI 3.1 spec. One-liner for Express & Fastify. Standard Web Component for everything else.",
   "author": "esurkov1",
   "license": "SEE LICENSE IN LICENSE",
@@ -70,7 +70,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "js-yaml": "^4.1.0"
+    "dompurify": "^3.3.1",
+    "js-yaml": "^4.1.0",
+    "marked": "^17.0.3"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",

@@ -1,4 +1,4 @@
-import { h, clear } from '../../lib/dom';
+import { h, clear, markdownBlock } from '../../lib/dom';
 import { navigate } from '../../core/router';
 import { store } from '../../core/state';
 import { useEffects } from '../../core/effects';
@@ -66,7 +66,7 @@ export async function renderWebhookPage(pageSlot: HTMLElement, webhook: SpecWebh
   header.append(breadcrumbWrap);
 
   if (webhook.description) {
-    header.append(h('p', { textContent: webhook.description }));
+    header.append(markdownBlock(webhook.description));
   }
 
   pageSlot.append(header);
@@ -92,7 +92,7 @@ export async function renderWebhookPage(pageSlot: HTMLElement, webhook: SpecWebh
 
       const wrapper = h('div', { className: 'request-body-wrap' });
       if (webhook.requestBody.description) {
-        wrapper.append(h('p', { textContent: webhook.requestBody.description }));
+        wrapper.append(markdownBlock(webhook.requestBody.description));
       }
 
       const schemas = contentEntries.map(([ct, mt]) => createSchemaBodyContent(ct, mt, 'No schema'));

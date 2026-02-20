@@ -1,4 +1,4 @@
-import { h, clear } from '../../lib/dom';
+import { h, clear, markdownBlock } from '../../lib/dom';
 import { icons } from '../../lib/icons';
 import { store } from '../../core/state';
 import { useEffects } from '../../core/effects';
@@ -25,7 +25,7 @@ export async function renderOverview(pageSlot: HTMLElement, _asideSlot: HTMLElem
   header.append(titleWrap);
 
   if (spec.info.description) {
-    header.append(h('p', { textContent: spec.info.description }));
+    header.append(markdownBlock(spec.info.description));
   }
 
   pageSlot.append(header);
@@ -79,7 +79,7 @@ export async function renderOverview(pageSlot: HTMLElement, _asideSlot: HTMLElem
       nameWrap.append(iconEl, h('code', { textContent: server.url }));
       info.append(nameWrap);
       if (server.description) {
-        info.append(h('p', { textContent: server.description }));
+        info.append(markdownBlock(server.description));
       }
       const badges = h('div', { className: 'card-badges' });
       item.append(info, badges);
@@ -133,10 +133,7 @@ export async function renderOverview(pageSlot: HTMLElement, _asideSlot: HTMLElem
       );
       const top = h('div', { className: 'card-group-top' });
       top.append(h('h3', { className: 'card-group-title', textContent: wh.summary || wh.name }), badges);
-      const desc = h('p', {
-        className: 'card-group-description',
-        textContent: wh.description || `${wh.method.toUpperCase()} webhook`,
-      });
+      const desc = markdownBlock(wh.description || `${wh.method.toUpperCase()} webhook`, 'card-group-description md-content');
       card.append(top, desc);
       webhooksSection.append(card);
     }
@@ -169,10 +166,7 @@ function createTagCard(tag: SpecTag): HTMLElement {
 
   const top = h('div', { className: 'card-group-top' });
   top.append(h('h3', { className: 'card-group-title', textContent: tag.name }), badges);
-  const desc = h('p', {
-    className: 'card-group-description',
-    textContent: tag.description || `${tag.operations.length} endpoints`,
-  });
+  const desc = markdownBlock(tag.description || `${tag.operations.length} endpoints`, 'card-group-description md-content');
 
   card.append(top, desc);
 

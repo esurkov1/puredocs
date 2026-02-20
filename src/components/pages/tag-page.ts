@@ -1,4 +1,4 @@
-import { h, clear } from '../../lib/dom';
+import { h, clear, markdownBlock } from '../../lib/dom';
 import { store } from '../../core/state';
 import { useEffects } from '../../core/effects';
 import { navigate, buildPath, slugifyTag } from '../../core/router';
@@ -61,7 +61,7 @@ export function renderTagPage(pageSlot: HTMLElement, _asideSlot: HTMLElement, ta
   header.append(breadcrumbWrap);
 
   if (tag.description) {
-    header.append(h('p', { textContent: tag.description }));
+    header.append(markdownBlock(tag.description));
   }
 
   pageSlot.append(header);

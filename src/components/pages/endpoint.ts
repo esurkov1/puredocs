@@ -1,4 +1,4 @@
-import { h, clear } from '../../lib/dom';
+import { h, clear, markdownBlock } from '../../lib/dom';
 import { icons } from '../../lib/icons';
 import { store } from '../../core/state';
 import { useEffects } from '../../core/effects';
@@ -96,7 +96,7 @@ export async function renderEndpoint(pageSlot: HTMLElement, asideSlot: HTMLEleme
 
   // Description — directly under title
   if (operation.description) {
-    header.append(h('p', { textContent: operation.description }));
+    header.append(markdownBlock(operation.description));
   }
 
   // Breadcrumb — under description, highlighted as card
@@ -362,7 +362,7 @@ function renderParameterList(params: SpecOperation['parameters']): HTMLElement {
 
     const descCol = h('div', { className: 'schema-desc-col is-root' });
     if (p.description) {
-      descCol.append(h('p', { textContent: p.description }));
+      descCol.append(markdownBlock(p.description));
     }
     const enumValues = p.schema?.enum;
     const hasDefault = p.schema?.default !== undefined;
@@ -456,7 +456,7 @@ function renderRequestHeadersList(rows: RequestHeaderRow[]): HTMLElement {
 
     const descCol = h('div', { className: 'schema-desc-col is-root' });
     if (rowData.description) {
-      descCol.append(h('p', { textContent: rowData.description }));
+      descCol.append(markdownBlock(rowData.description));
     }
     const valueWrap = h('div', { className: 'schema-enum-values' });
     valueWrap.append(createBadge({
@@ -484,7 +484,7 @@ function renderRequestBodyCategory(operation: SpecOperation): RequestBodyCategor
   const contentEntries = Object.entries(operation.requestBody?.content || {});
 
   if (operation.requestBody?.description) {
-    wrapper.append(h('p', { textContent: operation.requestBody.description }));
+    wrapper.append(markdownBlock(operation.requestBody.description));
   }
 
   if (contentEntries.length === 0) {
@@ -608,7 +608,7 @@ function renderCallbacksSection(operation: SpecOperation): HTMLElement {
         opBlock.append(h('div', { className: 'callback-op-summary', textContent: cbOp.summary }));
       }
       if (cbOp.description) {
-        opBlock.append(h('p', { textContent: cbOp.description }));
+        opBlock.append(markdownBlock(cbOp.description));
       }
 
       // Callback request body
@@ -632,7 +632,7 @@ function renderCallbacksSection(operation: SpecOperation): HTMLElement {
             mono: true,
           }));
           if (resp.description) {
-            respRow.append(h('p', { textContent: resp.description }));
+            respRow.append(markdownBlock(resp.description));
           }
           if (resp.content) {
             for (const [ct, mediaType] of Object.entries(resp.content)) {

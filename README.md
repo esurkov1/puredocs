@@ -33,6 +33,7 @@
 - **Full Auth Support** — Bearer, Basic, API Key, OAuth2, OpenID Connect
 - **Multi-Language Snippets** — auto-generated cURL, JavaScript, Python, Go, Rust
 - **JSON & YAML** — load specs in either format
+- **Markdown in Descriptions** — use `**bold**`, `*italic*`, `` `code` ``, and `[links](url)` in OpenAPI descriptions; zero deps, XSS-safe
 - **Zero Config** — works out of the box with sensible defaults
 
 ---

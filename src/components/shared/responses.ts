@@ -1,4 +1,4 @@
-import { h } from '../../lib/dom';
+import { h, markdownBlock } from '../../lib/dom';
 import { icons } from '../../lib/icons';
 import { renderSchemaBody } from './schema-viewer';
 import { getSchemaTypeLabel } from '../../helpers/schema-utils';
@@ -155,7 +155,7 @@ export function renderResponseHeadersList(headers: Record<string, SpecResponseHe
 
     const descCol = h('div', { className: 'schema-desc-col is-root' });
     if (hdr.description) {
-      descCol.append(h('p', { textContent: hdr.description }));
+      descCol.append(markdownBlock(hdr.description));
     }
     const valueWrap = h('div', { className: 'schema-enum-values' });
     valueWrap.append(createBadge({

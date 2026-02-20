@@ -1,4 +1,4 @@
-import { h } from '../../lib/dom';
+import { h, markdownBlock } from '../../lib/dom';
 import { icons } from '../../lib/icons';
 import { createBadge, createCard, createCardHeader, createCardBody, createCardHeaderRow } from '../ui';
 import { getSchemaTypeLabel } from '../../helpers/schema-utils';
@@ -122,7 +122,7 @@ export function renderParametersCard(params: SpecParameter[], options: Parameter
 
     const descCol = h('div', { className: 'schema-desc-col is-root' });
     if (p.description) {
-      descCol.append(h('p', { textContent: p.description }));
+      descCol.append(markdownBlock(p.description));
     }
     const enumValues = p.schema?.enum;
     const hasDefault = p.schema?.default !== undefined;
@@ -296,7 +296,7 @@ function createRow(
 
   const descCol = h('div', { className: `schema-desc-col${depth === 0 ? ' is-root' : ''}` });
   if (schema.description) {
-    descCol.append(h('p', { textContent: String(schema.description) }));
+    descCol.append(markdownBlock(String(schema.description)));
   }
   const enumValues = schema.enum;
   const hasEnumValues = Array.isArray(enumValues) && enumValues.length > 0;

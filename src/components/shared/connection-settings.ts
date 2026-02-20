@@ -1,4 +1,4 @@
-import { h } from '../../lib/dom';
+import { h, markdownBlock } from '../../lib/dom';
 import { icons } from '../../lib/icons';
 import { openAuthModal } from '../modals/auth-modal';
 import { isSchemeConfigured } from '../modals/auth-modal';
@@ -39,7 +39,7 @@ function createAuthenticationSection(
     );
 
     if (scheme.description) {
-      info.append(h('p', { className: 'card-auth-desc', textContent: String(scheme.description) }));
+      info.append(markdownBlock(String(scheme.description), 'card-auth-desc md-content'));
     }
 
     const configureBtn = createButton({

@@ -3,7 +3,7 @@
   "info": {
     "title": "PureDocs Demo API",
     "version": "1.0.0",
-    "description": "A comprehensive API specification used to demonstrate PureDocs capabilities. Includes all major HTTP methods, multiple authentication strategies, server environments, rich examples, callbacks, and webhooks.",
+    "description": "A comprehensive API specification used to demonstrate PureDocs capabilities. Includes **all major HTTP methods**, multiple authentication strategies, server environments, rich examples, callbacks, and webhooks. Descriptions support Markdown: *italic*, `code`, and [links](https://puredocs.dev).",
     "contact": {
       "name": "PureDocs API Team",
       "email": "api@puredocs.dev",
@@ -31,7 +31,7 @@
   "tags": [
     {
       "name": "Auth",
-      "description": "Authentication, session management, and token lifecycle."
+      "description": "**Authentication**, session management, and token lifecycle. Supports Bearer, Basic, and OAuth2."
     },
     {
       "name": "Users",
@@ -64,7 +64,7 @@
       "post": {
         "tags": ["Auth"],
         "summary": "Login with email and password",
-        "description": "Creates a user session and returns a short-lived access token plus refresh token.",
+        "description": "Creates a user session and returns a short-lived *access token* plus `refreshToken`. Use the tokens for subsequent API calls.",
         "security": [
           {
             "BasicAuth": []
@@ -370,7 +370,7 @@
       "get": {
         "tags": ["Users"],
         "summary": "Get user",
-        "description": "Returns detailed profile and metadata.",
+        "description": "Returns **detailed profile** and metadata. Use the `userId` path parameter to fetch a specific user.",
         "responses": {
           "200": {
             "description": "User profile",
@@ -952,7 +952,7 @@
       "get": {
         "tags": ["Reports"],
         "summary": "Get daily metrics",
-        "description": "Read-only report endpoint secured by API key.",
+        "description": "Read-only report endpoint secured by `x-api-key` header. Returns **daily metrics** for the given date.",
         "security": [
           {
             "ApiKeyAuth": []
@@ -1078,7 +1078,7 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT",
-        "description": "JWT access token from /auth/login"
+        "description": "JWT *access token* from `POST /auth/login`. Include as `Authorization: Bearer <token>`."
       },
       "BasicAuth": {
         "type": "http",

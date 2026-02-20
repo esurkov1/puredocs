@@ -2,7 +2,7 @@
  * Lightweight DOM helper utilities.
  * No virtual DOM — direct, efficient DOM manipulation.
  */
-import { escapeHtml as escapeHtmlImpl } from '../helpers/text';
+import { escapeHtml as escapeHtmlImpl, markdownToHtml } from '../helpers/text';
 
 type Attrs = Record<string, string | boolean | number | EventListener | undefined>;
 type Child = HTMLElement | SVGElement | string | null | undefined | false;
@@ -63,6 +63,14 @@ export function render(container: HTMLElement, ...children: Child[]): void {
 /** Escape HTML to prevent XSS */
 export function escapeHtml(str: string): string {
   return escapeHtmlImpl(str);
+}
+
+/** Render markdown description as safe HTML block (no external deps) */
+export function markdownBlock(md: string, className = 'description md-content'): HTMLElement {
+  const el = document.createElement('div');
+  el.className = className;
+  el.innerHTML = markdownToHtml(md);
+  return el;
 }
 
 /** Copy text to clipboard */
