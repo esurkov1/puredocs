@@ -52,6 +52,7 @@ function createAuthenticationSection(
         openAuthModal(securitySchemes, portalRoot, name);
       },
     });
+    configureBtn.setAttribute('data-scheme-name', name);
 
     top.append(info);
     card.append(top, configureBtn);

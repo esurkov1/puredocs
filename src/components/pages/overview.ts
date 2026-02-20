@@ -5,6 +5,7 @@ import { useEffects } from '../../core/effects';
 import { navigate, buildPath } from '../../core/router';
 import { createSummaryLine } from '../shared/summary';
 import { createConnectionSettingsSections } from '../shared/connection-settings';
+import { isSchemeConfigured } from '../modals/auth-modal';
 import { createBadge, createCard, createSection } from '../ui';
 import { hasOperationAuth } from '../../core/security';
 import type { SpecTag } from '../../core/types';
@@ -103,6 +104,24 @@ export async function renderOverview(pageSlot: HTMLElement, _asideSlot: HTMLElem
   const connectionSections = createConnectionSettingsSections(spec.securitySchemes || {}, portalRoot);
   for (const section of connectionSections) {
     pageSlot.append(section);
+  }
+
+  // Reactive: update auth buttons (Set ↔ Success) when auth state changes
+  const authButtons = pageSlot.querySelectorAll<HTMLButtonElement>('.card-auth-config[data-scheme-name]');
+  if (authButtons.length > 0) {
+    useEffects().on('overview:auth', () => {
+      authButtons.forEach((btn) => {
+        const name = btn.getAttribute('data-scheme-name');
+        if (!name) return;
+        const configured = isSchemeConfigured(name);
+        const iconSlot = btn.querySelector('.btn-icon-slot');
+        if (iconSlot) iconSlot.innerHTML = configured ? icons.check : icons.settings;
+        const labelEl = btn.children[1];
+        if (labelEl) labelEl.textContent = configured ? 'Success' : 'Set';
+        btn.classList.toggle('active', configured);
+        btn.classList.toggle('is-configured', configured);
+      });
+    });
   }
 
   if (spec.tags.length > 0) {
